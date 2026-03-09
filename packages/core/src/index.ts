@@ -64,25 +64,29 @@ export {
 // Context
 export type { HandlerContext, DbClient } from "./context.js";
 // Pipeline
-export { findPreviousPostIds } from "./pipeline/dedup.js";
 export {
+  runDigestPipeline,
+  fetchStep,
+  triageStep,
+  summarizeStep,
+  assembleStep,
+  renderDigestMarkdown,
   estimateTokens,
   truncateText,
   applyTriageBudget,
   applySummarizationBudget,
+  findPreviousPostIds,
   TRIAGE_TOKEN_BUDGET,
   SUMMARIZATION_TOKEN_BUDGET,
-} from "./pipeline/token-budget.js";
-export { triageStep } from "./pipeline/triage-step.js";
-export {
-  assembleStep,
-  renderDigestMarkdown,
-} from "./pipeline/assemble-step.js";
-export { runDigestPipeline } from "./pipeline/orchestrator.js";
+} from "./pipeline/index.js";
 export type {
+  ContentSource,
   PipelineDeps,
   PipelineResult,
+  PipelineModelConfig,
   SubredditPipelineResult,
-  ContentSource,
-  ModelConfig as PipelineModelConfig,
-} from "./pipeline/types.js";
+  FetchStepResult,
+  TriageStepResult,
+  SummarizeStepResult,
+  AssembleStepResult,
+} from "./pipeline/index.js";
