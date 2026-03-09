@@ -1,0 +1,2 @@
+// @redgest/email — placeholder
+export {};

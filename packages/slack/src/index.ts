@@ -1,0 +1,2 @@
+// @redgest/slack — placeholder
+export {};

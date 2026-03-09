@@ -1,0 +1,11 @@
+{
+  "name": "@redgest/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'web app placeholder'",
+    "build": "echo 'web app placeholder'",
+    "lint": "echo 'web app placeholder'"
+  }
+}

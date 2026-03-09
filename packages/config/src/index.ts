@@ -1,0 +1,2 @@
+// @redgest/config — placeholder
+export {};
