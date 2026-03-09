@@ -12,9 +12,12 @@
       "dependsOn": ["^db:generate"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
-    "lint": {},
+    "lint": {
+      "outputs": []
+    },
     "db:generate": {
       "cache": false
     },
