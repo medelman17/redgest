@@ -12,5 +12,13 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1",
+    "prisma": "^7.4.2",
+    "tsx": "^4.21.0"
   }
 }
