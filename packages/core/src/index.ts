@@ -74,3 +74,7 @@ export {
   SUMMARIZATION_TOKEN_BUDGET,
 } from "./pipeline/token-budget.js";
 export { triageStep } from "./pipeline/triage-step.js";
+export {
+  assembleStep,
+  renderDigestMarkdown,
+} from "./pipeline/assemble-step.js";
