@@ -78,3 +78,11 @@ export {
   assembleStep,
   renderDigestMarkdown,
 } from "./pipeline/assemble-step.js";
+export { runDigestPipeline } from "./pipeline/orchestrator.js";
+export type {
+  PipelineDeps,
+  PipelineResult,
+  SubredditPipelineResult,
+  ContentSource,
+  ModelConfig as PipelineModelConfig,
+} from "./pipeline/types.js";
