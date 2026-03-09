@@ -10,5 +10,15 @@
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/mcp": "^0.2.4",
+    "@hono/node-server": "^1.19.11",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@redgest/config": "workspace:*",
+    "@redgest/core": "workspace:*",
+    "@redgest/db": "workspace:*",
+    "@redgest/reddit": "workspace:*",
+    "hono": "^4.12.5"
   }
 }
