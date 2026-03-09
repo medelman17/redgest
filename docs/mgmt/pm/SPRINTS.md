@@ -1,6 +1,46 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 2
+## Active Sprint: Sprint 4
+
+**Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 6pt
+**Sprint Goal**: Implement command/query handlers and LLM generate functions to fully unblock WS6 (Pipeline)
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Command handlers — GenerateDigest, AddSubreddit, RemoveSubreddit, UpdateSubreddit, UpdateConfig | WS3 | 1.5 | feature | [x] |
+| Query handlers — GetDigest, GetPost, GetRunStatus, ListDigests, ListRuns, ListSubreddits, GetConfig, SearchPosts, SearchDigests | WS3 | 1.0 | feature | [x] |
+| Provider abstraction — Anthropic + OpenAI registry | WS5 | 0.5 | feature | [x] |
+| generateTriageResult() with Output.object() | WS5 | 1.0 | feature | [x] |
+| generatePostSummary() with Output.object() | WS5 | 0.5 | feature | [x] |
+| Content fetcher — hot/top/rising + comments | WS4 | 1.0 | feature | [x] |
+
+**Committed**: 5.5pt | **Completed**: 5.5pt | **Velocity**: 100%
+
+---
+
+## Previous Sprints
+
+### Sprint 3 (Complete)
+
+**Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 6pt
+**Sprint Goal**: Build CQRS infrastructure to unblock the critical path (WS3 → WS6 → WS7 → WS8)
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Domain model classes — Command, Query, Event | WS3 | 1.0 | feature | [x] |
+| Command bus implementation | WS3 | 1.0 | feature | [x] |
+| Query bus implementation | WS3 | 1.0 | feature | [x] |
+| Event bus — in-process EventEmitter | WS3 | 1.0 | feature | [x] |
+| Token bucket rate limiter — 60 req/min | WS4 | 0.5 | feature | [x] |
+| TD-001: insightNotes Zod/Prisma mismatch | WS5/WS2 | 0.5 | debt | [x] |
+
+**Committed**: 5pt | **Completed**: 5pt | **Velocity**: 100%
+
+---
+
+### Sprint 2 (Complete)
 
 **Duration**: 2026-03-09 — 2026-03-16
 **Capacity**: 4.5pt
@@ -16,8 +56,6 @@
 **Committed**: 4.5pt | **Completed**: 4.5pt | **Velocity**: 100%
 
 ---
-
-## Previous Sprints
 
 ### Sprint 1 (Complete)
 
@@ -38,8 +76,6 @@
 **Committed**: 4.5pt | **Completed**: 4.5pt | **Velocity**: 100%
 
 ---
-
-## Previous Sprints
 
 ### Sprint 0: Planning & Architecture (Complete)
 
