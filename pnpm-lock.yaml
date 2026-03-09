@@ -61,7 +61,11 @@ importers:
 
   packages/mcp-server: {}
 
-  packages/reddit: {}
+  packages/reddit:
+    dependencies:
+      '@redgest/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/slack: {}
 

@@ -9,5 +9,8 @@
     "build": "tsc",
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
     "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@redgest/core": "workspace:*"
   }
 }
