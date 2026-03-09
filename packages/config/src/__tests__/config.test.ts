@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { configSchema, type RedgestConfig } from "../schema.js";
-import { loadConfig, getConfig } from "../index.js";
+import { loadConfig, getConfig, resetConfig } from "../index.js";
 
 const validEnv = {
   DATABASE_URL: "postgresql://user:pass@localhost:5432/redgest",
@@ -8,7 +8,6 @@ const validEnv = {
   TRIGGER_SECRET_KEY: "tr_dev_test_key_1234567890",
   MCP_SERVER_API_KEY: "mcp-test-api-key-that-is-at-least-32-chars-long",
   MCP_SERVER_PORT: "3100",
-  UPSTASH_REDIS_URL: "https://example.upstash.io",
   NODE_ENV: "development",
 };
 
@@ -67,6 +66,7 @@ describe("configSchema", () => {
       expect(result.data.OPENAI_API_KEY).toBeUndefined();
       expect(result.data.RESEND_API_KEY).toBeUndefined();
       expect(result.data.SLACK_WEBHOOK_URL).toBeUndefined();
+      expect(result.data.REDIS_URL).toBeUndefined();
     }
   });
 
@@ -83,6 +83,8 @@ describe("configSchema", () => {
 });
 
 describe("loadConfig", () => {
+  beforeEach(() => resetConfig());
+
   it("loads and returns parsed config", () => {
     const config = loadConfig(validEnv);
     expect(config.DATABASE_URL).toBe(validEnv.DATABASE_URL);
@@ -95,6 +97,12 @@ describe("loadConfig", () => {
 });
 
 describe("getConfig", () => {
+  beforeEach(() => resetConfig());
+
+  it("throws before loadConfig is called", () => {
+    expect(() => getConfig()).toThrow("Config not loaded");
+  });
+
   it("returns config after loadConfig is called", () => {
     loadConfig(validEnv);
     const config = getConfig();

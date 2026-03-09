@@ -22,3 +22,7 @@ export function getConfig(): RedgestConfig {
   }
   return _config;
 }
+
+export function resetConfig(): void {
+  _config = undefined;
+}

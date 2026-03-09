@@ -1,3 +1,5 @@
+import { sanitizeForPrompt } from "./sanitize.js";
+
 export interface TriagePostCandidate {
   index: number;
   subreddit: string;
@@ -31,7 +33,9 @@ export function buildTriageUserPrompt(posts: TriagePostCandidate[], targetCount:
   const postList = posts
     .map((p) => {
       const age = Math.round((Date.now() / 1000 - p.createdUtc) / 3600);
-      return `${p.index}. [${p.subreddit}] "${p.title}" (score: ${p.score}, comments: ${p.numComments}, age: ${age}h)${p.selftext ? `\n   Preview: ${p.selftext.slice(0, 200)}` : ""}`;
+      const safeTitle = sanitizeForPrompt(p.title);
+      const preview = p.selftext ? `\n   Preview: ${sanitizeForPrompt(p.selftext.slice(0, 200))}` : "";
+      return `${p.index}. [${p.subreddit}] "${safeTitle}" (score: ${p.score}, comments: ${p.numComments}, age: ${age}h)${preview}`;
     })
     .join("\n\n");
 
