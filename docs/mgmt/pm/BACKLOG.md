@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-09
 **Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: Sprint 1
+**Active Sprint**: Sprint 2
 
 ---
 
@@ -53,7 +53,7 @@
   Blocked by: None (WS1 complete)
   Unblocks: migrations, views, client
   Acceptance:
-  - Tables: Subreddit, Config, Job, Event, Post, PostComment, PostSummary, Digest, JobPost, SubredditPost
+  - Tables: Subreddit, Config, Job, Event, Post, PostComment, PostSummary, Digest, DigestPost
   - All relations, indexes, and constraints defined
   - Matches reconciled plan schema exactly
 

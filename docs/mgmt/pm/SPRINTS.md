@@ -1,6 +1,25 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 1 (Complete)
+## Active Sprint: Sprint 2
+
+**Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 4.5pt
+**Sprint Goal**: Stand up the database layer and unblock parallel work on Reddit integration and LLM structured output
+
+| Task | Stream | Points | Status |
+|------|--------|--------|--------|
+| Create Prisma v7 schema — 8 tables | WS2 | 2.0 | [ ] |
+| Write prisma.config.ts | WS2 | 0.5 | [ ] |
+| Reddit API client — script-type auth | WS4 | 1.0 | [ ] |
+| Zod schemas — ValidatedTriageResult, ValidatedPostSummary | WS5 | 1.0 | [ ] |
+
+**Committed**: 4.5pt | **Completed**: 0pt | **Velocity**: 0%
+
+---
+
+## Previous Sprints
+
+### Sprint 1 (Complete)
 
 **Duration**: 2026-03-09 — 2026-03-09
 **Capacity**: 4.5pt
