@@ -170,7 +170,7 @@ describe("summarizeStep", () => {
     const db = makeMockDb();
     vi.mocked(db.postSummary.create).mockResolvedValue({
       id: "db-record-xyz",
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof db.postSummary.create>>);
 
     const result = await summarizeStep(
       makePost(),
