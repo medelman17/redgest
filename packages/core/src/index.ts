@@ -65,3 +65,11 @@ export {
 export type { HandlerContext, DbClient } from "./context.js";
 // Pipeline
 export { findPreviousPostIds } from "./pipeline/dedup.js";
+export {
+  estimateTokens,
+  truncateText,
+  applyTriageBudget,
+  applySummarizationBudget,
+  TRIAGE_TOKEN_BUDGET,
+  SUMMARIZATION_TOKEN_BUDGET,
+} from "./pipeline/token-budget.js";
