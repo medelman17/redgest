@@ -14,7 +14,8 @@
     "db:deploy": "prisma migrate deploy"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.4.2"
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2"
   },
   "devDependencies": {
     "dotenv": "^17.3.1",
