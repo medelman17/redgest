@@ -1,0 +1,38 @@
+import type { QueryType, QueryHandler } from "../types.js";
+import { handleGetDigest } from "./get-digest.js";
+import { handleListDigests } from "./list-digests.js";
+import { handleSearchDigests } from "./search-digests.js";
+import { handleGetPost } from "./get-post.js";
+import { handleSearchPosts } from "./search-posts.js";
+import { handleGetRunStatus } from "./get-run-status.js";
+import { handleListRuns } from "./list-runs.js";
+import { handleListSubreddits } from "./list-subreddits.js";
+import { handleGetConfig } from "./get-config.js";
+
+type QueryHandlerRegistry = {
+  [K in QueryType]?: QueryHandler<K>;
+};
+
+export const queryHandlers: QueryHandlerRegistry = {
+  GetDigest: handleGetDigest,
+  ListDigests: handleListDigests,
+  SearchDigests: handleSearchDigests,
+  GetPost: handleGetPost,
+  SearchPosts: handleSearchPosts,
+  GetRunStatus: handleGetRunStatus,
+  ListRuns: handleListRuns,
+  ListSubreddits: handleListSubreddits,
+  GetConfig: handleGetConfig,
+};
+
+export {
+  handleGetDigest,
+  handleListDigests,
+  handleSearchDigests,
+  handleGetPost,
+  handleSearchPosts,
+  handleGetRunStatus,
+  handleListRuns,
+  handleListSubreddits,
+  handleGetConfig,
+};
