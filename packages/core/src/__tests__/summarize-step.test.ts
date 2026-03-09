@@ -29,7 +29,9 @@ function makeSummary(overrides: Partial<PostSummary> = {}): PostSummary {
   };
 }
 
-function makePost(overrides: Partial<SummarizationPost> = {}): SummarizationPost {
+function makePost(
+  overrides: Partial<SummarizationPost> = {},
+): SummarizationPost {
   return {
     title: "Test Post Title",
     subreddit: "r/test",
@@ -47,23 +49,29 @@ function makeComment(
   return { author: "commenter", score, body };
 }
 
-function makeMockDb() {
+interface MockDb {
+  postSummary: { create: ReturnType<typeof vi.fn> };
+}
+
+function makeMockDb(): MockDb {
   return {
     postSummary: {
       create: vi.fn().mockResolvedValue({ id: "summary-id-1" }),
     },
-  } as unknown as PrismaClient;
+  };
 }
 
 describe("summarizeStep", () => {
+  let mockDb: MockDb;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDb = makeMockDb();
   });
 
   it("applies comments-first truncation via applySummarizationBudget", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     // Create a post with very long selftext and comments
     const post = makePost({ selftext: "x".repeat(50_000) });
@@ -79,7 +87,7 @@ describe("summarizeStep", () => {
       ["insight1"],
       "job-1",
       "post-1",
-      db,
+      mockDb as unknown as PrismaClient,
     );
 
     // generatePostSummary should have been called with truncated content
@@ -104,7 +112,6 @@ describe("summarizeStep", () => {
   it("calls generatePostSummary with truncated post and budgeted comments", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     const post = makePost({ selftext: "Short selftext" });
     const comments = [makeComment(10, "Short comment")];
@@ -116,7 +123,7 @@ describe("summarizeStep", () => {
       insightPrompts,
       "job-1",
       "post-1",
-      db,
+      mockDb as unknown as PrismaClient,
     );
 
     expect(mockGeneratePostSummary).toHaveBeenCalledWith(
@@ -138,7 +145,6 @@ describe("summarizeStep", () => {
   it("saves PostSummary to database with correct field mapping", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     await summarizeStep(
       makePost(),
@@ -146,10 +152,10 @@ describe("summarizeStep", () => {
       ["insight"],
       "job-42",
       "post-99",
-      db,
+      mockDb as unknown as PrismaClient,
     );
 
-    expect(db.postSummary.create).toHaveBeenCalledWith({
+    expect(mockDb.postSummary.create).toHaveBeenCalledWith({
       data: {
         postId: "post-99",
         jobId: "job-42",
@@ -167,10 +173,7 @@ describe("summarizeStep", () => {
   it("returns the DB record ID and the summary object", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
-    vi.mocked(db.postSummary.create).mockResolvedValue({
-      id: "db-record-xyz",
-    } as unknown as Awaited<ReturnType<typeof db.postSummary.create>>);
+    mockDb.postSummary.create.mockResolvedValue({ id: "db-record-xyz" });
 
     const result = await summarizeStep(
       makePost(),
@@ -178,7 +181,7 @@ describe("summarizeStep", () => {
       ["insight"],
       "job-1",
       "post-1",
-      db,
+      mockDb as unknown as PrismaClient,
     );
 
     expect(result.postSummaryId).toBe("db-record-xyz");
@@ -188,7 +191,6 @@ describe("summarizeStep", () => {
   it("passes model parameter through to generatePostSummary", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     const mockModel = {
       specificationVersion: "v3" as const,
@@ -205,7 +207,7 @@ describe("summarizeStep", () => {
       ["insight"],
       "job-1",
       "post-1",
-      db,
+      mockDb as unknown as PrismaClient,
       mockModel,
     );
 
@@ -220,7 +222,6 @@ describe("summarizeStep", () => {
   it("records provider and model from model parameter when provided", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     const mockModel = {
       specificationVersion: "v3" as const,
@@ -237,11 +238,11 @@ describe("summarizeStep", () => {
       ["insight"],
       "job-1",
       "post-1",
-      db,
+      mockDb as unknown as PrismaClient,
       mockModel,
     );
 
-    expect(db.postSummary.create).toHaveBeenCalledWith({
+    expect(mockDb.postSummary.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         llmProvider: "openai",
         llmModel: "gpt-4.1",
@@ -252,7 +253,6 @@ describe("summarizeStep", () => {
   it("preserves all post metadata except selftext through truncation", async () => {
     const summary = makeSummary();
     mockGeneratePostSummary.mockResolvedValue(summary);
-    const db = makeMockDb();
 
     const post = makePost({
       title: "Specific Title",
@@ -262,11 +262,18 @@ describe("summarizeStep", () => {
       selftext: "x".repeat(100_000),
     });
 
-    await summarizeStep(post, [], ["insight"], "job-1", "post-1", db);
+    await summarizeStep(
+      post,
+      [],
+      ["insight"],
+      "job-1",
+      "post-1",
+      mockDb as unknown as PrismaClient,
+    );
 
-    const callArgs2 = mockGeneratePostSummary.mock.calls[0];
-    expect(callArgs2).toBeDefined();
-    const [calledPost] = callArgs2 ?? [];
+    const callArgs = mockGeneratePostSummary.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const [calledPost] = callArgs ?? [];
     const p = calledPost as SummarizationPost;
     expect(p.title).toBe("Specific Title");
     expect(p.subreddit).toBe("r/programming");
