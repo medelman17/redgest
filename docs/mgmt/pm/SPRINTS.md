@@ -1,6 +1,29 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 5
+## Active Sprint: Sprint 6
+
+**Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 6pt
+**Sprint Goal**: Build the MCP server (WS7) — tools registration, HTTP/stdio transports, auth, and response envelope
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| tools.ts: Register all 12 tools on McpServer | WS7 | 2.0 | feature | [ ] |
+| Response envelope {ok, data, error} | WS7 | 0.5 | feature | [ ] |
+| Bearer auth middleware | WS7 | 0.5 | feature | [ ] |
+| http.ts: Hono + @hono/mcp Streamable HTTP | WS7 | 1.0 | feature | [ ] |
+| stdio.ts: StdioServerTransport | WS7 | 0.5 | feature | [ ] |
+| Docker image for MCP server | WS7 | 0.5 | feature | [ ] |
+
+**Committed**: 5pt | **Completed**: 0pt | **Velocity**: 0%
+
+**Notes**: No tech debt budget needed — only 2 open items (TD-002, TD-003), both low severity and unrelated to WS7. Full capacity to features. Dependency order: response envelope + auth can parallel, tools.ts depends on envelope, http.ts/stdio.ts depend on tools.ts, Docker depends on http.ts.
+
+---
+
+## Previous Sprints
+
+### Sprint 5 (Complete)
 
 **Duration**: 2026-03-09 — 2026-03-16
 **Capacity**: 6pt
@@ -8,17 +31,15 @@
 
 | Task | Stream | Points | Type | Status |
 |------|--------|--------|------|--------|
-| Triage → Summarize → Assemble flow | WS6 | 2.0 | feature | [ ] |
-| Token budgeting and truncation | WS6 | 1.0 | feature | [ ] |
-| Deduplication logic | WS6 | 1.0 | feature | [ ] |
-| Error recovery and partial failure handling | WS6 | 1.0 | feature | [ ] |
-| ContentSource interface for swappability | WS4 | 0.5 | feature | [ ] |
+| Triage → Summarize → Assemble flow | WS6 | 2.0 | feature | [x] |
+| Token budgeting and truncation | WS6 | 1.0 | feature | [x] |
+| Deduplication logic | WS6 | 1.0 | feature | [x] |
+| Error recovery and partial failure handling | WS6 | 1.0 | feature | [x] |
+| ContentSource interface for swappability | WS4 | 0.5 | feature | [x] |
 
-**Committed**: 5.5pt | **Completed**: 0pt | **Velocity**: 0%
+**Committed**: 5.5pt | **Completed**: 5.5pt | **Velocity**: 100%
 
 ---
-
-## Previous Sprints
 
 ### Sprint 4 (Complete)
 

@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-09
 **Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: Sprint 5
+**Active Sprint**: Sprint 6
 
 ---
 
@@ -13,13 +13,13 @@
 | 1 | WS1: Monorepo & Config | 5 | 5 | 0 | 0 | 0 | 100% |
 | 1 | WS2: Database | 7 | 7 | 0 | 0 | 0 | 100% |
 | 1 | WS3: CQRS Core | 8 | 8 | 0 | 0 | 0 | 100% |
-| 1 | WS4: Reddit Integration | 4 | 3 | 0 | 0 | 1 | 75% |
+| 1 | WS4: Reddit Integration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS5: LLM Abstraction | 7 | 5 | 0 | 0 | 2 | 71% |
-| 1 | WS6: Pipeline Orchestration | 4 | 0 | 0 | 0 | 4 | 0% |
-| 1 | WS7: MCP Server | 6 | 0 | 0 | 2 | 4 | 0% |
-| 1 | WS8: Trigger.dev | 4 | 0 | 0 | 2 | 2 | 0% |
-| 1 | Testing & Deployment | 4 | 0 | 0 | 3 | 1 | 0% |
-| **Total P1** | | **49** | **28** | **0** | **7** | **14** | **57%** |
+| 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
+| 1 | WS7: MCP Server | 6 | 0 | 0 | 0 | 6 | 0% |
+| 1 | WS8: Trigger.dev | 4 | 0 | 0 | 1 | 3 | 0% |
+| 1 | Testing & Deployment | 4 | 1 | 0 | 1 | 2 | 25% |
+| **Total P1** | | **49** | **34** | **0** | **2** | **13** | **69%** |
 
 ---
 
@@ -123,13 +123,9 @@
   Done: 2026-03-09 | Ref: Sprint 4 (3ca3cb1)
   Note: fetchSubredditContent() — pure data orchestrator (ADR-008). Deduplicates across sorts. 5 tests.
 
-- [ ] ContentSource interface for swappability (0.5pt)
-  Blocked by: None
-  Unblocks: future content sources
-  Acceptance:
-  - Interface defining fetchPosts(subreddit, options) and fetchComments(postId)
-  - RedditContentSource implements it
-  - Documented for future HackerNews, RSS, etc.
+- [x] ContentSource interface for swappability (0.5pt)
+  Done: 2026-03-09 | Ref: Sprint 5
+  Note: ContentSource interface in @redgest/core/pipeline/types.ts. RedditContentSource in @redgest/reddit. Structural typing avoids circular deps.
 
 ---
 
@@ -177,49 +173,29 @@
 ### WS6: Pipeline Orchestration (5pt)
 **Deps**: WS3, WS4, WS5 | **Unblocks**: WS7
 
-- [ ] Triage → Summarize → Assemble flow (2pt)
-  Blocked by: None (WS3, WS4, WS5 complete)
-  Unblocks: WS7 (MCP tools)
-  Acceptance:
-  - Fetches posts from all configured subreddits
-  - Runs triage to select top N posts per subreddit
-  - Fetches comments for selected posts
-  - Runs summarization per post
-  - Assembles Digest markdown from summaries
-  - Stores all artifacts (Post, PostSummary, Digest, JobPost records)
+- [x] Triage → Summarize → Assemble flow (2pt)
+  Done: 2026-03-09 | Ref: Sprint 5 (be47550, cf4c04d, fb8d217, 8e27039, e064681)
+  Note: Decomposed step functions (ADR-009): fetchStep, triageStep, summarizeStep, assembleStep. Orchestrator composes all. 238 tests passing.
 
-- [ ] Token budgeting and truncation (1pt)
-  Blocked by: None (WS5 complete)
-  Unblocks: pipeline reliability
-  Acceptance:
-  - Pre-calculates token allocation (~8K triage, ~9.7K summarization)
-  - Truncates post body/comments if exceeding budget
-  - Adds inline "[truncated]" note for LLM awareness
+- [x] Token budgeting and truncation (1pt)
+  Done: 2026-03-09 | Ref: Sprint 5 (da4433f)
+  Note: Character-based estimation (ADR-010). Comments-first truncation (ADR-011). Budgets: 8K triage, 9.7K summarization.
 
-- [ ] Deduplication logic (1pt)
-  Blocked by: None (WS2 complete)
-  Unblocks: digest quality
-  Acceptance:
-  - Checks Post.redditId against posts from last N digests
-  - Skips already-summarized posts
-  - Configurable lookback window
+- [x] Deduplication logic (1pt)
+  Done: 2026-03-09 | Ref: Sprint 5 (2f66496)
+  Note: Digest-based dedup (ADR-012). Queries last 3 digests' digestPosts → posts for redditId matches.
 
-- [ ] Error recovery and partial failure handling (1pt)
-  Blocked by: None (WS3 complete)
-  Unblocks: pipeline reliability
-  Acceptance:
-  - If one subreddit fetch fails, continue with others
-  - If one post summarization fails, skip it and note in digest
-  - Job status set to "partial" if some steps fail
-  - All errors logged with correlation IDs
+- [x] Error recovery and partial failure handling (1pt)
+  Done: 2026-03-09 | Ref: Sprint 5 (be47550, f6a9e66)
+  Note: Two-level recovery (ADR-013). Per-subreddit + per-post. Status: COMPLETED/PARTIAL/FAILED. 24 orchestrator tests.
 
 ---
 
 ### WS7: MCP Server (5pt)
 **Deps**: WS3, WS6 | **Unblocks**: WS8, E2E testing
 
-- [!] tools.ts: Register all 12 tools on McpServer (2pt)
-  Blocked by: WS6 (pipeline)
+- [ ] tools.ts: Register all 12 tools on McpServer (2pt)
+  Blocked by: None (WS6 complete)
   Unblocks: http/stdio transports
   Acceptance:
   - Pipeline tools: generate_digest, get_run_status, cancel_run
@@ -227,7 +203,7 @@
   - Config tools: list_subreddits, add_subreddit, remove_subreddit, update_config
   - Each tool has Zod input schema and calls appropriate command/query handler
 
-- [!] http.ts: Hono + @hono/mcp Streamable HTTP (1pt)
+- [ ] http.ts: Hono + @hono/mcp Streamable HTTP (1pt)
   Blocked by: tools.ts
   Unblocks: deployment
   Acceptance:
@@ -282,7 +258,7 @@
   - Environment variables configured
 
 - [!] Task definitions — generate, fetch, triage, summarize (2pt)
-  Blocked by: WS6 (pipeline), WS7 (MCP)
+  Blocked by: WS7 (MCP)
   Unblocks: event handler
   Acceptance:
   - digest.generate: orchestrator task
@@ -291,8 +267,8 @@
   - digest.summarize: runs LLM summarization per post
   - Idempotency keys on all tasks
 
-- [!] Event handler: DigestRequested → tasks.trigger() (1pt)
-  Blocked by: WS6 (pipeline)
+- [ ] Event handler: DigestRequested → tasks.trigger() (1pt)
+  Blocked by: None (WS6 complete)
   Unblocks: async pipeline
   Acceptance:
   - Listens for DigestRequested event
@@ -311,15 +287,16 @@
 
 ### Testing & Deployment (7pt)
 
-- [ ] Unit tests: Zod schemas, prompt building, truncation (2pt)
-  Blocked by: WS6 (token budgeting)
+- [x] Unit tests: Zod schemas, prompt building, truncation (2pt)
+  Done: 2026-03-09 | Ref: Sprints 2-5
+  Note: 238 tests across all packages. Schema validation, prompt templates, token truncation boundary tests all covered.
   Acceptance:
   - Schema validation tests (valid/invalid inputs)
   - Prompt template output tests
   - Token truncation boundary tests
 
-- [!] Integration tests: mock LLM, real Reddit API (2pt)
-  Blocked by: WS6 (pipeline)
+- [ ] Integration tests: mock LLM, real Reddit API (2pt)
+  Blocked by: None (WS6 complete)
   Acceptance:
   - Mock AI SDK responses for triage/summarization
   - Live Reddit API test (with rate limiting)
