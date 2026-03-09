@@ -59,7 +59,11 @@ export const ModelName = {
   PostComment: 'PostComment',
   PostSummary: 'PostSummary',
   Digest: 'Digest',
-  DigestPost: 'DigestPost'
+  DigestPost: 'DigestPost',
+  DigestView: 'DigestView',
+  PostView: 'PostView',
+  RunView: 'RunView',
+  SubredditView: 'SubredditView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -209,6 +213,85 @@ export const DigestPostScalarFieldEnum = {
 } as const
 
 export type DigestPostScalarFieldEnum = (typeof DigestPostScalarFieldEnum)[keyof typeof DigestPostScalarFieldEnum]
+
+
+export const DigestViewScalarFieldEnum = {
+  digestId: 'digestId',
+  jobId: 'jobId',
+  jobStatus: 'jobStatus',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  subredditList: 'subredditList',
+  postCount: 'postCount',
+  contentMarkdown: 'contentMarkdown',
+  contentHtml: 'contentHtml',
+  createdAt: 'createdAt'
+} as const
+
+export type DigestViewScalarFieldEnum = (typeof DigestViewScalarFieldEnum)[keyof typeof DigestViewScalarFieldEnum]
+
+
+export const PostViewScalarFieldEnum = {
+  postId: 'postId',
+  redditId: 'redditId',
+  subreddit: 'subreddit',
+  title: 'title',
+  body: 'body',
+  author: 'author',
+  score: 'score',
+  commentCount: 'commentCount',
+  url: 'url',
+  permalink: 'permalink',
+  flair: 'flair',
+  isNsfw: 'isNsfw',
+  fetchedAt: 'fetchedAt',
+  summary: 'summary',
+  keyTakeaways: 'keyTakeaways',
+  insightNotes: 'insightNotes',
+  selectionRationale: 'selectionRationale',
+  topComments: 'topComments',
+  llmProvider: 'llmProvider',
+  llmModel: 'llmModel'
+} as const
+
+export type PostViewScalarFieldEnum = (typeof PostViewScalarFieldEnum)[keyof typeof PostViewScalarFieldEnum]
+
+
+export const RunViewScalarFieldEnum = {
+  jobId: 'jobId',
+  status: 'status',
+  progress: 'progress',
+  subreddits: 'subreddits',
+  eventCount: 'eventCount',
+  lastEventType: 'lastEventType',
+  lastEventAt: 'lastEventAt',
+  durationSeconds: 'durationSeconds',
+  triggerRunId: 'triggerRunId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type RunViewScalarFieldEnum = (typeof RunViewScalarFieldEnum)[keyof typeof RunViewScalarFieldEnum]
+
+
+export const SubredditViewScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  maxPosts: 'maxPosts',
+  includeNsfw: 'includeNsfw',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastDigestDate: 'lastDigestDate',
+  postsInLastDigest: 'postsInLastDigest',
+  totalPostsFetched: 'totalPostsFetched',
+  totalDigestsAppearedIn: 'totalDigestsAppearedIn'
+} as const
+
+export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
 
 
 export const SortOrder = {

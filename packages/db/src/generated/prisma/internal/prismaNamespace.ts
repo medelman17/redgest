@@ -392,7 +392,11 @@ export const ModelName = {
   PostComment: 'PostComment',
   PostSummary: 'PostSummary',
   Digest: 'Digest',
-  DigestPost: 'DigestPost'
+  DigestPost: 'DigestPost',
+  DigestView: 'DigestView',
+  PostView: 'PostView',
+  RunView: 'RunView',
+  SubredditView: 'SubredditView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -408,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost"
+    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "digestView" | "postView" | "runView" | "subredditView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1078,6 +1082,158 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DigestView: {
+      payload: Prisma.$DigestViewPayload<ExtArgs>
+      fields: Prisma.DigestViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DigestViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DigestViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestViewPayload>
+        }
+        findFirst: {
+          args: Prisma.DigestViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DigestViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestViewPayload>
+        }
+        findMany: {
+          args: Prisma.DigestViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.DigestViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDigestView>
+        }
+        groupBy: {
+          args: Prisma.DigestViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DigestViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestViewCountAggregateOutputType> | number
+        }
+      }
+    }
+    PostView: {
+      payload: Prisma.$PostViewPayload<ExtArgs>
+      fields: Prisma.PostViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PostViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PostViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostViewPayload>
+        }
+        findFirst: {
+          args: Prisma.PostViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PostViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostViewPayload>
+        }
+        findMany: {
+          args: Prisma.PostViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.PostViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePostView>
+        }
+        groupBy: {
+          args: Prisma.PostViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PostViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostViewCountAggregateOutputType> | number
+        }
+      }
+    }
+    RunView: {
+      payload: Prisma.$RunViewPayload<ExtArgs>
+      fields: Prisma.RunViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RunViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RunViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunViewPayload>
+        }
+        findFirst: {
+          args: Prisma.RunViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RunViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunViewPayload>
+        }
+        findMany: {
+          args: Prisma.RunViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RunViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.RunViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRunView>
+        }
+        groupBy: {
+          args: Prisma.RunViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RunViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RunViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RunViewCountAggregateOutputType> | number
+        }
+      }
+    }
+    SubredditView: {
+      payload: Prisma.$SubredditViewPayload<ExtArgs>
+      fields: Prisma.SubredditViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SubredditViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubredditViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SubredditViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubredditViewPayload>
+        }
+        findFirst: {
+          args: Prisma.SubredditViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubredditViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SubredditViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubredditViewPayload>
+        }
+        findMany: {
+          args: Prisma.SubredditViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubredditViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.SubredditViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSubredditView>
+        }
+        groupBy: {
+          args: Prisma.SubredditViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubredditViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SubredditViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubredditViewCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1248,6 +1404,85 @@ export const DigestPostScalarFieldEnum = {
 } as const
 
 export type DigestPostScalarFieldEnum = (typeof DigestPostScalarFieldEnum)[keyof typeof DigestPostScalarFieldEnum]
+
+
+export const DigestViewScalarFieldEnum = {
+  digestId: 'digestId',
+  jobId: 'jobId',
+  jobStatus: 'jobStatus',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  subredditList: 'subredditList',
+  postCount: 'postCount',
+  contentMarkdown: 'contentMarkdown',
+  contentHtml: 'contentHtml',
+  createdAt: 'createdAt'
+} as const
+
+export type DigestViewScalarFieldEnum = (typeof DigestViewScalarFieldEnum)[keyof typeof DigestViewScalarFieldEnum]
+
+
+export const PostViewScalarFieldEnum = {
+  postId: 'postId',
+  redditId: 'redditId',
+  subreddit: 'subreddit',
+  title: 'title',
+  body: 'body',
+  author: 'author',
+  score: 'score',
+  commentCount: 'commentCount',
+  url: 'url',
+  permalink: 'permalink',
+  flair: 'flair',
+  isNsfw: 'isNsfw',
+  fetchedAt: 'fetchedAt',
+  summary: 'summary',
+  keyTakeaways: 'keyTakeaways',
+  insightNotes: 'insightNotes',
+  selectionRationale: 'selectionRationale',
+  topComments: 'topComments',
+  llmProvider: 'llmProvider',
+  llmModel: 'llmModel'
+} as const
+
+export type PostViewScalarFieldEnum = (typeof PostViewScalarFieldEnum)[keyof typeof PostViewScalarFieldEnum]
+
+
+export const RunViewScalarFieldEnum = {
+  jobId: 'jobId',
+  status: 'status',
+  progress: 'progress',
+  subreddits: 'subreddits',
+  eventCount: 'eventCount',
+  lastEventType: 'lastEventType',
+  lastEventAt: 'lastEventAt',
+  durationSeconds: 'durationSeconds',
+  triggerRunId: 'triggerRunId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type RunViewScalarFieldEnum = (typeof RunViewScalarFieldEnum)[keyof typeof RunViewScalarFieldEnum]
+
+
+export const SubredditViewScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  maxPosts: 'maxPosts',
+  includeNsfw: 'includeNsfw',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastDigestDate: 'lastDigestDate',
+  postsInLastDigest: 'postsInLastDigest',
+  totalPostsFetched: 'totalPostsFetched',
+  totalDigestsAppearedIn: 'totalDigestsAppearedIn'
+} as const
+
+export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1526,6 +1761,10 @@ export type GlobalOmitConfig = {
   postSummary?: Prisma.PostSummaryOmit
   digest?: Prisma.DigestOmit
   digestPost?: Prisma.DigestPostOmit
+  digestView?: Prisma.DigestViewOmit
+  postView?: Prisma.PostViewOmit
+  runView?: Prisma.RunViewOmit
+  subredditView?: Prisma.SubredditViewOmit
 }
 
 /* Types for Logging */

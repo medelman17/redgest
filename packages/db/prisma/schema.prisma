@@ -207,3 +207,80 @@ model DigestPost {
   @@index([subreddit])
   @@map("digest_posts")
 }
+
+// ─── Views (read-only, created via SQL migration) ────────
+
+view DigestView {
+  digestId        String    @unique @map("digest_id")
+  jobId           String    @map("job_id")
+  jobStatus       String    @map("job_status")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  subredditList   Json      @map("subreddit_list")
+  postCount       Int       @map("post_count")
+  contentMarkdown String    @map("content_markdown")
+  contentHtml     String?   @map("content_html")
+  createdAt       DateTime  @map("created_at")
+
+  @@map("digest_view")
+}
+
+view PostView {
+  postId             String   @unique @map("post_id")
+  redditId           String   @map("reddit_id")
+  subreddit          String
+  title              String
+  body               String?
+  author             String
+  score              Int
+  commentCount       Int      @map("comment_count")
+  url                String
+  permalink          String
+  flair              String?
+  isNsfw             Boolean  @map("is_nsfw")
+  fetchedAt          DateTime @map("fetched_at")
+  summary            String?
+  keyTakeaways       Json?    @map("key_takeaways")
+  insightNotes       String?  @map("insight_notes")
+  selectionRationale String?  @map("selection_rationale")
+  topComments        Json?    @map("top_comments")
+  llmProvider        String?  @map("llm_provider")
+  llmModel           String?  @map("llm_model")
+
+  @@map("post_view")
+}
+
+view RunView {
+  jobId           String    @unique @map("job_id")
+  status          String
+  progress        Json?
+  subreddits      Json
+  eventCount      Int       @map("event_count")
+  lastEventType   String?   @map("last_event_type")
+  lastEventAt     DateTime? @map("last_event_at")
+  durationSeconds Int?      @map("duration_seconds")
+  triggerRunId    String?   @map("trigger_run_id")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  error           String?
+  createdAt       DateTime  @map("created_at")
+
+  @@map("run_view")
+}
+
+view SubredditView {
+  id                     String    @unique
+  name                   String
+  insightPrompt          String?   @map("insight_prompt")
+  maxPosts               Int       @map("max_posts")
+  includeNsfw            Boolean   @map("include_nsfw")
+  isActive               Boolean   @map("is_active")
+  createdAt              DateTime  @map("created_at")
+  updatedAt              DateTime  @map("updated_at")
+  lastDigestDate         DateTime? @map("last_digest_date")
+  postsInLastDigest      Int       @map("posts_in_last_digest")
+  totalPostsFetched      Int       @map("total_posts_fetched")
+  totalDigestsAppearedIn Int       @map("total_digests_appeared_in")
+
+  @@map("subreddit_view")
+}

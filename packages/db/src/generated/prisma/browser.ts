@@ -62,3 +62,23 @@ export type Digest = Prisma.DigestModel
  * 
  */
 export type DigestPost = Prisma.DigestPostModel
+/**
+ * Model DigestView
+ * 
+ */
+export type DigestView = Prisma.DigestViewModel
+/**
+ * Model PostView
+ * 
+ */
+export type PostView = Prisma.PostViewModel
+/**
+ * Model RunView
+ * 
+ */
+export type RunView = Prisma.RunViewModel
+/**
+ * Model SubredditView
+ * 
+ */
+export type SubredditView = Prisma.SubredditViewModel
