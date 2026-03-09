@@ -11,15 +11,15 @@
 | Phase | Work Stream | Total | Done | In Progress | Blocked | Todo | % |
 |-------|-------------|-------|------|-------------|---------|------|---|
 | 1 | WS1: Monorepo & Config | 5 | 5 | 0 | 0 | 0 | 100% |
-| 1 | WS2: Database | 7 | 0 | 0 | 0 | 7 | 0% |
-| 1 | WS3: CQRS Core | 8 | 1 | 0 | 3 | 4 | 12% |
-| 1 | WS4: Reddit Integration | 4 | 0 | 0 | 0 | 4 | 0% |
-| 1 | WS5: LLM Abstraction | 7 | 1 | 0 | 0 | 6 | 14% |
+| 1 | WS2: Database | 7 | 7 | 0 | 0 | 0 | 100% |
+| 1 | WS3: CQRS Core | 8 | 1 | 0 | 0 | 7 | 12% |
+| 1 | WS4: Reddit Integration | 4 | 1 | 0 | 0 | 3 | 25% |
+| 1 | WS5: LLM Abstraction | 7 | 2 | 0 | 0 | 5 | 29% |
 | 1 | WS6: Pipeline Orchestration | 4 | 0 | 0 | 4 | 0 | 0% |
 | 1 | WS7: MCP Server | 6 | 0 | 0 | 3 | 3 | 0% |
-| 1 | WS8: Trigger.dev | 4 | 0 | 0 | 3 | 1 | 0% |
+| 1 | WS8: Trigger.dev | 4 | 0 | 0 | 2 | 2 | 0% |
 | 1 | Testing & Deployment | 4 | 0 | 0 | 4 | 0 | 0% |
-| **Total P1** | | **49** | **7** | **0** | **17** | **25** | **14%** |
+| **Total P1** | | **49** | **16** | **0** | **13** | **20** | **33%** |
 
 ---
 
@@ -49,58 +49,26 @@
 ### WS2: Database / Prisma v7 (5pt)
 **Deps**: WS1 | **Unblocks**: WS3
 
-- [ ] Create Prisma v7 schema — 8 tables (2pt)
-  Blocked by: None (WS1 complete)
-  Unblocks: migrations, views, client
-  Acceptance:
-  - Tables: Subreddit, Config, Job, Event, Post, PostComment, PostSummary, Digest, DigestPost
-  - All relations, indexes, and constraints defined
-  - Matches reconciled plan schema exactly
+- [x] Create Prisma v7 schema — 8 tables (2pt)
+  Done: 2026-03-09 | Ref: e23bb6a
 
-- [ ] Write prisma.config.ts (0.5pt)
-  Blocked by: None (WS1 complete)
-  Unblocks: client setup
-  Acceptance:
-  - Uses @prisma/adapter-pg
-  - DATABASE_URL from @redgest/config
-  - Proper v7 configuration format
+- [x] Write prisma.config.ts (0.5pt)
+  Done: 2026-03-09 | Ref: eda2e94
 
-- [ ] Setup @prisma/adapter-pg (0.5pt)
-  Blocked by: prisma.config.ts
-  Unblocks: client
-  Acceptance:
-  - Adapter installed and configured
-  - Connection works with Docker Postgres
+- [x] Setup @prisma/adapter-pg (0.5pt)
+  Done: 2026-03-09 | Ref: eda2e94
 
-- [ ] Create initial migration (0.5pt)
-  Blocked by: schema
-  Unblocks: client, seed, views
-  Acceptance:
-  - `prisma migrate dev` succeeds
-  - All tables created in Postgres
+- [x] Create initial migration (0.5pt)
+  Done: 2026-03-09 | Ref: 5e6397f
 
-- [ ] Write singleton Prisma client (0.5pt)
-  Blocked by: adapter, migration
-  Unblocks: WS3 (CQRS Core), WS7 (MCP)
-  Acceptance:
-  - Singleton pattern preventing multiple instances
-  - Exported from @redgest/db
+- [x] Write singleton Prisma client (0.5pt)
+  Done: 2026-03-09 | Ref: 12408eb
 
-- [ ] Create seed script (0.5pt)
-  Blocked by: migration
-  Unblocks: testing
-  Acceptance:
-  - Seeds 2-3 sample subreddits
-  - Seeds singleton Config row
-  - `prisma db seed` works
+- [x] Create seed script (0.5pt)
+  Done: 2026-03-09 | Ref: fdf033b
 
-- [ ] Define 4 SQL views + migration (0.5pt)
-  Blocked by: schema
-  Unblocks: WS3 query handlers
-  Acceptance:
-  - digest_view, post_view, run_view, subreddit_view SQL
-  - Custom migration with raw SQL
-  - Prisma view models match SQL output
+- [x] Define 4 SQL views + migration (0.5pt)
+  Done: 2026-03-09 | Ref: 14049d1
 
 ---
 
@@ -140,7 +108,7 @@
   - Interface designed for future extraction (Postgres LISTEN/NOTIFY or Redis)
 
 - [!] Command handlers — GenerateDigest, AddSubreddit, UpdateConfig (1.5pt)
-  Blocked by: command bus, WS2 (Prisma client)
+  Blocked by: command bus (WS2 done)
   Unblocks: WS7 (MCP tools)
   Acceptance:
   - GenerateDigestHandler: creates Job record, emits DigestRequested
@@ -149,7 +117,7 @@
   - All use UoW for transactional safety
 
 - [!] Query handlers — GetDigest, ListSubreddits, GetPost, SearchPosts, GetRunStatus (1pt)
-  Blocked by: query bus, WS2 (views)
+  Blocked by: query bus (WS2 done)
   Unblocks: WS7 (MCP tools)
   Acceptance:
   - Each queries appropriate view
@@ -157,7 +125,7 @@
   - Pagination support where needed (limit/offset)
 
 - [!] Event projectors — digest_view, post_view, run_view, subreddit_view (1pt)
-  Blocked by: event bus, WS2 (views)
+  Blocked by: event bus (WS2 done)
   Unblocks: query handlers
   Acceptance:
   - Projectors consume events and update materialized views
@@ -172,13 +140,9 @@
 ### WS4: Reddit Integration (3pt)
 **Deps**: WS1 | **Unblocks**: WS6
 
-- [ ] Reddit API client — script-type auth (1pt)
-  Blocked by: None (WS1 complete)
-  Unblocks: rate limiter, fetcher
-  Acceptance:
-  - OAuth2 script-type authentication
-  - Typed API response interfaces
-  - Error handling for 401/403/429
+- [x] Reddit API client — script-type auth (1pt)
+  Done: 2026-03-09 | Ref: 9b197f0
+  Note: RedditClient with OAuth2, types (RedditPostData/CommentData), 401 retry, 403/429 error handling
 
 - [ ] Token bucket rate limiter — 60 req/min (0.5pt)
   Blocked by: client
@@ -210,13 +174,9 @@
 ### WS5: LLM Abstraction (5pt)
 **Deps**: WS1 | **Unblocks**: WS6
 
-- [ ] Zod schemas — ValidatedTriageResult, ValidatedPostSummary (1pt)
-  Blocked by: WS1
-  Unblocks: generate functions
-  Acceptance:
-  - TriageResult: array of {index, relevanceScore, reason}
-  - PostSummary: {summary, keyTakeaways[], insightNotes[], commentHighlights[], sentiment, relevanceScore}
-  - Both exported for use in Output.object()
+- [x] Zod schemas — ValidatedTriageResult, ValidatedPostSummary (1pt)
+  Done: 2026-03-09 | Ref: c3b6221, 69b48de
+  Note: TriageResultSchema + PostSummarySchema with .describe() for AI SDK Output.object(). CandidatePost + SummarizationInput types.
 
 - [x] Prompt templates — triage + summarization (1pt)
   Done: 2026-03-09 | Ref: 1ce481e
@@ -366,8 +326,8 @@
 ### WS8: Trigger.dev Integration (5pt)
 **Deps**: WS7 | **Unblocks**: Phase 1 completion
 
-- [!] trigger.config.ts with Prisma modern mode (1pt)
-  Blocked by: WS2 (Prisma setup)
+- [ ] trigger.config.ts with Prisma modern mode (1pt)
+  Blocked by: None (WS2 done)
   Unblocks: task definitions
   Acceptance:
   - Trigger.dev v4 config

@@ -8,12 +8,12 @@
 
 | Task | Stream | Points | Status |
 |------|--------|--------|--------|
-| Create Prisma v7 schema — 8 tables | WS2 | 2.0 | [ ] |
-| Write prisma.config.ts | WS2 | 0.5 | [ ] |
-| Reddit API client — script-type auth | WS4 | 1.0 | [ ] |
-| Zod schemas — ValidatedTriageResult, ValidatedPostSummary | WS5 | 1.0 | [ ] |
+| Create Prisma v7 schema — 8 tables | WS2 | 2.0 | [x] |
+| Write prisma.config.ts | WS2 | 0.5 | [x] |
+| Reddit API client — script-type auth | WS4 | 1.0 | [x] |
+| Zod schemas — ValidatedTriageResult, ValidatedPostSummary | WS5 | 1.0 | [x] |
 
-**Committed**: 4.5pt | **Completed**: 0pt | **Velocity**: 0%
+**Committed**: 4.5pt | **Completed**: 4.5pt | **Velocity**: 100%
 
 ---
 
