@@ -1,2 +1,1 @@
-// @redgest/core — placeholder
-export {};
+export { RedgestError, ErrorCode, type ErrorCodeType } from "./errors.js";
