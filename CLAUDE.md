@@ -115,6 +115,27 @@ UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs
 - **In-process event bus** (Phase 1) — Extractable to Postgres NOTIFY or Redis pub/sub when services split.
 - **Quality-first LLM** — Use frontier models (Claude Sonnet 4, GPT-4.1). Cost negligible at personal scale.
 
+## TypeScript Standards
+
+**Strict compiler flags** (`tsconfig.base.json`): `strict: true`, `noUncheckedIndexedAccess: true`. All packages inherit these.
+
+**Banned patterns:**
+- **No non-null assertions (`!`)** — Use proper null narrowing: `const x = arr[0]; if (!x) return;`
+- **No `as unknown as` double-casts** — Find the correct type or restructure the code
+- **No `@ts-ignore` or `@ts-expect-error`** — Fix the actual type issue
+- **No TypeScript `enum`** — Use const objects: `export const Status = { ACTIVE: "active" } as const; export type Status = (typeof Status)[keyof typeof Status];`
+- **No `any`** — Enforced by `@typescript-eslint/no-explicit-any: "error"`
+
+**Allowed:** Single `as` casts at system boundaries (external API responses, `globalThis` singleton pattern). These must be the narrowest possible type.
+
+**Pre-commit hook** runs `pnpm lint && pnpm typecheck && pnpm test`. All three must pass. NEVER use `--no-verify`.
+
+**Quality commands:**
+```bash
+pnpm check        # lint + typecheck + test (all packages)
+pnpm typecheck    # tsc --noEmit across all packages via turbo
+```
+
 ## Important Gotchas
 
 - `turbo db:generate` must run before `build` or `dev` (Prisma client generation)

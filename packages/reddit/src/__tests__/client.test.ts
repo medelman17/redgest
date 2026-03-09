@@ -6,34 +6,28 @@ const CLIENT_SECRET = "test-client-secret";
 const USER_AGENT = "redgest:test:v0.0.1";
 
 function mockTokenResponse() {
-  return {
-    ok: true,
-    status: 200,
-    statusText: "OK",
-    json: async () => ({
+  return new Response(
+    JSON.stringify({
       access_token: "mock-access-token",
       token_type: "bearer",
       expires_in: 3600,
     }),
-  } as unknown as Response;
+    { status: 200, statusText: "OK" },
+  );
 }
 
 function mockApiResponse(data: unknown = { result: "ok" }) {
-  return {
-    ok: true,
+  return new Response(JSON.stringify(data), {
     status: 200,
     statusText: "OK",
-    json: async () => data,
-  } as unknown as Response;
+  });
 }
 
 function mockErrorResponse(status: number, statusText: string = "Error") {
-  return {
-    ok: false,
+  return new Response(JSON.stringify({ error: statusText }), {
     status,
     statusText,
-    json: async () => ({ error: statusText }),
-  } as unknown as Response;
+  });
 }
 
 describe("RedditClient", () => {
@@ -76,6 +70,7 @@ describe("RedditClient", () => {
       await client.authenticate();
 
       const callArgs = mockFetch.mock.calls[0];
+      if (!callArgs) throw new Error("Expected fetch to have been called");
       const headers = callArgs[1].headers;
       const expectedCredentials = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
       expect(headers["Authorization"]).toBe(`Basic ${expectedCredentials}`);

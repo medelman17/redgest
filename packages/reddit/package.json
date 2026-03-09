@@ -8,9 +8,13 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@redgest/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5"
   }
 }

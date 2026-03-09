@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
   }
 }

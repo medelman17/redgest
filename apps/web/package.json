@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "echo 'web app placeholder'",
     "build": "echo 'web app placeholder'",
-    "lint": "echo 'web app placeholder'"
+    "lint": "echo 'web app placeholder'",
+    "typecheck": "echo 'web app placeholder'"
   }
 }

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+echo "Running pre-commit checks..."
+
+echo ">>> Lint"
+pnpm lint
+
+echo ">>> Typecheck"
+pnpm typecheck
+
+echo ">>> Test"
+pnpm test
+
+echo "All checks passed."

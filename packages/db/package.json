@@ -9,6 +9,7 @@
     "build": "tsc",
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
     "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy"

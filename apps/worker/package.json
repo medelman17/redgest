@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "echo 'worker placeholder'",
     "build": "echo 'worker placeholder'",
-    "lint": "echo 'worker placeholder'"
+    "lint": "echo 'worker placeholder'",
+    "typecheck": "echo 'worker placeholder'"
   }
 }

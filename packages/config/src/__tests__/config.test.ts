@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { configSchema, type RedgestConfig } from "../schema.js";
+import { configSchema } from "../schema.js";
 import { loadConfig, getConfig, resetConfig } from "../index.js";
 
 const validEnv = {
@@ -34,13 +34,13 @@ describe("configSchema", () => {
   });
 
   it("fails when DATABASE_URL is missing", () => {
-    const { DATABASE_URL, ...env } = validEnv;
+    const { DATABASE_URL: _db, ...env } = validEnv;
     const result = configSchema.safeParse(env);
     expect(result.success).toBe(false);
   });
 
   it("fails when ANTHROPIC_API_KEY is missing", () => {
-    const { ANTHROPIC_API_KEY, ...env } = validEnv;
+    const { ANTHROPIC_API_KEY: _key, ...env } = validEnv;
     const result = configSchema.safeParse(env);
     expect(result.success).toBe(false);
   });
@@ -84,7 +84,7 @@ describe("configSchema", () => {
   });
 
   it("requires REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET", () => {
-    const { REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, ...env } = validEnv;
+    const { REDDIT_CLIENT_ID: _id, REDDIT_CLIENT_SECRET: _secret, ...env } = validEnv;
     const result = configSchema.safeParse(env);
     expect(result.success).toBe(false);
   });

@@ -13,7 +13,9 @@ describe("TriageResultSchema", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.selectedPosts).toHaveLength(2);
-      expect(result.data.selectedPosts[0].index).toBe(0);
+      const first = result.data.selectedPosts[0];
+      if (!first) throw new Error("Expected at least one selected post");
+      expect(first.index).toBe(0);
     }
   });
 

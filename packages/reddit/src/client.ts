@@ -41,7 +41,11 @@ export class RedditClient {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+    };
     this.token = {
       accessToken: data.access_token,
       tokenType: data.token_type,
@@ -65,7 +69,10 @@ export class RedditClient {
 
     if (response.status === 401) {
       await this.authenticate();
-      const retry = await this.request(path, this.token!);
+      if (!this.token) {
+        throw new RedgestError("REDDIT_API_ERROR", "Re-authentication failed");
+      }
+      const retry = await this.request(path, this.token);
       return this.handleResponse<T>(retry);
     }
 

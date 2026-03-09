@@ -11,8 +11,11 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
     "db:generate": "turbo run db:generate",
-    "db:migrate": "turbo run db:migrate"
+    "db:migrate": "turbo run db:migrate",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.56.1",

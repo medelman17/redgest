@@ -18,6 +18,10 @@
     "lint": {
       "outputs": []
     },
+    "typecheck": {
+      "dependsOn": ["^db:generate"],
+      "outputs": []
+    },
     "db:generate": {
       "cache": false
     },
