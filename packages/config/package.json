@@ -9,5 +9,11 @@
     "build": "tsc",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint src/"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5"
   }
 }

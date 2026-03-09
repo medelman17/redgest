@@ -1,0 +1,103 @@
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { configSchema, type RedgestConfig } from "../schema.js";
+import { loadConfig, getConfig } from "../index.js";
+
+const validEnv = {
+  DATABASE_URL: "postgresql://user:pass@localhost:5432/redgest",
+  ANTHROPIC_API_KEY: "sk-ant-test-key-1234567890",
+  TRIGGER_SECRET_KEY: "tr_dev_test_key_1234567890",
+  MCP_SERVER_API_KEY: "mcp-test-api-key-that-is-at-least-32-chars-long",
+  MCP_SERVER_PORT: "3100",
+  UPSTASH_REDIS_URL: "https://example.upstash.io",
+  NODE_ENV: "development",
+};
+
+describe("configSchema", () => {
+  it("parses a valid full configuration", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DATABASE_URL).toBe(validEnv.DATABASE_URL);
+      expect(result.data.MCP_SERVER_PORT).toBe(3100);
+      expect(result.data.NODE_ENV).toBe("development");
+    }
+  });
+
+  it("applies default values", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.LOG_LEVEL).toBe("info");
+      expect(result.data.MCP_SERVER_PORT).toBe(3100);
+    }
+  });
+
+  it("fails when DATABASE_URL is missing", () => {
+    const { DATABASE_URL, ...env } = validEnv;
+    const result = configSchema.safeParse(env);
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when ANTHROPIC_API_KEY is missing", () => {
+    const { ANTHROPIC_API_KEY, ...env } = validEnv;
+    const result = configSchema.safeParse(env);
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when MCP_SERVER_API_KEY is too short", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      MCP_SERVER_API_KEY: "short",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when NODE_ENV is invalid", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      NODE_ENV: "staging",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts optional fields when missing", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.OPENAI_API_KEY).toBeUndefined();
+      expect(result.data.RESEND_API_KEY).toBeUndefined();
+      expect(result.data.SLACK_WEBHOOK_URL).toBeUndefined();
+    }
+  });
+
+  it("coerces MCP_SERVER_PORT string to number", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      MCP_SERVER_PORT: "8080",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.MCP_SERVER_PORT).toBe(8080);
+    }
+  });
+});
+
+describe("loadConfig", () => {
+  it("loads and returns parsed config", () => {
+    const config = loadConfig(validEnv);
+    expect(config.DATABASE_URL).toBe(validEnv.DATABASE_URL);
+    expect(config.LOG_LEVEL).toBe("info");
+  });
+
+  it("throws on invalid config with descriptive message", () => {
+    expect(() => loadConfig({})).toThrow("Configuration validation failed");
+  });
+});
+
+describe("getConfig", () => {
+  it("returns config after loadConfig is called", () => {
+    loadConfig(validEnv);
+    const config = getConfig();
+    expect(config.DATABASE_URL).toBe(validEnv.DATABASE_URL);
+  });
+});
