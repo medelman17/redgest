@@ -37,5 +37,29 @@ export type {
 } from "./queries/types.js";
 export { createQuery } from "./queries/dispatch.js";
 
+// Command handlers
+export { commandHandlers } from "./commands/handlers/index.js";
+export {
+  handleGenerateDigest,
+  handleAddSubreddit,
+  handleRemoveSubreddit,
+  handleUpdateSubreddit,
+  handleUpdateConfig,
+} from "./commands/handlers/index.js";
+
+// Query handlers
+export { queryHandlers } from "./queries/handlers/index.js";
+export {
+  handleGetDigest,
+  handleListDigests,
+  handleSearchDigests,
+  handleGetPost,
+  handleSearchPosts,
+  handleGetRunStatus,
+  handleListRuns,
+  handleListSubreddits,
+  handleGetConfig,
+} from "./queries/handlers/index.js";
+
 // Context
 export type { HandlerContext, DbClient } from "./context.js";
