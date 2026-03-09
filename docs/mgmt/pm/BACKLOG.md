@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-09
 **Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: Sprint 2
+**Active Sprint**: Sprint 5
 
 ---
 
@@ -12,14 +12,14 @@
 |-------|-------------|-------|------|-------------|---------|------|---|
 | 1 | WS1: Monorepo & Config | 5 | 5 | 0 | 0 | 0 | 100% |
 | 1 | WS2: Database | 7 | 7 | 0 | 0 | 0 | 100% |
-| 1 | WS3: CQRS Core | 8 | 1 | 0 | 0 | 7 | 12% |
-| 1 | WS4: Reddit Integration | 4 | 1 | 0 | 0 | 3 | 25% |
-| 1 | WS5: LLM Abstraction | 7 | 2 | 0 | 0 | 5 | 29% |
-| 1 | WS6: Pipeline Orchestration | 4 | 0 | 0 | 4 | 0 | 0% |
-| 1 | WS7: MCP Server | 6 | 0 | 0 | 3 | 3 | 0% |
+| 1 | WS3: CQRS Core | 8 | 8 | 0 | 0 | 0 | 100% |
+| 1 | WS4: Reddit Integration | 4 | 3 | 0 | 0 | 1 | 75% |
+| 1 | WS5: LLM Abstraction | 7 | 5 | 0 | 0 | 2 | 71% |
+| 1 | WS6: Pipeline Orchestration | 4 | 0 | 0 | 0 | 4 | 0% |
+| 1 | WS7: MCP Server | 6 | 0 | 0 | 2 | 4 | 0% |
 | 1 | WS8: Trigger.dev | 4 | 0 | 0 | 2 | 2 | 0% |
-| 1 | Testing & Deployment | 4 | 0 | 0 | 4 | 0 | 0% |
-| **Total P1** | | **49** | **16** | **0** | **13** | **20** | **33%** |
+| 1 | Testing & Deployment | 4 | 0 | 0 | 3 | 1 | 0% |
+| **Total P1** | | **49** | **28** | **0** | **7** | **14** | **57%** |
 
 ---
 
@@ -75,62 +75,33 @@
 ### WS3: CQRS Core (8pt)
 **Deps**: WS1, WS2 | **Unblocks**: WS6, WS7
 
-- [ ] Domain model classes — Command, Query, Event (1pt)
-  Blocked by: WS1
-  Unblocks: buses, handlers
-  Acceptance:
-  - Base classes/interfaces for Command, Query, Event
-  - Typed with generics for payload
-  - Correlation/causation ID support on events
+- [x] Domain model classes — Command, Query, Event (1pt)
+  Done: 2026-03-09 | Ref: Sprint 3
+  Note: Typed interfaces with generics. Command/Query types, DomainEvent with correlation support.
 
-- [ ] Command bus implementation (1pt)
-  Blocked by: domain models
-  Unblocks: command handlers
-  Acceptance:
-  - Register handler for command type
-  - Dispatch command → handler executes
-  - Error propagation
+- [x] Command bus implementation (1pt)
+  Done: 2026-03-09 | Ref: Sprint 3
+  Note: createExecute() — transactional dispatch with event persistence.
 
-- [ ] Query bus implementation (1pt)
-  Blocked by: domain models
-  Unblocks: query handlers
-  Acceptance:
-  - Register handler for query type
-  - Dispatch query → handler returns result
-  - Error propagation
+- [x] Query bus implementation (1pt)
+  Done: 2026-03-09 | Ref: Sprint 3
+  Note: createQuery() — typed dispatch to registered handlers.
 
-- [ ] Event bus — in-process EventEmitter (1pt)
-  Blocked by: None (WS1 complete)
-  Unblocks: projectors, WS8
-  Acceptance:
-  - emit(event) publishes to all subscribers
-  - on(eventType, handler) registers listener
-  - Interface designed for future extraction (Postgres LISTEN/NOTIFY or Redis)
+- [x] Event bus — in-process EventEmitter (1pt)
+  Done: 2026-03-09 | Ref: Sprint 3
+  Note: DomainEventBus with typed emit/on. Extractable to Postgres NOTIFY or Redis.
 
-- [!] Command handlers — GenerateDigest, AddSubreddit, UpdateConfig (1.5pt)
-  Blocked by: command bus (WS2 done)
-  Unblocks: WS7 (MCP tools)
-  Acceptance:
-  - GenerateDigestHandler: creates Job record, emits DigestRequested
-  - AddSubredditHandler: validates, creates Subreddit, emits SubredditAdded
-  - UpdateConfigHandler: validates, updates Config singleton
-  - All use UoW for transactional safety
+- [x] Command handlers — GenerateDigest, AddSubreddit, RemoveSubreddit, UpdateSubreddit, UpdateConfig (1.5pt)
+  Done: 2026-03-09 | Ref: Sprint 4 (4848d62)
+  Note: One file per handler (ADR-005). 5 handlers + registry. 12 tests.
 
-- [!] Query handlers — GetDigest, ListSubreddits, GetPost, SearchPosts, GetRunStatus (1pt)
-  Blocked by: query bus (WS2 done)
-  Unblocks: WS7 (MCP tools)
-  Acceptance:
-  - Each queries appropriate view
-  - Returns typed result
-  - Pagination support where needed (limit/offset)
+- [x] Query handlers — GetDigest, GetPost, GetRunStatus, ListDigests, ListRuns, ListSubreddits, GetConfig, SearchPosts, SearchDigests (1pt)
+  Done: 2026-03-09 | Ref: Sprint 4 (5a8aed1)
+  Note: Views for standard reads, tables for search/config (ADR-006). 9 handlers + registry. 20 tests.
 
-- [!] Event projectors — digest_view, post_view, run_view, subreddit_view (1pt)
-  Blocked by: event bus (WS2 done)
-  Unblocks: query handlers
-  Acceptance:
-  - Projectors consume events and update materialized views
-  - OR: views are live SQL queries (simpler for Phase 1)
-  - Documented decision on which approach
+- [x] Event projectors — live SQL views (1pt)
+  Done: 2026-03-09 | Ref: ADR-006 (Sprint 4 design)
+  Note: Decided on live SQL views (created in WS2 Sprint 2) rather than event-driven projectors. Simpler for Phase 1. Decision documented in docs/plans/2026-03-09-sprint-4-design.md.
 
 - [x] Unified error code registry (0.5pt)
   Done: 2026-03-09 | Ref: 8280c6e
@@ -144,22 +115,13 @@
   Done: 2026-03-09 | Ref: 9b197f0
   Note: RedditClient with OAuth2, types (RedditPostData/CommentData), 401 retry, 403/429 error handling
 
-- [ ] Token bucket rate limiter — 60 req/min (0.5pt)
-  Blocked by: client
-  Unblocks: fetcher
-  Acceptance:
-  - Token bucket algorithm with 60 req/min capacity
-  - Blocks/queues requests when exhausted
-  - Respects Reddit's X-Ratelimit headers
+- [x] Token bucket rate limiter — 60 req/min (0.5pt)
+  Done: 2026-03-09 | Ref: Sprint 3
+  Note: TokenBucket with acquire(). 5 tests.
 
-- [ ] Content fetcher — hot/top/rising + comments (1pt)
-  Blocked by: client, rate limiter
-  Unblocks: WS6 (pipeline)
-  Acceptance:
-  - Fetches posts from configured subreddits
-  - Supports hot/top/rising sort modes
-  - Fetches top N comments per selected post
-  - Returns typed Post + PostComment objects
+- [x] Content fetcher — hot/top/rising + comments (1pt)
+  Done: 2026-03-09 | Ref: Sprint 4 (3ca3cb1)
+  Note: fetchSubredditContent() — pure data orchestrator (ADR-008). Deduplicates across sorts. 5 tests.
 
 - [ ] ContentSource interface for swappability (0.5pt)
   Blocked by: None
@@ -181,32 +143,17 @@
 - [x] Prompt templates — triage + summarization (1pt)
   Done: 2026-03-09 | Ref: 1ce481e
 
-- [ ] generateTriageResult() with Output.object() (1pt)
-  Blocked by: schemas (prompts done, WS1 config done)
-  Unblocks: WS6 pipeline
-  Acceptance:
-  - Uses AI SDK 6 Output.object() for native structured output
-  - Accepts posts array + insight prompt
-  - Returns ValidatedTriageResult
-  - Handles retries (3 attempts)
-  - Logs tokens, cost, duration via middleware
+- [x] generateTriageResult() with Output.object() (1pt)
+  Done: 2026-03-09 | Ref: Sprint 4
+  Note: Uses AI SDK v6 result.output (not result.object). Accepts posts, insightPrompts string[], targetCount. 3 tests.
 
-- [ ] generatePostSummary() with Output.object() (0.5pt)
-  Blocked by: schemas, prompts
-  Unblocks: WS6 pipeline
-  Acceptance:
-  - Accepts post + comments + insight prompt
-  - Returns ValidatedPostSummary
-  - Handles retries
-  - Cache-aware (check Redis before calling LLM)
+- [x] generatePostSummary() with Output.object() (0.5pt)
+  Done: 2026-03-09 | Ref: Sprint 4
+  Note: Uses AI SDK v6 result.output. Accepts post, comments, insightPrompts. 3 tests.
 
-- [ ] Provider abstraction — Anthropic + OpenAI registry (0.5pt)
-  Blocked by: None
-  Unblocks: generate functions
-  Acceptance:
-  - getModel(provider, model) returns AI SDK model instance
-  - Supports anthropic/claude-sonnet-4-5 and openai/gpt-4.1
-  - Configured via @redgest/config
+- [x] Provider abstraction — Anthropic + OpenAI registry (0.5pt)
+  Done: 2026-03-09 | Ref: Sprint 4 (8258332)
+  Note: getModel(taskName, override?) — AI SDK provider registry. Defaults: anthropic/claude-sonnet-4. 4 tests.
 
 - [ ] Redis cache layer (0.5pt)
   Blocked by: None (config complete, REDIS_URL optional)
@@ -230,8 +177,8 @@
 ### WS6: Pipeline Orchestration (5pt)
 **Deps**: WS3, WS4, WS5 | **Unblocks**: WS7
 
-- [!] Triage → Summarize → Assemble flow (2pt)
-  Blocked by: WS3 (CQRS), WS4 (Reddit fetcher), WS5 (LLM functions)
+- [ ] Triage → Summarize → Assemble flow (2pt)
+  Blocked by: None (WS3, WS4, WS5 complete)
   Unblocks: WS7 (MCP tools)
   Acceptance:
   - Fetches posts from all configured subreddits
@@ -241,24 +188,24 @@
   - Assembles Digest markdown from summaries
   - Stores all artifacts (Post, PostSummary, Digest, JobPost records)
 
-- [!] Token budgeting and truncation (1pt)
-  Blocked by: WS5 (LLM schemas)
+- [ ] Token budgeting and truncation (1pt)
+  Blocked by: None (WS5 complete)
   Unblocks: pipeline reliability
   Acceptance:
   - Pre-calculates token allocation (~8K triage, ~9.7K summarization)
   - Truncates post body/comments if exceeding budget
   - Adds inline "[truncated]" note for LLM awareness
 
-- [!] Deduplication logic (1pt)
-  Blocked by: WS2 (Job/Post tables)
+- [ ] Deduplication logic (1pt)
+  Blocked by: None (WS2 complete)
   Unblocks: digest quality
   Acceptance:
   - Checks Post.redditId against posts from last N digests
   - Skips already-summarized posts
   - Configurable lookback window
 
-- [!] Error recovery and partial failure handling (1pt)
-  Blocked by: WS3 (error codes)
+- [ ] Error recovery and partial failure handling (1pt)
+  Blocked by: None (WS3 complete)
   Unblocks: pipeline reliability
   Acceptance:
   - If one subreddit fetch fails, continue with others
@@ -272,7 +219,7 @@
 **Deps**: WS3, WS6 | **Unblocks**: WS8, E2E testing
 
 - [!] tools.ts: Register all 12 tools on McpServer (2pt)
-  Blocked by: WS3 (handlers), WS6 (pipeline)
+  Blocked by: WS6 (pipeline)
   Unblocks: http/stdio transports
   Acceptance:
   - Pipeline tools: generate_digest, get_run_status, cancel_run
@@ -304,8 +251,8 @@
   - Returns 401 for invalid/missing keys
   - Bypassed for stdio transport
 
-- [!] Response envelope {ok, data, error} (0.5pt)
-  Blocked by: WS3 (error codes)
+- [ ] Response envelope {ok, data, error} (0.5pt)
+  Blocked by: None (WS3 error codes complete)
   Unblocks: all tool responses
   Acceptance:
   - All tool responses wrapped in {ok: boolean, data?: T, error?: {code, message, details?}}
@@ -345,7 +292,7 @@
   - Idempotency keys on all tasks
 
 - [!] Event handler: DigestRequested → tasks.trigger() (1pt)
-  Blocked by: WS3 (event bus)
+  Blocked by: WS6 (pipeline)
   Unblocks: async pipeline
   Acceptance:
   - Listens for DigestRequested event
@@ -364,15 +311,15 @@
 
 ### Testing & Deployment (7pt)
 
-- [!] Unit tests: Zod schemas, prompt building, truncation (2pt)
-  Blocked by: WS5, WS6
+- [ ] Unit tests: Zod schemas, prompt building, truncation (2pt)
+  Blocked by: WS6 (token budgeting)
   Acceptance:
   - Schema validation tests (valid/invalid inputs)
   - Prompt template output tests
   - Token truncation boundary tests
 
 - [!] Integration tests: mock LLM, real Reddit API (2pt)
-  Blocked by: WS4, WS5, WS6
+  Blocked by: WS6 (pipeline)
   Acceptance:
   - Mock AI SDK responses for triage/summarization
   - Live Reddit API test (with rate limiting)
@@ -433,7 +380,7 @@
 | Gap # | Task | Phase | Status |
 |-------|------|-------|--------|
 | 1 | Add llm_calls logging table + middleware writes | 1 | [ ] |
-| 2 | Implement LIKE/prefix search for Phase 1 | 1 | [ ] |
+| 2 | Implement LIKE/prefix search for Phase 1 | 1 | [x] (Sprint 4 — SearchPosts uses `contains` mode) |
 | 4 | Add MCP rate limiting middleware | 2 | [ ] |
 | 5 | Sanitize Reddit content (prompt injection defense) | 1 | [ ] |
 | 6 | Test Prisma v7 modern mode in Trigger.dev container | 1 | [ ] |

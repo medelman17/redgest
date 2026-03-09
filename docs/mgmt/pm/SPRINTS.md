@@ -1,6 +1,26 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 4
+## Active Sprint: Sprint 5
+
+**Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 6pt
+**Sprint Goal**: Build the complete digest pipeline (WS6) to unblock WS7 (MCP Server)
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Triage → Summarize → Assemble flow | WS6 | 2.0 | feature | [ ] |
+| Token budgeting and truncation | WS6 | 1.0 | feature | [ ] |
+| Deduplication logic | WS6 | 1.0 | feature | [ ] |
+| Error recovery and partial failure handling | WS6 | 1.0 | feature | [ ] |
+| ContentSource interface for swappability | WS4 | 0.5 | feature | [ ] |
+
+**Committed**: 5.5pt | **Completed**: 0pt | **Velocity**: 0%
+
+---
+
+## Previous Sprints
+
+### Sprint 4 (Complete)
 
 **Duration**: 2026-03-09 — 2026-03-16
 **Capacity**: 6pt
@@ -18,8 +38,6 @@
 **Committed**: 5.5pt | **Completed**: 5.5pt | **Velocity**: 100%
 
 ---
-
-## Previous Sprints
 
 ### Sprint 3 (Complete)
 

@@ -1,16 +1,11 @@
 # Redgest Tech Debt Register
 
 **Last Updated**: 2026-03-09
-**Open**: 3 | **In Sprint**: 0 | **Resolved**: 0
+**Open**: 2 | **In Sprint**: 0 | **Resolved**: 1
 
 ---
 
 ## Open
-
-- **TD-001**: insightNotes is z.array(z.string()) in Zod but String @db.Text in Prisma (high)
-  Affected: @redgest/llm, @redgest/db | Pay by: WS6
-  Discovered: 2026-03-09
-  Resolution: Reconcile types — either change Prisma schema to Json[] or change Zod to single string. Must be consistent before summarization pipeline stores results.
 
 - **TD-002**: Docker Compose Postgres mapped to port 5433 instead of 5432 (low)
   Affected: infra | Pay by: —
@@ -32,4 +27,6 @@
 
 ## Resolved
 
-(none)
+- **TD-001**: insightNotes is z.array(z.string()) in Zod but String @db.Text in Prisma (high)
+  Affected: @redgest/llm, @redgest/db | Resolved: 2026-03-09
+  Resolution: Reconciled in Sprint 3. Changed Zod schema to match Prisma's String type. insightNotes stored as JSON-serialized string array in a single Text column.
