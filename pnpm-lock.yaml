@@ -47,7 +47,21 @@ importers:
         specifier: ^25.3.5
         version: 25.3.5
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      '@redgest/config':
+        specifier: workspace:*
+        version: link:../config
+      '@redgest/db':
+        specifier: workspace:*
+        version: link:../db
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: ^25.3.5
+        version: 25.3.5
 
   packages/db:
     dependencies:
