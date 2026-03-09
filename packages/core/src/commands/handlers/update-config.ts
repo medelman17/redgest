@@ -30,6 +30,7 @@ export const handleUpdateConfig: CommandHandler<"UpdateConfig"> = async (
       llmModel:
         (changes.llmModel as string | undefined) ??
         "claude-sonnet-4-20250514",
+      ...changes,
     },
   });
 

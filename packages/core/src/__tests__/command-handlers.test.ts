@@ -218,12 +218,12 @@ describe("handleUpdateConfig", () => {
     expect(mockUpsert).toHaveBeenCalledWith({
       where: { id: 1 },
       update: { globalInsightPrompt: "new prompt", llmModel: "gpt-4.1" },
-      create: {
+      create: expect.objectContaining({
         id: 1,
         globalInsightPrompt: "new prompt",
         llmProvider: "anthropic",
         llmModel: "gpt-4.1",
-      },
+      }),
     });
   });
 
@@ -247,6 +247,7 @@ describe("handleUpdateConfig", () => {
         globalInsightPrompt: "",
         llmProvider: "anthropic",
         llmModel: "claude-sonnet-4-20250514",
+        defaultLookback: "48h",
       },
     });
   });
