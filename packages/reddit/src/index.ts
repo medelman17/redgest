@@ -4,6 +4,7 @@ export { TokenBucket } from "./rate-limiter.js";
 export type { TokenBucketOptions } from "./rate-limiter.js";
 export { fetchSubredditContent } from "./fetcher.js";
 export type { FetchOptions, FetchedContent } from "./fetcher.js";
+export { RedditContentSource } from "./content-source.js";
 export type {
   RedditAuthToken,
   RedditListing,

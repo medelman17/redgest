@@ -15,6 +15,7 @@
     "@redgest/config": "workspace:*",
     "@redgest/db": "workspace:*",
     "@redgest/llm": "workspace:*",
+    "ai": "^6.0.116",
     "zod": "^4.3.6"
   },
   "devDependencies": {
