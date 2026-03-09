@@ -19,7 +19,6 @@ import type {
   SubredditPipelineResult,
 } from "./types.js";
 
-/** Emit a domain event: persist to DB + publish on event bus. */
 async function emitEvent<K extends DomainEventType>(
   db: PrismaClient,
   eventBus: DomainEventBus,
@@ -27,7 +26,7 @@ async function emitEvent<K extends DomainEventType>(
   payload: DomainEventMap[K],
   aggregateId: string,
 ): Promise<void> {
-  const envelope: Record<string, unknown> = {
+  const event: DomainEvent = {
     type,
     payload,
     aggregateId,
@@ -37,10 +36,9 @@ async function emitEvent<K extends DomainEventType>(
     causationId: null,
     metadata: {},
     occurredAt: new Date(),
-  };
-  // Safe cast: envelope structure matches DomainEvent — same pattern as dispatch.ts
-  const event: DomainEvent = envelope as DomainEvent;
+  } as unknown as DomainEvent;
 
+  // PrismaClient satisfies EventCreateClient at runtime; Prisma's generated types are stricter
   await persistEvent(db as unknown as EventCreateClient, event);
   eventBus.emitEvent(event);
 }
@@ -59,7 +57,7 @@ export async function runDigestPipeline(
   subredditIds: string[],
   deps: PipelineDeps,
 ): Promise<PipelineResult> {
-  const { db, eventBus, contentSource, config: _config } = deps;
+  const { db, eventBus, contentSource } = deps;
 
   // 1. Update job status to RUNNING
   await db.job.update({
@@ -185,6 +183,7 @@ export async function runDigestPipeline(
             postData.postId,
             db,
             deps.model ? getModel("summarize", deps.model) : undefined,
+            sel.rationale,
           );
 
           postResults.push({
@@ -231,23 +230,18 @@ export async function runDigestPipeline(
   const hasErrors = errors.length > 0;
 
   if (totalPosts === 0) {
+    const errorMessage = errors.join("; ") || "No content produced";
+
     await db.job.update({
       where: { id: jobId },
-      data: {
-        status: "FAILED",
-        completedAt: new Date(),
-        error: errors.join("; ") || "No content produced",
-      },
+      data: { status: "FAILED", completedAt: new Date(), error: errorMessage },
     });
 
     await emitEvent(
       db,
       eventBus,
       "DigestFailed",
-      {
-        jobId,
-        error: errors.join("; ") || "No content produced",
-      },
+      { jobId, error: errorMessage },
       jobId,
     );
 
@@ -258,7 +252,7 @@ export async function runDigestPipeline(
   const assembleResult = await assembleStep(jobId, subredditResults, db);
 
   // 8. Update job to final status
-  const finalStatus = hasErrors ? ("PARTIAL" as const) : ("COMPLETED" as const);
+  const finalStatus = hasErrors ? "PARTIAL" : "COMPLETED";
   await db.job.update({
     where: { id: jobId },
     data: {

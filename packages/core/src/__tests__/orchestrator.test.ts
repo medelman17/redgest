@@ -314,6 +314,7 @@ describe("runDigestPipeline", () => {
       "post-1",
       mockDb,
       undefined,
+      "Highly relevant",
     );
   });
 

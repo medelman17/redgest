@@ -13,6 +13,7 @@ export async function summarizeStep(
   postId: string,
   db: PrismaClient,
   model?: LanguageModel,
+  selectionRationale?: string,
 ): Promise<SummarizeStepResult> {
   // Apply comments-first truncation (ADR-011)
   const budgeted = applySummarizationBudget(post.selftext, comments);
@@ -29,13 +30,11 @@ export async function summarizeStep(
     model,
   );
 
-  // Extract provider/model metadata — LanguageModel is a union of string | V2 | V3
+  const isModelObject = model != null && typeof model === "object";
   const llmProvider =
-    model != null && typeof model === "object" && "provider" in model
-      ? model.provider
-      : "anthropic";
+    isModelObject && "provider" in model ? model.provider : "anthropic";
   const llmModel =
-    model != null && typeof model === "object" && "modelId" in model
+    isModelObject && "modelId" in model
       ? model.modelId
       : "claude-sonnet-4-20250514";
 
@@ -48,7 +47,7 @@ export async function summarizeStep(
       keyTakeaways: summary.keyTakeaways,
       insightNotes: summary.insightNotes,
       commentHighlights: summary.commentHighlights,
-      selectionRationale: "", // Set by orchestrator after triage
+      selectionRationale: selectionRationale ?? "",
       llmProvider,
       llmModel,
     },

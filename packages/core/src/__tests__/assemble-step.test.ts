@@ -41,6 +41,13 @@ function makeSubredditResult(
 describe("renderDigestMarkdown", () => {
   it("produces correct markdown structure with date header", () => {
     const results = [makeSubredditResult()];
+    const md = renderDigestMarkdown(results, "2026-03-09");
+
+    expect(md).toContain("# Reddit Digest — 2026-03-09");
+  });
+
+  it("defaults to today's date when none provided", () => {
+    const results = [makeSubredditResult()];
     const md = renderDigestMarkdown(results);
 
     const today = new Date().toISOString().split("T")[0];
@@ -153,14 +160,14 @@ describe("renderDigestMarkdown", () => {
 describe("assembleStep", () => {
   let mockDb: {
     digest: { create: ReturnType<typeof vi.fn> };
-    digestPost: { create: ReturnType<typeof vi.fn> };
+    digestPost: { createMany: ReturnType<typeof vi.fn> };
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockDb = {
       digest: { create: vi.fn().mockResolvedValue({ id: "digest-1" }) },
-      digestPost: { create: vi.fn().mockResolvedValue({}) },
+      digestPost: { createMany: vi.fn().mockResolvedValue({ count: 0 }) },
     };
   });
 
@@ -202,22 +209,11 @@ describe("assembleStep", () => {
 
     await assembleStep("job-1", results, mockDb as unknown as PrismaClient);
 
-    expect(mockDb.digestPost.create).toHaveBeenCalledTimes(2);
-    expect(mockDb.digestPost.create).toHaveBeenNthCalledWith(1, {
-      data: {
-        digestId: "digest-1",
-        postId: "post-1",
-        subreddit: "typescript",
-        rank: 1,
-      },
-    });
-    expect(mockDb.digestPost.create).toHaveBeenNthCalledWith(2, {
-      data: {
-        digestId: "digest-1",
-        postId: "post-2",
-        subreddit: "typescript",
-        rank: 2,
-      },
+    expect(mockDb.digestPost.createMany).toHaveBeenCalledWith({
+      data: [
+        { digestId: "digest-1", postId: "post-1", subreddit: "typescript", rank: 1 },
+        { digestId: "digest-1", postId: "post-2", subreddit: "typescript", rank: 2 },
+      ],
     });
   });
 
@@ -243,7 +239,7 @@ describe("assembleStep", () => {
     expect(result.contentMarkdown).toContain("# Reddit Digest");
   });
 
-  it("handles multiple subreddits with multiple posts", async () => {
+  it("handles multiple subreddits with global rank ordering", async () => {
     const results = [
       makeSubredditResult({
         subreddit: "typescript",
@@ -281,32 +277,12 @@ describe("assembleStep", () => {
     const result = await assembleStep("job-1", results, mockDb as unknown as PrismaClient);
 
     expect(result.postCount).toBe(3);
-    expect(mockDb.digestPost.create).toHaveBeenCalledTimes(3);
-
-    // Rank should be global across subreddits: 1, 2, 3
-    expect(mockDb.digestPost.create).toHaveBeenNthCalledWith(1, {
-      data: {
-        digestId: "digest-1",
-        postId: "p1",
-        subreddit: "typescript",
-        rank: 1,
-      },
-    });
-    expect(mockDb.digestPost.create).toHaveBeenNthCalledWith(2, {
-      data: {
-        digestId: "digest-1",
-        postId: "p2",
-        subreddit: "rust",
-        rank: 2,
-      },
-    });
-    expect(mockDb.digestPost.create).toHaveBeenNthCalledWith(3, {
-      data: {
-        digestId: "digest-1",
-        postId: "p3",
-        subreddit: "rust",
-        rank: 3,
-      },
+    expect(mockDb.digestPost.createMany).toHaveBeenCalledWith({
+      data: [
+        { digestId: "digest-1", postId: "p1", subreddit: "typescript", rank: 1 },
+        { digestId: "digest-1", postId: "p2", subreddit: "rust", rank: 2 },
+        { digestId: "digest-1", postId: "p3", subreddit: "rust", rank: 3 },
+      ],
     });
   });
 
@@ -315,6 +291,6 @@ describe("assembleStep", () => {
 
     expect(result.postCount).toBe(0);
     expect(result.digestId).toBe("digest-1");
-    expect(mockDb.digestPost.create).not.toHaveBeenCalled();
+    expect(mockDb.digestPost.createMany).not.toHaveBeenCalled();
   });
 });

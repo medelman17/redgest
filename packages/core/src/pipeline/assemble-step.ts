@@ -24,19 +24,26 @@ export async function assembleStep(
   });
 
   // Create DigestPost join records with rank ordering
+  const digestPostData: Array<{
+    digestId: string;
+    postId: string;
+    subreddit: string;
+    rank: number;
+  }> = [];
   let globalRank = 0;
   for (const subResult of subredditResults) {
     for (const post of subResult.posts) {
       globalRank++;
-      await db.digestPost.create({
-        data: {
-          digestId: digest.id,
-          postId: post.postId,
-          subreddit: subResult.subreddit,
-          rank: globalRank,
-        },
+      digestPostData.push({
+        digestId: digest.id,
+        postId: post.postId,
+        subreddit: subResult.subreddit,
+        rank: globalRank,
       });
     }
+  }
+  if (digestPostData.length > 0) {
+    await db.digestPost.createMany({ data: digestPostData });
   }
 
   return {
@@ -48,9 +55,10 @@ export async function assembleStep(
 
 export function renderDigestMarkdown(
   subredditResults: SubredditPipelineResult[],
+  date?: string,
 ): string {
-  const date = new Date().toISOString().split("T")[0];
-  const sections: string[] = [`# Reddit Digest — ${date}\n`];
+  const digestDate = date ?? new Date().toISOString().split("T")[0];
+  const sections: string[] = [`# Reddit Digest — ${digestDate}\n`];
 
   for (const sub of subredditResults) {
     if (sub.posts.length === 0) continue;

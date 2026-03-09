@@ -81,21 +81,16 @@ export function applySummarizationBudget(
   );
 
   let currentTokens = totalTokens;
-  const removedIndices = new Set<number>();
+  let removeCount = 0;
 
   // Remove lowest-score comments until under budget
-  for (let i = 0; i < sorted.length; i++) {
+  for (const entry of sorted) {
     if (currentTokens <= maxTokens) break;
-    const entry = sorted[i];
-    if (entry) {
-      currentTokens -= entry.tokens;
-      removedIndices.add(i);
-    }
+    currentTokens -= entry.tokens;
+    removeCount++;
   }
 
-  const keptComments = sorted
-    .filter((_, i) => !removedIndices.has(i))
-    .map((e) => e.comment);
+  const keptComments = sorted.slice(removeCount).map((e) => e.comment);
 
   // If still over budget after removing comments, truncate post selftext
   let selftext = postSelftext;
