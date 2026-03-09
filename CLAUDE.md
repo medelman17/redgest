@@ -165,10 +165,11 @@ Always invoke the relevant superpowers skill **before** taking action. The workf
 
 ## Project Management
 
-Use the `/redgest-scrum-master` skill for backlog management, sprint planning, and task prioritization. Invoke it when asking "what should I work on next," checking project status, starting/reviewing sprints, marking tasks done, or viewing dependencies. It manages two files:
+Use the `/redgest-scrum-master` skill for backlog management, sprint planning, task prioritization, and tech debt tracking. Invoke it when asking "what should I work on next," checking project status, starting/reviewing sprints, marking tasks done, viewing dependencies, or logging tech debt. It manages three files:
 
 - `docs/mgmt/pm/BACKLOG.md` — Task backlog with status, effort, dependencies, and acceptance criteria
 - `docs/mgmt/pm/SPRINTS.md` — Sprint commitments and velocity tracking
+- `docs/mgmt/pm/TECH_DEBT.md` — Tech debt register with severity, affected areas, and resolution criteria
 
 If these files don't exist yet, the skill will bootstrap them from the implementation plan.
 
