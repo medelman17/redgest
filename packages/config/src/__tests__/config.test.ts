@@ -9,6 +9,8 @@ const validEnv = {
   MCP_SERVER_API_KEY: "mcp-test-api-key-that-is-at-least-32-chars-long",
   MCP_SERVER_PORT: "3100",
   NODE_ENV: "development",
+  REDDIT_CLIENT_ID: "test-client-id",
+  REDDIT_CLIENT_SECRET: "test-client-secret",
 };
 
 describe("configSchema", () => {
@@ -78,6 +80,23 @@ describe("configSchema", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.MCP_SERVER_PORT).toBe(8080);
+    }
+  });
+
+  it("requires REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET", () => {
+    const env = { ...validEnv };
+    delete (env as any).REDDIT_CLIENT_ID;
+    delete (env as any).REDDIT_CLIENT_SECRET;
+    const result = configSchema.safeParse(env);
+    expect(result.success).toBe(false);
+  });
+
+  it("parses valid Reddit credentials", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.REDDIT_CLIENT_ID).toBe("test-client-id");
+      expect(result.data.REDDIT_CLIENT_SECRET).toBe("test-client-secret");
     }
   });
 });

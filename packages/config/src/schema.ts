@@ -7,6 +7,8 @@ export const configSchema = z.object({
   TRIGGER_SECRET_KEY: z.string().min(1, "TRIGGER_SECRET_KEY is required"),
   MCP_SERVER_API_KEY: z.string().min(32, "MCP_SERVER_API_KEY must be at least 32 characters"),
   MCP_SERVER_PORT: z.coerce.number().int().min(1024).max(65535).default(3100),
+  REDDIT_CLIENT_ID: z.string().min(1, "REDDIT_CLIENT_ID is required"),
+  REDDIT_CLIENT_SECRET: z.string().min(1, "REDDIT_CLIENT_SECRET is required"),
 
   // Optional (not needed for local dev without caching)
   REDIS_URL: z.url("REDIS_URL must be a valid URL").optional(),
