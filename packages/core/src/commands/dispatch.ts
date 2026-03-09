@@ -166,6 +166,8 @@ function extractAggregateId(type: CommandType, data: unknown): string {
   if (typeof result.subredditId === "string") {
     return result.subredditId;
   }
-  // Config commands — use fixed aggregate ID
-  return "config-singleton";
+  if (type === "UpdateConfig") {
+    return "config-singleton";
+  }
+  return "unknown";
 }

@@ -39,7 +39,7 @@ export interface CommandMap {
 export interface CommandResultMap {
   GenerateDigest: { jobId: string; status: string };
   AddSubreddit: { subredditId: string };
-  RemoveSubreddit: { success: true };
+  RemoveSubreddit: { subredditId: string };
   UpdateSubreddit: { subredditId: string };
   UpdateConfig: { success: true };
 }

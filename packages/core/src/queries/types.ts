@@ -1,4 +1,13 @@
 import type { HandlerContext } from "../context.js";
+import type {
+  DigestView,
+  PostView,
+  RunView,
+  SubredditView,
+  Config,
+  Digest,
+  Post,
+} from "@redgest/db";
 
 /**
  * QueryMap — all queries the system accepts.
@@ -17,19 +26,19 @@ export interface QueryMap {
 }
 
 /**
- * QueryResultMap — placeholder return types for each query.
- * Sprint 4 will refine these with Prisma-generated types.
+ * QueryResultMap — concrete return types for each query.
+ * Uses Prisma view models where available, table models for search/config.
  */
 export interface QueryResultMap {
-  GetDigest: unknown;
-  GetPost: unknown;
-  GetRunStatus: unknown;
-  ListDigests: unknown;
-  ListRuns: unknown;
-  ListSubreddits: unknown;
-  GetConfig: unknown;
-  SearchPosts: unknown;
-  SearchDigests: unknown;
+  GetDigest: DigestView | null;
+  GetPost: PostView | null;
+  GetRunStatus: RunView | null;
+  ListDigests: DigestView[];
+  ListRuns: RunView[];
+  ListSubreddits: SubredditView[];
+  GetConfig: Config | null;
+  SearchPosts: Post[];
+  SearchDigests: Digest[];
 }
 
 // Derived types
