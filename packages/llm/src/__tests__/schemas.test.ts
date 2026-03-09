@@ -59,9 +59,7 @@ describe("PostSummarySchema", () => {
       "Build times reduced by 40% in large monorepos",
       "No configuration changes needed for existing projects",
     ],
-    insightNotes: [
-      "The module-level caching directly addresses the Turborepo build bottleneck mentioned in your workflow interests",
-    ],
+    insightNotes: "The module-level caching directly addresses the Turborepo build bottleneck mentioned in your workflow interests",
     communityConsensus: "Commenters broadly agree this is the most impactful TS release in years, though some note it requires Node 22+",
     commentHighlights: [
       { author: "ts_expert", insight: "This pairs well with project references for even larger gains", score: 245 },
@@ -98,7 +96,7 @@ describe("PostSummarySchema", () => {
     const withEmpty = {
       ...validSummary,
       keyTakeaways: [],
-      insightNotes: [],
+      insightNotes: "",
       commentHighlights: [],
       notableLinks: [],
     };

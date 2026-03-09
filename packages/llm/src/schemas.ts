@@ -39,14 +39,10 @@ export const PostSummarySchema = z.object({
     )
     .describe("3-5 key takeaways from post and discussion"),
   insightNotes: z
-    .array(
-      z
-        .string()
-        .describe(
-          "Specific, actionable connection to user interests. MUST cite detail from post.",
-        ),
-    )
-    .describe("1-3 insight notes connecting post to user interests"),
+    .string()
+    .describe(
+      "Specific, actionable connections to user interests. MUST cite details from the post. Separate distinct notes with blank lines.",
+    ),
   communityConsensus: z
     .string()
     .nullable()
