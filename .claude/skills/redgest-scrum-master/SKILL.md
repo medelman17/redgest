@@ -1,6 +1,6 @@
 ---
 name: redgest-scrum-master
-description: "Manage the Redgest project backlog, sprint planning, and task prioritization. Use when the user asks: what should I work on next, show the backlog, start a sprint, mark a task as done, what's remaining, project status, show dependencies, next unblocked task, phase progress, sprint velocity, or anything related to Redgest project management and tasking. Also trigger on 'scrum', 'standup', 'backlog grooming', 'sprint review', or 'retro'."
+description: "Manage the Redgest project backlog, sprint planning, and task prioritization. Use when the user asks: what should I work on next, show the backlog, start a sprint, mark a task as done, what's remaining, project status, show dependencies, next unblocked task, phase progress, sprint velocity, or anything related to Redgest project management and tasking. Also trigger on 'scrum', 'standup', 'backlog grooming', 'sprint review', 'retro', 'tech debt', 'log debt', or 'this is janky'."
 ---
 
 # Redgest Scrum Master
@@ -15,6 +15,7 @@ Always reference these when answering questions about architecture, requirements
 - **PRD v1.3**: `docs/prd/redgest-prd-v1.3.md`
 - **Backlog**: `docs/mgmt/pm/BACKLOG.md`
 - **Sprints**: `docs/mgmt/pm/SPRINTS.md`
+- **Tech Debt Register**: `docs/mgmt/pm/TECH_DEBT.md`
 
 ## Condensed References (Read These First)
 
@@ -58,7 +59,12 @@ This is the most important workflow. Follow this ranking algorithm:
    - **Dependency unlock potential** (tasks that unblock the most downstream work go first)
    - **Phase sequence** (earlier work streams before later ones)
    - **Effort** (smaller tasks first when other factors are equal — momentum matters)
-6. Return the top 2-3 tasks with:
+6. **Tech debt context check**: Read `docs/mgmt/pm/TECH_DEBT.md`. For each top-ranked task, check if any open debt item's "Affected" field overlaps with the task's work stream or package. If overlap found, append a warning after the task recommendation:
+   ```
+   ⚠ TD-001 (high): insightNotes Zod/Prisma mismatch affects this area — consider fixing first
+   ```
+   This is informational only — does not change task ranking.
+7. Return the top 2-3 tasks with:
    - Task name and work stream
    - Effort estimate (story points)
    - **Why this one**: explain what it unblocks or why it's prioritized
@@ -89,12 +95,21 @@ Next up:
    - Focus phase (default: current phase from BACKLOG.md)
    - Capacity in points (default: 13pt for 1 week solo dev, 8pt for half-time)
 2. Scan BACKLOG.md for unblocked `[ ]` items in the target phase
-3. Select items up to capacity, respecting dependency order
-4. Create/update the sprint entry in `docs/mgmt/pm/SPRINTS.md`:
+3. Select feature items up to 80% of capacity, respecting dependency order
+4. **Calculate debt budget**: Reserve 20% of sprint capacity for tech debt, rounded to nearest 0.5pt (e.g., 4.5pt capacity → 1pt debt budget, 8pt → 1.5pt)
+5. **Select debt items**: Read `docs/mgmt/pm/TECH_DEBT.md` for open items. Rank by:
+   1. High severity + "pay by" matches sprint work streams
+   2. High severity without trigger
+   3. Medium + matching trigger
+   4. Medium without trigger
+   5. Low only if budget remains
+   Recommend debt items to fill the budget. If no open debt exists, budget rolls into feature capacity.
+6. **Update TECH_DEBT.md**: Move selected debt items from Open → In Sprint section
+7. Create/update the sprint entry in `docs/mgmt/pm/SPRINTS.md`:
    - Sprint number, dates, goal, capacity
-   - Committed items table with points and status
-5. Update BACKLOG.md to mark sprint-committed items with sprint tag
-6. Summarize: sprint goal, total committed points, expected velocity
+   - Committed items table with points, **Type (feature/debt)**, and status
+8. Update BACKLOG.md to mark sprint-committed feature items with sprint tag
+9. Summarize: sprint goal, total committed points (feature + debt), expected velocity
 
 ---
 
@@ -105,8 +120,9 @@ Next up:
 1. Find the task in `docs/mgmt/pm/BACKLOG.md` (fuzzy match on task name)
 2. Change status from `[ ]` or `[~]` to `[x]`
 3. Add completion metadata: date, PR/commit reference if provided
-4. If task is in active sprint, update SPRINTS.md committed items table
-5. Check for downstream tasks that are now unblocked:
+4. **If the task is a debt item (TD-NNN)**: Move it from In Sprint → Resolved in `docs/mgmt/pm/TECH_DEBT.md`. Set the resolved date. Update summary counts in the header.
+5. If task is in active sprint, update SPRINTS.md committed items table
+6. Check for downstream tasks that are now unblocked:
    - Find tasks whose `Blocked by` field references the completed task's work stream
    - Change their status from `[!]` to `[ ]` if all blockers are resolved
 6. Report: what was completed, what's now unblocked, sprint progress update
@@ -159,6 +175,23 @@ Supports filters:
 2. Calculate: committed vs completed points, velocity
 3. List incomplete items and why (blocked? descoped? underestimated?)
 4. Suggest adjustments for next sprint
+
+---
+
+### I. Log Tech Debt
+
+**Triggers**: "tech debt", "log debt", "this is janky", "we should fix this later", "add tech debt"
+
+1. Read `docs/mgmt/pm/TECH_DEBT.md` to find the next sequential TD-NNN ID
+2. Ask for (or infer from context):
+   - Description: one-line summary of the problem
+   - Severity: low / medium / high
+   - Affected: which packages or work streams
+   - Pay by: optional phase/sprint/work-stream trigger
+   - Resolution: what "done" looks like
+3. Append to TECH_DEBT.md Open section
+4. Update summary counts in the header
+5. Confirm: "Logged TD-NNN: description (severity). Affects: area."
 
 ---
 
@@ -229,6 +262,42 @@ Location: `docs/mgmt/pm/SPRINTS.md`
 ...
 ```
 
+### TECH_DEBT.md
+
+Location: `docs/mgmt/pm/TECH_DEBT.md`
+
+```markdown
+# Redgest Tech Debt Register
+
+**Last Updated**: YYYY-MM-DD
+**Open**: N | **In Sprint**: N | **Resolved**: N
+
+## Open
+
+- **TD-001**: Short description (severity)
+  Affected: package or work stream | Pay by: phase/WS/sprint or —
+  Discovered: YYYY-MM-DD
+  Resolution: What "done" looks like
+
+## In Sprint
+
+- **TD-002**: Short description (severity)
+  Affected: area | Sprint: N
+  Discovered: YYYY-MM-DD
+  Resolution: criteria
+
+## Resolved
+
+- **TD-003**: Short description (severity)
+  Affected: area | Resolved: YYYY-MM-DD
+  Resolution: What was done
+```
+
+**Severity levels:**
+- `high` — Blocks or degrades correctness; fix before affected area is extended
+- `medium` — Code smell or inconsistency; fix when working in the area
+- `low` — Cosmetic or unavoidable; fix opportunistically or accept
+
 ---
 
 ## Story Point Scale
@@ -258,6 +327,17 @@ When deciding whether to defer or pull into sprint:
 - **Pull in** if: it unblocks critical path, or risk needs early validation
 - **Defer** if: it's a gap/nice-to-have, or current sprint is at capacity
 - **Never overcommit** — leave 15% buffer in sprint capacity
+
+**Tech debt budget:**
+- Reserve 20% of sprint capacity for tech debt (rounded to nearest 0.5pt)
+- If no open debt items exist, budget rolls into feature capacity
+- Debt priority within budget:
+  1. High severity + "pay by" trigger matches current sprint work streams
+  2. High severity without trigger
+  3. Medium + matching trigger
+  4. Medium without trigger
+  5. Low only if budget remains
+- **Context-trigger rule**: When a feature task touches an affected area of an open debt item, surface it as a warning — not an automatic pull-in
 
 ---
 
