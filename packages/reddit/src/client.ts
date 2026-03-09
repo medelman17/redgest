@@ -27,7 +27,7 @@ export class RedditClient {
     const response = await fetch(TOKEN_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Basic ${credentials}`,
+        Authorization: `Basic ${credentials}`,
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent": this.userAgent,
       },
@@ -61,22 +61,22 @@ export class RedditClient {
       );
     }
 
-    const response = await this.request(path);
+    const response = await this.request(path, this.token);
 
     if (response.status === 401) {
       await this.authenticate();
-      const retry = await this.request(path);
+      const retry = await this.request(path, this.token!);
       return this.handleResponse<T>(retry);
     }
 
     return this.handleResponse<T>(response);
   }
 
-  private async request(path: string): Promise<Response> {
+  private async request(path: string, token: RedditAuthToken): Promise<Response> {
     const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
     return fetch(url, {
       headers: {
-        "Authorization": `${this.token!.tokenType} ${this.token!.accessToken}`,
+        Authorization: `${token.tokenType} ${token.accessToken}`,
         "User-Agent": this.userAgent,
       },
     });

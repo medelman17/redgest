@@ -1,15 +1,9 @@
-/**
- * Reddit OAuth2 token response.
- */
 export interface RedditAuthToken {
   accessToken: string;
   tokenType: string;
   expiresAt: number; // Unix timestamp (ms)
 }
 
-/**
- * Reddit API "thing" wrapper for listings.
- */
 export interface RedditListing<T> {
   kind: "Listing";
   data: {
@@ -19,10 +13,7 @@ export interface RedditListing<T> {
   };
 }
 
-/**
- * Reddit post (t3) data from the API.
- * Only the fields we use — Reddit returns many more.
- */
+/** Only the fields we use — Reddit returns many more. */
 export interface RedditPostData {
   id: string;
   name: string; // t3_ prefixed
@@ -40,9 +31,6 @@ export interface RedditPostData {
   is_self: boolean;
 }
 
-/**
- * Reddit comment (t1) data from the API.
- */
 export interface RedditCommentData {
   id: string;
   name: string; // t1_ prefixed
@@ -53,9 +41,6 @@ export interface RedditCommentData {
   created_utc: number;
 }
 
-/**
- * Options for fetching subreddit posts.
- */
 export interface FetchPostsOptions {
   subreddit: string;
   sort: "hot" | "top" | "rising" | "new";

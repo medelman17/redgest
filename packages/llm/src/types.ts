@@ -8,7 +8,7 @@ export interface CandidatePost {
   ageHours: number;
   flair?: string;
   selftextPreview?: string;
-  contentType: "text" | "link" | "image" | "video";
+  contentType: "text" | "link" | "image" | "video" | "other";
   url?: string;
 }
 
@@ -21,7 +21,7 @@ export interface SummarizationInput {
     score: number;
     numComments: number;
     selftext: string;
-    contentType: "text" | "link" | "image" | "video";
+    contentType: "text" | "link" | "image" | "video" | "other";
     url?: string;
   };
   comments: Array<{

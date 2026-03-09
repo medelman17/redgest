@@ -84,9 +84,7 @@ describe("configSchema", () => {
   });
 
   it("requires REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET", () => {
-    const env = { ...validEnv };
-    delete (env as any).REDDIT_CLIENT_ID;
-    delete (env as any).REDDIT_CLIENT_SECRET;
+    const { REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, ...env } = validEnv;
     const result = configSchema.safeParse(env);
     expect(result.success).toBe(false);
   });
