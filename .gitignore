@@ -8,3 +8,8 @@ dist/
 .env.*.local
 coverage/
 .DS_Store
+
+# Agent tooling runtime
+.agent/
+.agents/
+.claude/skills/next-best-practices
