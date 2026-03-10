@@ -113,7 +113,7 @@ Where MCP tool inputs differ from handler params:
 |------|-----------|---------------|-------------|
 | `generate_digest` | `subreddits?: string[]` | `subredditIds?: string[]` | rename field |
 | `generate_digest` | `lookback?: string` ("24h") | `lookbackHours?: number` | parse duration |
-| `get_digest` | `jobId?: string` (latest if omitted) | `digestId: string` | lookup latest job's digest |
+| `get_digest` | `digestId?: string` (latest if omitted) | `digestId: string` | query ListDigests limit 1 for latest |
 | `add_subreddit` | `name, includeNsfw?` | `name, displayName, nsfw?` | rename + derive displayName |
 | `remove_subreddit` | `name: string` | `subredditId: string` | lookup subreddit by name |
 | `update_subreddit` | `name: string` | `subredditId: string` | lookup subreddit by name |

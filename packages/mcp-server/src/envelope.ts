@@ -6,8 +6,9 @@
  * - Error: `{ ok: false, error: { code, message } }` with `isError: true`
  */
 
-/** Shape returned by MCP tool callbacks. */
+/** Shape returned by MCP tool callbacks. Compatible with CallToolResult. */
 export interface ToolResult {
+  [key: string]: unknown;
   content: [{ type: "text"; text: string }];
   isError?: true;
 }

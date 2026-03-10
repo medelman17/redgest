@@ -1,0 +1,548 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { RedgestError } from "@redgest/core";
+import type { BootstrapResult } from "../bootstrap.js";
+import type { ToolResult } from "../envelope.js";
+import { createToolHandlers, createToolServer, type ToolHandler } from "../tools.js";
+
+// ── Test helpers ──────────────────────────────────────────────────────
+
+function parseEnvelope(result: ToolResult): {
+  ok: boolean;
+  data?: unknown;
+  error?: { code: string; message: string };
+} {
+  return JSON.parse(result.content[0].text) as {
+    ok: boolean;
+    data?: unknown;
+    error?: { code: string; message: string };
+  };
+}
+
+type MockFn = ReturnType<typeof vi.fn>;
+
+interface MockDeps {
+  result: BootstrapResult;
+  execute: MockFn;
+  query: MockFn;
+}
+
+function invoke(
+  handlers: Record<string, ToolHandler>,
+  name: string,
+  args: Record<string, unknown> = {},
+): Promise<ToolResult> {
+  const handler = handlers[name];
+  if (!handler) throw new Error(`Unknown tool: ${name}`);
+  return handler(args);
+}
+
+function createMockDeps(): MockDeps {
+  const execute = vi.fn();
+  const query = vi.fn();
+
+  const db = {
+    $connect: vi.fn(),
+    $disconnect: vi.fn(),
+    $transaction: vi.fn(),
+  } as unknown as BootstrapResult["db"];
+
+  const eventBus = {
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+    emitEvent: vi.fn(),
+  } as unknown as BootstrapResult["ctx"]["eventBus"];
+
+  const config = {
+    DATABASE_URL: "test",
+  } as unknown as BootstrapResult["config"];
+
+  const ctx: BootstrapResult["ctx"] = { db, eventBus, config };
+
+  const result: BootstrapResult = {
+    execute: execute as unknown as BootstrapResult["execute"],
+    query: query as unknown as BootstrapResult["query"],
+    ctx,
+    config,
+    db,
+  };
+
+  return { result, execute, query };
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────
+
+describe("createToolServer", () => {
+  it("returns an McpServer instance", () => {
+    const { result: deps } = createMockDeps();
+    const server = createToolServer(deps);
+    expect(server).toBeInstanceOf(McpServer);
+  });
+});
+
+describe("use_redgest", () => {
+  it("returns a usage guide containing key tool names", async () => {
+    const { result: deps } = createMockDeps();
+    const handlers = createToolHandlers(deps);
+    const result = await invoke(handlers, "use_redgest");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(typeof env.data).toBe("string");
+    const guide = String(env.data);
+    expect(guide).toContain("generate_digest");
+    expect(guide).toContain("get_digest");
+    expect(guide).toContain("add_subreddit");
+    expect(guide).toContain("list_subreddits");
+  });
+});
+
+describe("generate_digest", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("translates subreddits → subredditIds and lookback → lookbackHours", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
+
+    await invoke(handlers, "generate_digest", {
+      subreddits: ["sub-1", "sub-2"],
+      lookback: "48h",
+    });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "GenerateDigest",
+      { subredditIds: ["sub-1", "sub-2"], lookbackHours: 48 },
+      deps.result.ctx,
+    );
+  });
+
+  it("passes defaults when no params provided", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j2", status: "pending" });
+
+    await invoke(handlers, "generate_digest");
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "GenerateDigest",
+      { subredditIds: undefined, lookbackHours: undefined },
+      deps.result.ctx,
+    );
+  });
+
+  it("returns a success envelope on success", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j3", status: "pending" });
+
+    const result = await invoke(handlers, "generate_digest");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ jobId: "j3", status: "pending" });
+  });
+
+  it("returns envelopeError for RedgestError", async () => {
+    deps.execute.mockRejectedValue(new RedgestError("VALIDATION_ERROR", "bad input"));
+
+    const result = await invoke(handlers, "generate_digest");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error).toEqual({ code: "VALIDATION_ERROR", message: "bad input" });
+    expect(result.isError).toBe(true);
+  });
+
+  it("returns envelopeError with INTERNAL_ERROR for unknown errors", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    deps.execute.mockRejectedValue(new Error("unexpected"));
+
+    const result = await invoke(handlers, "generate_digest");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error).toEqual({ code: "INTERNAL_ERROR", message: "An unexpected error occurred" });
+    expect(result.isError).toBe(true);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Unexpected error"), "unexpected");
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("get_run_status", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("queries GetRunStatus and returns envelope", async () => {
+    deps.query.mockResolvedValue({ jobId: "j1", status: "completed" });
+
+    const result = await invoke(handlers, "get_run_status", { jobId: "j1" });
+
+    expect(deps.query).toHaveBeenCalledWith("GetRunStatus", { jobId: "j1" }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ jobId: "j1", status: "completed" });
+  });
+
+  it("returns NOT_FOUND when null", async () => {
+    deps.query.mockResolvedValue(null);
+
+    const result = await invoke(handlers, "get_run_status", { jobId: "j-missing" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe("get_digest", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("queries GetDigest by ID when digestId provided", async () => {
+    deps.query.mockResolvedValue({ id: "d1", content: "digest" });
+
+    const result = await invoke(handlers, "get_digest", { digestId: "d1" });
+
+    expect(deps.query).toHaveBeenCalledWith("GetDigest", { digestId: "d1" }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ id: "d1", content: "digest" });
+  });
+
+  it("falls back to latest when no digestId", async () => {
+    deps.query.mockResolvedValueOnce([{ digestId: "d-latest" }]);
+    deps.query.mockResolvedValueOnce({ digestId: "d-latest", content: "latest digest" });
+
+    const result = await invoke(handlers, "get_digest");
+
+    expect(deps.query).toHaveBeenCalledWith("ListDigests", { limit: 1 }, deps.result.ctx);
+    expect(deps.query).toHaveBeenCalledWith("GetDigest", { digestId: "d-latest" }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ digestId: "d-latest", content: "latest digest" });
+  });
+
+  it("returns NOT_FOUND when no digests exist and no digestId", async () => {
+    deps.query.mockResolvedValue([]);
+
+    const result = await invoke(handlers, "get_digest");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+    expect(result.isError).toBe(true);
+  });
+
+  it("returns NOT_FOUND when digest by ID is null", async () => {
+    deps.query.mockResolvedValue(null);
+
+    const result = await invoke(handlers, "get_digest", { digestId: "d-missing" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("remove_subreddit", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("looks up subreddit ID by name, then removes", async () => {
+    deps.query.mockResolvedValue([
+      { id: "s1", name: "typescript" },
+      { id: "s2", name: "rust" },
+    ]);
+    deps.execute.mockResolvedValue({ subredditId: "s1" });
+
+    const result = await invoke(handlers, "remove_subreddit", { name: "typescript" });
+
+    expect(deps.query).toHaveBeenCalledWith("ListSubreddits", {}, deps.result.ctx);
+    expect(deps.execute).toHaveBeenCalledWith(
+      "RemoveSubreddit",
+      { subredditId: "s1" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("returns NOT_FOUND when subreddit name not found", async () => {
+    deps.query.mockResolvedValue([{ id: "s1", name: "typescript" }]);
+
+    const result = await invoke(handlers, "remove_subreddit", { name: "nonexistent" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe("add_subreddit", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("translates name → displayName and includeNsfw → nsfw", async () => {
+    deps.execute.mockResolvedValue({ subredditId: "s-new" });
+
+    await invoke(handlers, "add_subreddit", {
+      name: "MachineLearning",
+      insightPrompt: "AI news",
+      maxPosts: 10,
+      includeNsfw: true,
+    });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "AddSubreddit",
+      {
+        name: "MachineLearning",
+        displayName: "MachineLearning",
+        insightPrompt: "AI news",
+        maxPosts: 10,
+        nsfw: true,
+      },
+      deps.result.ctx,
+    );
+  });
+
+  it("returns success envelope", async () => {
+    deps.execute.mockResolvedValue({ subredditId: "s-new" });
+
+    const result = await invoke(handlers, "add_subreddit", { name: "test" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ subredditId: "s-new" });
+  });
+});
+
+describe("update_subreddit", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("looks up subreddit ID by name, then updates", async () => {
+    deps.query.mockResolvedValue([{ id: "s1", name: "typescript" }]);
+    deps.execute.mockResolvedValue({ subredditId: "s1" });
+
+    const result = await invoke(handlers, "update_subreddit", {
+      name: "typescript",
+      insightPrompt: "new prompt",
+      maxPosts: 20,
+      active: false,
+    });
+
+    expect(deps.query).toHaveBeenCalledWith("ListSubreddits", {}, deps.result.ctx);
+    expect(deps.execute).toHaveBeenCalledWith(
+      "UpdateSubreddit",
+      { subredditId: "s1", insightPrompt: "new prompt", maxPosts: 20, active: false },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("returns NOT_FOUND when subreddit name not found", async () => {
+    deps.query.mockResolvedValue([]);
+
+    const result = await invoke(handlers, "update_subreddit", { name: "missing" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("edge cases", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("lookupSubredditId is case-insensitive", async () => {
+    deps.query.mockResolvedValue([{ id: "s1", name: "typescript" }]);
+    deps.execute.mockResolvedValue({ subredditId: "s1" });
+
+    const result = await invoke(handlers, "remove_subreddit", { name: "TypeScript" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(deps.execute).toHaveBeenCalledWith(
+      "RemoveSubreddit",
+      { subredditId: "s1" },
+      expect.anything(),
+    );
+  });
+
+  it("parseLookback returns undefined for invalid formats", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
+
+    await invoke(handlers, "generate_digest", { lookback: "2d" });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "GenerateDigest",
+      { subredditIds: undefined, lookbackHours: undefined },
+      expect.anything(),
+    );
+  });
+
+  it("get_config returns NOT_FOUND when config is null", async () => {
+    deps.query.mockResolvedValue(null);
+
+    const result = await invoke(handlers, "get_config");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("pass-through tools", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("list_runs queries ListRuns", async () => {
+    deps.query.mockResolvedValue([{ id: "r1" }]);
+
+    const result = await invoke(handlers, "list_runs", { limit: 5 });
+
+    expect(deps.query).toHaveBeenCalledWith("ListRuns", { limit: 5 }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual([{ id: "r1" }]);
+  });
+
+  it("list_digests queries ListDigests", async () => {
+    deps.query.mockResolvedValue([{ id: "d1" }]);
+
+    const result = await invoke(handlers, "list_digests", { limit: 10 });
+
+    expect(deps.query).toHaveBeenCalledWith("ListDigests", { limit: 10 }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("get_post queries GetPost and handles NOT_FOUND", async () => {
+    deps.query.mockResolvedValue(null);
+
+    const result = await invoke(handlers, "get_post", { postId: "p-missing" });
+
+    expect(deps.query).toHaveBeenCalledWith("GetPost", { postId: "p-missing" }, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+
+  it("get_post returns data when found", async () => {
+    deps.query.mockResolvedValue({ id: "p1", title: "Test" });
+
+    const result = await invoke(handlers, "get_post", { postId: "p1" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ id: "p1", title: "Test" });
+  });
+
+  it("search_posts queries SearchPosts", async () => {
+    deps.query.mockResolvedValue([]);
+
+    const result = await invoke(handlers, "search_posts", { query: "rust", limit: 5 });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "SearchPosts",
+      { query: "rust", limit: 5 },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("search_digests queries SearchDigests", async () => {
+    deps.query.mockResolvedValue([]);
+
+    const result = await invoke(handlers, "search_digests", { query: "AI", limit: 3 });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "SearchDigests",
+      { query: "AI", limit: 3 },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("list_subreddits queries ListSubreddits", async () => {
+    deps.query.mockResolvedValue([{ id: "s1", name: "test" }]);
+
+    const result = await invoke(handlers, "list_subreddits");
+
+    expect(deps.query).toHaveBeenCalledWith("ListSubreddits", {}, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
+  it("get_config queries GetConfig", async () => {
+    deps.query.mockResolvedValue({ globalInsightPrompt: "test" });
+
+    const result = await invoke(handlers, "get_config");
+
+    expect(deps.query).toHaveBeenCalledWith("GetConfig", {}, deps.result.ctx);
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ globalInsightPrompt: "test" });
+  });
+
+  it("update_config executes UpdateConfig", async () => {
+    deps.execute.mockResolvedValue({ success: true });
+
+    const result = await invoke(handlers, "update_config", {
+      globalInsightPrompt: "new prompt",
+      llmProvider: "openai",
+    });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "UpdateConfig",
+      { globalInsightPrompt: "new prompt", llmProvider: "openai" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ success: true });
+  });
+});
