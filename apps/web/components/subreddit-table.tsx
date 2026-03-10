@@ -17,23 +17,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatRelativeTime } from "@/lib/utils";
 import type { SerializedSubreddit, OptimisticAction } from "@/lib/types";
 import { SubredditDialog } from "@/components/subreddit-dialog";
 import { DeleteSubredditDialog } from "@/components/delete-subreddit-dialog";
-
-function formatRelativeTime(dateStr: string | null): string {
-  if (!dateStr) return "Never";
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
-}
 
 interface SubredditTableProps {
   subreddits: SerializedSubreddit[];
@@ -130,7 +117,7 @@ export function SubredditTable({ subreddits }: SubredditTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatRelativeTime(sub.lastDigestDate)}
+                    {formatRelativeTime(sub.lastDigestDate, "Never")}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

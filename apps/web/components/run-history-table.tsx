@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { JobStatus } from "@redgest/db";
 import { fetchRuns } from "@/lib/actions";
 import { DataTable } from "@/components/data-table";
 import { createColumns } from "@/components/run-columns";
@@ -21,12 +22,12 @@ export function RunHistoryTable({
     queryKey: ["runs"],
     queryFn: fetchRuns,
     initialData,
-    staleTime: 0,
+    staleTime: 30_000,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
       const hasActive = data.some(
-        (r) => r.status === "QUEUED" || r.status === "RUNNING",
+        (r) => r.status === JobStatus.QUEUED || r.status === JobStatus.RUNNING,
       );
       return hasActive ? 5000 : false;
     },

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { DeliveryChannel } from "@redgest/db";
 import * as dal from "@/lib/dal";
-import type { ActionResult } from "@/lib/types";
+import { serializeDigest, serializeRun, type ActionResult } from "@/lib/types";
 
 // --- Schemas ---
 
@@ -166,14 +166,12 @@ export async function fetchSubreddits() {
   return dal.listSubreddits();
 }
 
-export async function fetchRuns(): Promise<
-  import("@/lib/types").SerializedRun[]
-> {
+export async function fetchRuns() {
   const runs = await dal.listRuns();
-  const { serializeRun } = await import("@/lib/types");
   return runs.map(serializeRun);
 }
 
 export async function fetchDigestForJob(jobId: string) {
-  return dal.getDigestByJobId(jobId);
+  const digest = await dal.getDigestByJobId(jobId);
+  return digest ? serializeDigest(digest) : null;
 }

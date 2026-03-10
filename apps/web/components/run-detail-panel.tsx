@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { JobStatus } from "@redgest/db";
 import { fetchDigestForJob } from "@/lib/actions";
 
 interface RunDetailPanelProps {
@@ -11,13 +12,15 @@ interface RunDetailPanelProps {
 }
 
 export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
+  const isTerminal = status === JobStatus.COMPLETED || status === JobStatus.PARTIAL || status === JobStatus.FAILED;
   const { data: digest, isLoading } = useQuery({
     queryKey: ["digest", jobId],
     queryFn: () => fetchDigestForJob(jobId),
-    enabled: status !== "QUEUED",
+    enabled: status !== JobStatus.QUEUED,
+    staleTime: isTerminal ? Infinity : 0,
   });
 
-  if (status === "QUEUED") {
+  if (status === JobStatus.QUEUED) {
     return (
       <div className="py-6 text-center text-sm text-muted-foreground">
         Job is queued — digest not yet available.
@@ -25,7 +28,7 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
     );
   }
 
-  if (status === "FAILED" && !digest) {
+  if (status === JobStatus.FAILED && !digest) {
     return (
       <div className="py-6 text-center">
         <p className="text-sm font-medium text-red-400">Run failed</p>
@@ -47,7 +50,7 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
   if (!digest) {
     return (
       <div className="py-6 text-center text-sm text-muted-foreground">
-        {status === "RUNNING"
+        {status === JobStatus.RUNNING
           ? "Digest is being generated..."
           : "No digest available for this run."}
       </div>

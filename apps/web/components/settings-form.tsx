@@ -14,13 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DeliveryChannel } from "@redgest/db";
 import { updateConfigAction } from "@/lib/actions";
+import { parseLookbackHours } from "@/lib/utils";
 import type { SerializedConfig } from "@/lib/types";
-
-function parseLookbackHours(lookback: string): number {
-  const match = lookback.match(/^(\d+)h$/);
-  return match ? Number(match[1]) : 24;
-}
 
 interface SettingsFormProps {
   config: SerializedConfig;
@@ -77,10 +74,10 @@ export function SettingsForm({ config }: SettingsFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="NONE">None</SelectItem>
-              <SelectItem value="EMAIL">Email</SelectItem>
-              <SelectItem value="SLACK">Slack</SelectItem>
-              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value={DeliveryChannel.NONE}>None</SelectItem>
+              <SelectItem value={DeliveryChannel.EMAIL}>Email</SelectItem>
+              <SelectItem value={DeliveryChannel.SLACK}>Slack</SelectItem>
+              <SelectItem value={DeliveryChannel.ALL}>All</SelectItem>
             </SelectContent>
           </Select>
         </div>

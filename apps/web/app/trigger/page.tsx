@@ -1,12 +1,7 @@
 import { listSubreddits, getConfig } from "@/lib/dal";
 import { serializeSubreddit } from "@/lib/types";
+import { parseLookbackHours } from "@/lib/utils";
 import { DigestTriggerForm } from "@/components/digest-trigger-form";
-
-function parseLookbackHours(lookback: string): number {
-  const match = lookback.match(/^(\d+)h$/);
-  const parsed = match?.[1];
-  return parsed ? Number(parsed) : 24;
-}
 
 export default async function TriggerPage() {
   const [subreddits, config] = await Promise.all([

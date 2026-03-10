@@ -10,6 +10,7 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
+import { JobStatus } from "@redgest/db";
 import { generateDigestAction, fetchRunStatus } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -203,11 +204,11 @@ function JobStatusCard({
     queryFn: () => fetchRunStatus(jobId),
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (!data) return 2000;
+      if (!data) return false;
       if (
-        data.status === "COMPLETED" ||
-        data.status === "FAILED" ||
-        data.status === "PARTIAL"
+        data.status === JobStatus.COMPLETED ||
+        data.status === JobStatus.FAILED ||
+        data.status === JobStatus.PARTIAL
       ) {
         return false;
       }
@@ -216,9 +217,9 @@ function JobStatusCard({
   });
 
   const isTerminal =
-    status?.status === "COMPLETED" ||
-    status?.status === "FAILED" ||
-    status?.status === "PARTIAL";
+    status?.status === JobStatus.COMPLETED ||
+    status?.status === JobStatus.FAILED ||
+    status?.status === JobStatus.PARTIAL;
 
   return (
     <Card>
@@ -228,9 +229,9 @@ function JobStatusCard({
           {status && (
             <Badge
               variant={
-                status.status === "COMPLETED"
+                status.status === JobStatus.COMPLETED
                   ? "default"
-                  : status.status === "FAILED"
+                  : status.status === JobStatus.FAILED
                     ? "destructive"
                     : "secondary"
               }
@@ -255,21 +256,21 @@ function JobStatusCard({
           </div>
         )}
 
-        {status?.status === "COMPLETED" && (
+        {status?.status === JobStatus.COMPLETED && (
           <div className="flex items-center gap-2 text-sm text-green-500">
             <CheckCircle2 className="size-4" />
             Digest generated successfully
           </div>
         )}
 
-        {status?.status === "PARTIAL" && (
+        {status?.status === JobStatus.PARTIAL && (
           <div className="flex items-center gap-2 text-sm text-yellow-500">
             <CheckCircle2 className="size-4" />
             Digest generated with partial results
           </div>
         )}
 
-        {status?.status === "FAILED" && (
+        {status?.status === JobStatus.FAILED && (
           <div className="flex items-center gap-2 text-sm text-destructive">
             <XCircle className="size-4" />
             Digest generation failed

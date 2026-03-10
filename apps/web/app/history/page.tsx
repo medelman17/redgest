@@ -10,10 +10,9 @@ export default async function HistoryPage() {
 
   const serializedRuns = runs.map(serializeRun);
 
-  const subredditMap: Record<string, string> = {};
-  for (const sub of subreddits) {
-    subredditMap[sub.id] = sub.name;
-  }
+  const subredditMap = Object.fromEntries(
+    subreddits.map((s) => [s.id, s.name]),
+  );
 
   return (
     <div className="space-y-6">
