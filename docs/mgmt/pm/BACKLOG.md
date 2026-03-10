@@ -1,8 +1,8 @@
 # Redgest Backlog
 
-**Last Updated**: 2026-03-09
-**Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: None
+**Last Updated**: 2026-03-10
+**Current Phase**: 2 (Scheduling + Delivery)
+**Active Sprint**: Sprint 8
 
 ---
 
@@ -17,7 +17,9 @@
 | 1 | WS5: LLM Abstraction | 7 | 7 | 0 | 0 | 0 | 100% |
 | 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS7: MCP Server | 6 | 6 | 0 | 0 | 0 | 100% |
-| 2 | WS8: Trigger.dev (deferred) | 4 | 0 | 0 | 0 | 4 | 0% |
+| 2 | WS8: Trigger.dev | 5 | 0 | 0 | 0 | 5 | 0% |
+| 2 | WS9: Delivery Channels | 4 | 0 | 0 | 0 | 4 | 0% |
+| 2 | Gap Items (Sprint 8) | 2 | 0 | 0 | 0 | 2 | 0% |
 | 1 | Testing & Deployment | 4 | 4 | 0 | 0 | 0 | 100% |
 | **Total P1** | | **45** | **45** | **0** | **0** | **0** | **100%** |
 
@@ -218,14 +220,28 @@
 
 ---
 
-### WS8: Trigger.dev Integration (5pt) — DEFERRED TO PHASE 2
-**Deps**: WS7 | **Unblocks**: Production job queue
-**Decision**: In-process pipeline execution (bootstrap.ts DigestRequested handler) is sufficient for Phase 1 MVP. Trigger.dev swap-in deferred to Phase 2 for production resilience, retry, and observability.
+### WS8: Trigger.dev Integration (6pt)
+**Deps**: WS7 | **Unblocks**: Production job queue, scheduled digests
 
 - [ ] trigger.config.ts with Prisma modern mode (1pt)
+  Blocked by: None | Unblocks: task definitions
+  Acceptance: trigger.config.ts with Prisma modern mode extension, builds in Docker
+
 - [ ] Task definitions — generate, fetch, triage, summarize (2pt)
+  Blocked by: trigger.config.ts | Unblocks: event handler
+  Acceptance: 4 task definitions wrapping existing pipeline steps, testable in isolation
+
 - [ ] Event handler: DigestRequested → tasks.trigger() (1pt)
+  Blocked by: task definitions | Unblocks: async pipeline
+  Acceptance: Replaces in-process bootstrap handler with Trigger.dev dispatch
+
 - [ ] Task result handlers — write status to Postgres (1pt)
+  Blocked by: task definitions | Unblocks: job tracking
+  Acceptance: Updates job status on task completion/failure, matches existing COMPLETED/PARTIAL/FAILED semantics
+
+- [ ] Scheduled digest cron (1pt)
+  Blocked by: event handler | Unblocks: automated daily digests
+  Acceptance: Cron task triggers digest.generate on configurable schedule (default 7 AM daily)
 
 ---
 
@@ -253,15 +269,28 @@
 
 ---
 
-## Phase 2: Scheduling + Delivery (Deferred)
+## Phase 2: Scheduling + Delivery
 
 ### WS9: Delivery Channels (3pt)
-- [ ] @redgest/email: React Email templates (1pt)
-- [ ] Resend integration (0.5pt)
-- [ ] @redgest/slack: Block Kit formatter (1pt)
-- [ ] Slack webhook client (0.5pt)
+**Deps**: WS3 (events), WS8 (task infrastructure) | **Unblocks**: Scheduled delivery
 
-### WS10: Web UI / Config (8pt)
+- [ ] @redgest/email: React Email templates (1pt)
+  Blocked by: None | Unblocks: Resend integration
+  Acceptance: Digest email template with React Email, renders subreddit sections + post summaries
+
+- [ ] Resend integration (0.5pt)
+  Blocked by: email templates | Unblocks: email delivery
+  Acceptance: Send digest via Resend API, triggered by DigestCompleted event
+
+- [ ] @redgest/slack: Block Kit formatter (1pt)
+  Blocked by: None | Unblocks: Slack webhook
+  Acceptance: Digest formatted as Slack Block Kit message with sections per subreddit
+
+- [ ] Slack webhook client (0.5pt)
+  Blocked by: Block Kit formatter | Unblocks: Slack delivery
+  Acceptance: Post digest to configured Slack webhook URL, triggered by DigestCompleted event
+
+### WS10: Web UI / Config (8pt) — Deferred
 - [ ] Next.js 16 app scaffold with ShadCN (1pt)
 - [ ] Subreddit Manager page (2pt)
 - [ ] Global Settings page (1.5pt)
@@ -269,8 +298,7 @@
 - [ ] Manual Trigger component (1pt)
 - [ ] Dark mode + layout (0.5pt)
 
-### Additional Phase 2
-- [ ] Scheduled tasks: digest.schedule cron (1pt)
+### Additional Phase 2 — Deferred
 - [ ] Self-hosted Trigger.dev Docker setup (3pt)
 - [ ] Event bus extraction — optional (2pt)
 
@@ -290,10 +318,10 @@
 
 | Gap # | Task | Phase | Status |
 |-------|------|-------|--------|
-| 1 | Add llm_calls logging table + middleware writes | 1 | [ ] |
+| 1 | Add llm_calls logging table + middleware writes | 2 | [ ] Sprint 8 |
 | 2 | Implement LIKE/prefix search for Phase 1 | 1 | [x] (Sprint 4 — SearchPosts uses `contains` mode) |
 | 4 | Add MCP rate limiting middleware | 2 | [ ] |
-| 5 | Sanitize Reddit content (prompt injection defense) | 1 | [ ] |
+| 5 | Sanitize Reddit content (prompt injection defense) | 2 | [ ] Sprint 8 |
 | 6 | Test Prisma v7 modern mode in Trigger.dev container | 1 | [ ] |
 
 ---

@@ -1,6 +1,27 @@
 # Redgest Sprints
 
-## Active Sprint: None
+## Active Sprint: Sprint 8
+
+**Duration**: 2026-03-10 — 2026-03-17
+**Capacity**: 12pt
+**Sprint Goal**: Launch Phase 2 — Trigger.dev job queue, email/Slack delivery, scheduled digests, observability, and content sanitization
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| trigger.config.ts with Prisma modern mode | WS8 | 1.0 | feature | [ ] |
+| Task definitions — generate, fetch, triage, summarize | WS8 | 2.0 | feature | [ ] |
+| Event handler: DigestRequested → tasks.trigger() | WS8 | 1.0 | feature | [ ] |
+| Task result handlers — write status to Postgres | WS8 | 1.0 | feature | [ ] |
+| Scheduled digest cron | WS8 | 1.0 | feature | [ ] |
+| @redgest/email: React Email templates | WS9 | 1.0 | feature | [ ] |
+| Resend integration | WS9 | 0.5 | feature | [ ] |
+| @redgest/slack: Block Kit formatter | WS9 | 1.0 | feature | [ ] |
+| Slack webhook client | WS9 | 0.5 | feature | [ ] |
+| llm_calls logging table + middleware writes | Gap | 1.5 | feature | [ ] |
+| Sanitize Reddit content (prompt injection defense) | Gap | 1.0 | feature | [ ] |
+| TD-002: Document Postgres port 5433 | infra | 0.5 | debt | [ ] |
+
+**Committed**: 12pt | **Completed**: 0pt | **Velocity**: 0%
 
 ---
 

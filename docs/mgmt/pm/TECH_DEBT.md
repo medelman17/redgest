@@ -1,16 +1,12 @@
 # Redgest Tech Debt Register
 
 **Last Updated**: 2026-03-09
-**Open**: 2 | **In Sprint**: 0 | **Resolved**: 1
+**Last Updated**: 2026-03-10
+**Open**: 1 | **In Sprint**: 1 | **Resolved**: 1
 
 ---
 
 ## Open
-
-- **TD-002**: Docker Compose Postgres mapped to port 5433 instead of 5432 (low)
-  Affected: infra | Pay by: —
-  Discovered: 2026-03-09
-  Resolution: Document the port override in .env.example and docker-compose.yml comments. Or detect available port. Low priority — only affects local dev.
 
 - **TD-003**: globalThis as unknown as cast in db/client.ts — Prisma singleton pattern (low)
   Affected: @redgest/db | Pay by: —
@@ -21,7 +17,10 @@
 
 ## In Sprint
 
-(none)
+- **TD-002**: Docker Compose Postgres mapped to port 5433 instead of 5432 (low)
+  Affected: infra | Sprint: 8
+  Discovered: 2026-03-09
+  Resolution: Document the port override in .env.example and docker-compose.yml comments.
 
 ---
 
