@@ -4,11 +4,14 @@ import { generateTriageResult } from "@redgest/llm";
 import { applyTriageBudget } from "./token-budget.js";
 import type { TriageStepResult } from "./types.js";
 
+type TriageFn = typeof generateTriageResult;
+
 export async function triageStep(
   candidates: TriagePostCandidate[],
   insightPrompts: string[],
   targetCount: number,
   model?: LanguageModel,
+  triageFn?: TriageFn,
 ): Promise<TriageStepResult> {
   if (candidates.length === 0) {
     return { selected: [] };
@@ -20,7 +23,8 @@ export async function triageStep(
   // Apply token budget to truncate long selftext
   const budgeted = applyTriageBudget(candidates);
 
-  const result = await generateTriageResult(
+  const generate = triageFn ?? generateTriageResult;
+  const result = await generate(
     budgeted,
     insightPrompts,
     effectiveTarget,

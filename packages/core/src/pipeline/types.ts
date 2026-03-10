@@ -91,6 +91,36 @@ export interface PipelineDeps {
   contentSource: ContentSource;
   config: RedgestConfig;
   model?: ModelConfig;
+
+  /** Override triage function for testing. */
+  generateTriage?: (
+    posts: Array<{
+      index: number;
+      subreddit: string;
+      title: string;
+      score: number;
+      numComments: number;
+      createdUtc: number;
+      selftext: string;
+    }>,
+    insightPrompts: string[],
+    targetCount: number,
+    model?: unknown,
+  ) => Promise<{
+    selectedPosts: Array<{
+      index: number;
+      relevanceScore: number;
+      rationale: string;
+    }>;
+  }>;
+
+  /** Override summary function for testing. */
+  generateSummary?: (
+    post: { title: string; subreddit: string; author: string; score: number; selftext: string },
+    comments: Array<{ author: string; score: number; body: string }>,
+    insightPrompts: string[],
+    model?: unknown,
+  ) => Promise<PostSummary>;
 }
 
 /** Result of fetching + persisting posts from one subreddit. */

@@ -42,15 +42,35 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
 
-  const redditClient = new RedditClient({
-    clientId: config.REDDIT_CLIENT_ID,
-    clientSecret: config.REDDIT_CLIENT_SECRET,
-    userAgent: "redgest/1.0.0",
-  });
-  const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
-  const contentSource = new RedditContentSource(redditClient, rateLimiter);
+  let pipelineDeps: PipelineDeps;
 
-  const pipelineDeps: PipelineDeps = { db, eventBus, contentSource, config };
+  if (process.env.REDGEST_TEST_MODE === "1") {
+    // Dynamic import from tests/fixtures — only in test mode.
+    // Variable paths prevent TypeScript from resolving these at compile time
+    // (they live outside rootDir and are only needed at runtime).
+    const fixtureBase = "../../../tests/fixtures";
+    const contentMod = await import(`${fixtureBase}/fake-content-source.js`);
+    const llmMod = await import(`${fixtureBase}/fake-llm.js`);
+
+    pipelineDeps = {
+      db,
+      eventBus,
+      contentSource: new contentMod.FakeContentSource() as PipelineDeps["contentSource"],
+      config,
+      generateTriage: llmMod.fakeGenerateTriageResult as PipelineDeps["generateTriage"],
+      generateSummary: llmMod.fakeGeneratePostSummary as PipelineDeps["generateSummary"],
+    };
+  } else {
+    const redditClient = new RedditClient({
+      clientId: config.REDDIT_CLIENT_ID,
+      clientSecret: config.REDDIT_CLIENT_SECRET,
+      userAgent: "redgest/1.0.0",
+    });
+    const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
+    const contentSource = new RedditContentSource(redditClient, rateLimiter);
+
+    pipelineDeps = { db, eventBus, contentSource, config };
+  }
 
   // Phase 1: in-process execution; swap to Trigger.dev in Phase 2
   eventBus.on("DigestRequested", async (event) => {

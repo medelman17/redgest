@@ -135,12 +135,16 @@ export async function runDigestPipeline(
         selftext: p.post.selftext,
       }));
 
-      const triageResult = await triageStep(
+      const triageArgs: Parameters<typeof triageStep> = [
         candidates,
         insightPrompts,
         sub.maxPosts,
         deps.model ? getModel("triage", deps.model) : undefined,
-      );
+      ];
+      if (deps.generateTriage) {
+        triageArgs.push(deps.generateTriage as Parameters<typeof triageStep>[4]);
+      }
+      const triageResult = await triageStep(...triageArgs);
 
       await emitEvent(
         db,
@@ -169,7 +173,7 @@ export async function runDigestPipeline(
               body: c.body,
             }));
 
-          const sumResult = await summarizeStep(
+          const sumArgs: Parameters<typeof summarizeStep> = [
             {
               title: postData.post.title,
               subreddit: postData.post.subreddit,
@@ -184,7 +188,11 @@ export async function runDigestPipeline(
             db,
             deps.model ? getModel("summarize", deps.model) : undefined,
             sel.rationale,
-          );
+          ];
+          if (deps.generateSummary) {
+            sumArgs.push(deps.generateSummary as Parameters<typeof summarizeStep>[8]);
+          }
+          const sumResult = await summarizeStep(...sumArgs);
 
           postResults.push({
             postId: postData.postId,

@@ -5,6 +5,8 @@ import { generatePostSummary } from "@redgest/llm";
 import { applySummarizationBudget } from "./token-budget.js";
 import type { SummarizeStepResult } from "./types.js";
 
+type SummaryFn = typeof generatePostSummary;
+
 export async function summarizeStep(
   post: SummarizationPost,
   comments: SummarizationComment[],
@@ -14,6 +16,7 @@ export async function summarizeStep(
   db: PrismaClient,
   model?: LanguageModel,
   selectionRationale?: string,
+  summarizeFn?: SummaryFn,
 ): Promise<SummarizeStepResult> {
   // Apply comments-first truncation (ADR-011)
   const budgeted = applySummarizationBudget(post.selftext, comments);
@@ -23,7 +26,8 @@ export async function summarizeStep(
     selftext: budgeted.selftext,
   };
 
-  const summary = await generatePostSummary(
+  const generate = summarizeFn ?? generatePostSummary;
+  const summary = await generate(
     truncatedPost,
     budgeted.comments,
     insightPrompts,
