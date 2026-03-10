@@ -59,7 +59,7 @@ export function SubredditDialog({
 
   function handleSubmit(formData: FormData) {
     if (mode === "add") {
-      const name = stripSubredditPrefix(formData.get("name") as string);
+      const name = stripSubredditPrefix(String(formData.get("name") ?? ""));
       formData.set("name", name);
       formData.set("displayName", name);
 
@@ -70,7 +70,7 @@ export function SubredditDialog({
           subreddit: {
             id: crypto.randomUUID(),
             name,
-            insightPrompt: (formData.get("insightPrompt") as string) || null,
+            insightPrompt: String(formData.get("insightPrompt") ?? "") || null,
             maxPosts: Number(formData.get("maxPosts")) || 5,
             includeNsfw: formData.get("nsfw") === "on",
             isActive: true,
@@ -90,7 +90,7 @@ export function SubredditDialog({
           type: "update",
           id: subreddit.id,
           changes: {
-            insightPrompt: (formData.get("insightPrompt") as string) || null,
+            insightPrompt: String(formData.get("insightPrompt") ?? "") || null,
             maxPosts: Number(formData.get("maxPosts")) || subreddit.maxPosts,
             isActive: formData.get("active") === "on",
           },

@@ -166,12 +166,16 @@ export function SubredditTable({ subreddits }: SubredditTableProps) {
         </>
       )}
 
-      <SubredditDialog
-        mode="add"
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-        onOptimistic={dispatchOptimistic}
-      />
+      {addDialogOpen && (
+        <SubredditDialog
+          mode="add"
+          open={true}
+          onOpenChange={(o) => {
+            if (!o) setAddDialogOpen(false);
+          }}
+          onOptimistic={dispatchOptimistic}
+        />
+      )}
 
       {editSub && (
         <SubredditDialog
