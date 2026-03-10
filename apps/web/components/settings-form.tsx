@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { toast } from "sonner";
+import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
+import { useActionToast } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateConfigAction } from "@/lib/actions";
-import type { SerializedConfig, ActionResult } from "@/lib/types";
+import type { SerializedConfig } from "@/lib/types";
 
 function parseLookbackHours(lookback: string): number {
   const match = lookback.match(/^(\d+)h$/);
@@ -27,19 +27,12 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ config }: SettingsFormProps) {
-  const [state, formAction, isPending] = useActionState<
-    ActionResult<{ success: true }>,
-    FormData
-  >(updateConfigAction, null);
+  const [state, formAction, isPending] = useActionState(
+    updateConfigAction,
+    null,
+  );
 
-  useEffect(() => {
-    if (!state) return;
-    if (state.ok) {
-      toast.success("Settings saved");
-    } else {
-      toast.error(state.error);
-    }
-  }, [state]);
+  useActionToast(state, "Settings saved");
 
   return (
     <form action={formAction} className="space-y-6">

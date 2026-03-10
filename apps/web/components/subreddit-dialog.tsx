@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, startTransition } from "react";
-import { toast } from "sonner";
+import { useActionState, startTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { useActionToast } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,15 +46,11 @@ export function SubredditDialog({
     null,
   );
 
-  useEffect(() => {
-    if (!state) return;
-    if (state.ok) {
-      toast.success(mode === "add" ? "Subreddit added" : "Subreddit updated");
-      onOpenChange(false);
-    } else {
-      toast.error(state.error);
-    }
-  }, [state, mode, onOpenChange]);
+  useActionToast(
+    state,
+    mode === "add" ? "Subreddit added" : "Subreddit updated",
+    () => onOpenChange(false),
+  );
 
   function handleSubmit(formData: FormData) {
     if (mode === "add") {

@@ -1,16 +1,15 @@
 import type { Config, SubredditView } from "@redgest/db";
 
-/**
- * SubredditView with Date fields converted to ISO strings
- * for crossing the RSC → client component boundary.
- */
-export type SerializedSubreddit = {
-  [K in keyof SubredditView]: SubredditView[K] extends Date
+/** Convert Date fields to strings for crossing the RSC → client boundary. */
+type Serialized<T> = {
+  [K in keyof T]: T[K] extends Date
     ? string
-    : SubredditView[K] extends Date | null
+    : T[K] extends Date | null
       ? string | null
-      : SubredditView[K];
+      : T[K];
 };
+
+export type SerializedSubreddit = Serialized<SubredditView>;
 
 export function serializeSubreddit(sub: SubredditView): SerializedSubreddit {
   return {
@@ -21,17 +20,7 @@ export function serializeSubreddit(sub: SubredditView): SerializedSubreddit {
   };
 }
 
-/**
- * Config with Date fields converted to ISO strings
- * for crossing the RSC → client component boundary.
- */
-export type SerializedConfig = {
-  [K in keyof Config]: Config[K] extends Date
-    ? string
-    : Config[K] extends Date | null
-      ? string | null
-      : Config[K];
-};
+export type SerializedConfig = Serialized<Config>;
 
 export function serializeConfig(config: Config): SerializedConfig {
   return {

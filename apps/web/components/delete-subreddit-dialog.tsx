@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, startTransition } from "react";
-import { toast } from "sonner";
+import { useActionState, startTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { useActionToast } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,15 +33,11 @@ export function DeleteSubredditDialog({
     null,
   );
 
-  useEffect(() => {
-    if (!state) return;
-    if (state.ok) {
-      toast.success(`Removed r/${subreddit.name}`);
-      onOpenChange(false);
-    } else {
-      toast.error(state.error);
-    }
-  }, [state, subreddit.name, onOpenChange]);
+  useActionToast(
+    state,
+    `Removed r/${subreddit.name}`,
+    () => onOpenChange(false),
+  );
 
   function handleSubmit(formData: FormData) {
     startTransition(() => {

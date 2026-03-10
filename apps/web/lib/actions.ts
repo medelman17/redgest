@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { DeliveryChannel } from "@redgest/db";
 import * as dal from "@/lib/dal";
 import type { ActionResult } from "@/lib/types";
 
@@ -37,7 +38,9 @@ const updateConfigSchema = z.object({
   defaultLookbackHours: z.coerce.number().int().min(1).max(168).optional(),
   llmProvider: z.string().optional(),
   llmModel: z.string().optional(),
-  defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional(),
+  defaultDelivery: z.enum(
+    Object.values(DeliveryChannel) as [DeliveryChannel, ...DeliveryChannel[]],
+  ).optional(),
   schedule: z.preprocess(
     (v) => (v === "" ? null : v),
     z.string().nullable().optional(),

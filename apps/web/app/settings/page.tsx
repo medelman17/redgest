@@ -3,7 +3,7 @@ import { serializeConfig } from "@/lib/types";
 import type { SerializedConfig } from "@/lib/types";
 import { SettingsForm } from "@/components/settings-form";
 
-const DEFAULT_CONFIG: SerializedConfig = {
+const DEFAULT_CONFIG: Omit<SerializedConfig, "updatedAt"> = {
   id: 1,
   globalInsightPrompt: "",
   defaultLookback: "24h",
@@ -11,12 +11,13 @@ const DEFAULT_CONFIG: SerializedConfig = {
   llmProvider: "anthropic",
   llmModel: "claude-sonnet-4-20250514",
   schedule: null,
-  updatedAt: new Date().toISOString(),
 };
 
 export default async function SettingsPage() {
   const config = await getConfig();
-  const serialized = config ? serializeConfig(config) : DEFAULT_CONFIG;
+  const serialized = config
+    ? serializeConfig(config)
+    : { ...DEFAULT_CONFIG, updatedAt: new Date().toISOString() };
 
   return (
     <div className="space-y-6">
