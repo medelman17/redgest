@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-10
 **Current Phase**: 2 (Scheduling + Delivery)
-**Active Sprint**: Sprint 8
+**Active Sprint**: None
 
 ---
 
@@ -17,11 +17,12 @@
 | 1 | WS5: LLM Abstraction | 7 | 7 | 0 | 0 | 0 | 100% |
 | 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS7: MCP Server | 6 | 6 | 0 | 0 | 0 | 100% |
-| 2 | WS8: Trigger.dev | 5 | 0 | 0 | 0 | 5 | 0% |
-| 2 | WS9: Delivery Channels | 4 | 0 | 0 | 0 | 4 | 0% |
-| 2 | Gap Items (Sprint 8) | 2 | 0 | 0 | 0 | 2 | 0% |
+| 2 | WS8: Trigger.dev | 5 | 5 | 0 | 0 | 0 | 100% |
+| 2 | WS9: Delivery Channels | 4 | 4 | 0 | 0 | 0 | 100% |
+| 2 | WS10: Web UI / Config | 6 | 6 | 0 | 0 | 0 | 100% |
+| 2 | Gap Items (Sprint 8+9) | 3 | 3 | 0 | 0 | 0 | 100% |
 | 1 | Testing & Deployment | 4 | 4 | 0 | 0 | 0 | 100% |
-| **Total P1** | | **45** | **45** | **0** | **0** | **0** | **100%** |
+| **Total P1+P2** | | **52** | **52** | **0** | **0** | **0** | **100%** |
 
 ---
 
@@ -223,25 +224,25 @@
 ### WS8: Trigger.dev Integration (6pt)
 **Deps**: WS7 | **Unblocks**: Production job queue, scheduled digests
 
-- [ ] trigger.config.ts with Prisma modern mode (1pt)
-  Blocked by: None | Unblocks: task definitions
-  Acceptance: trigger.config.ts with Prisma modern mode extension, builds in Docker
+- [x] trigger.config.ts with Prisma modern mode (1pt)
+  Done: 2026-03-10 | Ref: 46151c9
+  Note: Trigger.dev CLI init + trigger.config.ts with Prisma instrumentation, dirs: ["apps/worker/src/trigger"].
 
-- [ ] Task definitions — generate, fetch, triage, summarize (2pt)
-  Blocked by: trigger.config.ts | Unblocks: event handler
-  Acceptance: 4 task definitions wrapping existing pipeline steps, testable in isolation
+- [x] Task definitions — generate-digest, deliver-digest, scheduled-digest (2pt)
+  Done: 2026-03-10 | Ref: de6d901
+  Note: generate-digest wraps runDigestPipeline, triggers deliver-digest on completion. deliver-digest loads digest with relations, dispatches to email/slack. scheduled-digest is cron task (default 7 AM daily).
 
-- [ ] Event handler: DigestRequested → tasks.trigger() (1pt)
-  Blocked by: task definitions | Unblocks: async pipeline
-  Acceptance: Replaces in-process bootstrap handler with Trigger.dev dispatch
+- [x] Event handler: DigestRequested → tasks.trigger() (1pt)
+  Done: 2026-03-10 | Ref: de6d901
+  Note: Conditional dispatch in bootstrap.ts — Trigger.dev if TRIGGER_SECRET_KEY set, in-process fallback. Dynamic import to avoid SDK loading when not configured. 5 new tests.
 
-- [ ] Task result handlers — write status to Postgres (1pt)
-  Blocked by: task definitions | Unblocks: job tracking
-  Acceptance: Updates job status on task completion/failure, matches existing COMPLETED/PARTIAL/FAILED semantics
+- [x] Task result handlers — write status to Postgres (1pt)
+  Done: 2026-03-10 | Ref: de6d901
+  Note: Pipeline status writes handled by existing runDigestPipeline(). generate-digest returns {jobId, status, digestId}.
 
-- [ ] Scheduled digest cron (1pt)
-  Blocked by: event handler | Unblocks: automated daily digests
-  Acceptance: Cron task triggers digest.generate on configurable schedule (default 7 AM daily)
+- [x] Scheduled digest cron (1pt)
+  Done: 2026-03-10 | Ref: de6d901
+  Note: schedules.task() with DIGEST_CRON env var (default "0 7 * * *"). Finds active subreddits, creates Job record, triggers generate-digest with idempotency key.
 
 ---
 
@@ -274,29 +275,49 @@
 ### WS9: Delivery Channels (3pt)
 **Deps**: WS3 (events), WS8 (task infrastructure) | **Unblocks**: Scheduled delivery
 
-- [ ] @redgest/email: React Email templates (1pt)
-  Blocked by: None | Unblocks: Resend integration
-  Acceptance: Digest email template with React Email, renders subreddit sections + post summaries
+- [x] @redgest/email: React Email templates (1pt)
+  Done: 2026-03-10 | Ref: a90e93b
+  Note: DigestEmail React Email component with subreddit sections, post summaries, key takeaways, comment highlights. DigestDeliveryData shared type.
 
-- [ ] Resend integration (0.5pt)
-  Blocked by: email templates | Unblocks: email delivery
-  Acceptance: Send digest via Resend API, triggered by DigestCompleted event
+- [x] Resend integration (0.5pt)
+  Done: 2026-03-10 | Ref: a90e93b
+  Note: sendDigestEmail() via Resend API. RESEND_API_KEY + DELIVERY_EMAIL config vars.
 
-- [ ] @redgest/slack: Block Kit formatter (1pt)
-  Blocked by: None | Unblocks: Slack webhook
-  Acceptance: Digest formatted as Slack Block Kit message with sections per subreddit
+- [x] @redgest/slack: Block Kit formatter (1pt)
+  Done: 2026-03-10 | Ref: 01f1895
+  Note: formatDigestBlocks() — Slack Block Kit with header, subreddit sections, post summaries with score/takeaways/comments.
 
-- [ ] Slack webhook client (0.5pt)
-  Blocked by: Block Kit formatter | Unblocks: Slack delivery
-  Acceptance: Post digest to configured Slack webhook URL, triggered by DigestCompleted event
+- [x] Slack webhook client (0.5pt)
+  Done: 2026-03-10 | Ref: 01f1895
+  Note: sendDigestSlack() — plain fetch() POST to SLACK_WEBHOOK_URL. Reuses DigestDeliveryData from @redgest/email.
 
-### WS10: Web UI / Config (8pt) — Deferred
-- [ ] Next.js 16 app scaffold with ShadCN (1pt)
-- [ ] Subreddit Manager page (2pt)
-- [ ] Global Settings page (1.5pt)
-- [ ] Run History page (2pt)
-- [ ] Manual Trigger component (1pt)
-- [ ] Dark mode + layout (0.5pt)
+### WS10: Web UI / Config (8pt) — Sprint 9
+**Deps**: WS3 (CQRS), WS2 (database) | **Unblocks**: Phase 2 completion
+**Design**: "Terminal-Luxe" — JetBrains Mono + IBM Plex Sans, slate dark, ShadCN Sidebar + DataTable
+
+- [x] Next.js 16 app scaffold with ShadCN (1pt) — Sprint 9
+  Done: 2026-03-10 | Ref: 123fb0c (feat/ws10-scaffold)
+  Note: Next.js 16 + React 19, ShadCN/ui + Tailwind v4, Terminal-Luxe theme, Sidebar layout with 4-page nav, DAL + Server Actions, transpilePackages.
+
+- [x] Subreddit Manager page (2pt) — Sprint 9
+  Done: 2026-03-10 | Ref: b880322 (feat/ws10-subreddit-manager)
+  Note: Async Server Component + client islands. SubredditTable with useOptimistic, SubredditDialog (add/edit), DeleteSubredditDialog. SerializedSubreddit mapped type. 7 commits.
+
+- [x] Global Settings page (1.5pt) — Sprint 9
+  Done: 2026-03-10 | Ref: 4d26ef3..18ba3f2
+  Note: 6-field form (prompt, lookback, delivery, provider, model, schedule). Async Server Component + useActionState. Simplify pass: Serialized<T> generic, useActionToast hook, Prisma-derived Zod enum.
+
+- [x] Run History page (2pt) — Sprint 9
+  Done: 2026-03-10 | Ref: a03e34e
+  Note: Generic DataTable (TanStack React Table + ShadCN), RunHistoryTable with React Query polling (5s for active runs), RunDetailPanel with digest expansion, GetDigestByJobId CQRS query, subreddit ID→name resolution via RSC. 7 commits.
+
+- [x] Manual Trigger component (1pt) — Sprint 9
+  Done: 2026-03-10 | Ref: 89744f7
+  Note: DigestTriggerForm with subreddit checkboxes (useActionState), lookback hours, JobStatusCard with React Query polling (2s), COMPLETED/PARTIAL/FAILED states, "View in History" link.
+
+- [x] Dark mode + layout polish (0.5pt) — Sprint 9
+  Done: 2026-03-10 | Ref: 668811b
+  Note: next-themes with dark default, ThemeToggle (Sun/Moon animation), light mode CSS variables, responsive padding.
 
 ### Additional Phase 2 — Deferred
 - [ ] Self-hosted Trigger.dev Docker setup (3pt)
@@ -318,11 +339,11 @@
 
 | Gap # | Task | Phase | Status |
 |-------|------|-------|--------|
-| 1 | Add llm_calls logging table + middleware writes | 2 | [ ] Sprint 8 |
+| 1 | Add llm_calls logging table + middleware writes | 2 | [x] Sprint 8 (ed1f821, f1f6ab1) |
 | 2 | Implement LIKE/prefix search for Phase 1 | 1 | [x] (Sprint 4 — SearchPosts uses `contains` mode) |
 | 4 | Add MCP rate limiting middleware | 2 | [ ] |
-| 5 | Sanitize Reddit content (prompt injection defense) | 2 | [ ] Sprint 8 |
-| 6 | Test Prisma v7 modern mode in Trigger.dev container | 1 | [ ] |
+| 5 | Sanitize Reddit content (prompt injection defense) | 2 | [x] Sprint 8 (d94dbb2) |
+| 6 | Test Prisma v7 modern mode in Trigger.dev container | 1 | [x] Sprint 9 (e9600dd) |
 
 ---
 

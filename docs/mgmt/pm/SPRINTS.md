@@ -1,31 +1,57 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 8
+## Most Recent Sprint: Sprint 9 (Complete)
 
-**Duration**: 2026-03-10 — 2026-03-17
+**Duration**: 2026-03-10 — 2026-03-10
+**Capacity**: 10pt
+**Sprint Goal**: Ship the complete Redgest config UI — all 4 pages functional with dark theme, closing out Phase 2
+
+**Design Direction**: "Terminal-Luxe" — JetBrains Mono headings + IBM Plex Sans body, slate dark palette (#0F172A bg, #1E293B surface, #22C55E accent), ShadCN Sidebar + DataTable, dark mode default via next-themes.
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Next.js 16 scaffold + ShadCN + Sidebar layout | WS10 | 1.0 | feature | [x] |
+| Subreddit Manager page | WS10 | 2.0 | feature | [x] |
+| Global Settings page | WS10 | 1.5 | feature | [x] |
+| Run History page | WS10 | 2.0 | feature | [x] |
+| Manual Trigger component | WS10 | 1.0 | feature | [x] |
+| Dark mode + layout polish | WS10 | 0.5 | feature | [x] |
+| Test Prisma v7 modern mode in Trigger.dev container | Gap #6 | 1.0 | feature | [x] |
+| TD-006: Extract trigger.config.ts project ID to env | debt | 0.5 | debt | [x] |
+| TD-007: Add security JSDoc to sanitizeContent() | debt | 0.5 | debt | [x] |
+
+**Committed**: 10pt | **Completed**: 10pt | **Velocity**: 100%
+
+**Notes**: Phase 2 completion sprint. 4 UI pages (Subreddits, Settings, Run History, Manual Trigger) with Terminal-Luxe design system. Dark/light theme toggle via next-themes. Prisma v7 modern mode verified for Trigger.dev deployment (stale Yarn PnP manifest was root cause of initial failures). 2 debt items resolved. 11 commits.
+
+---
+
+## Previous Sprints
+
+### Sprint 8 (Complete)
+
+**Duration**: 2026-03-10 — 2026-03-10
 **Capacity**: 12pt
 **Sprint Goal**: Launch Phase 2 — Trigger.dev job queue, email/Slack delivery, scheduled digests, observability, and content sanitization
 
 | Task | Stream | Points | Type | Status |
 |------|--------|--------|------|--------|
-| trigger.config.ts with Prisma modern mode | WS8 | 1.0 | feature | [ ] |
-| Task definitions — generate, fetch, triage, summarize | WS8 | 2.0 | feature | [ ] |
-| Event handler: DigestRequested → tasks.trigger() | WS8 | 1.0 | feature | [ ] |
-| Task result handlers — write status to Postgres | WS8 | 1.0 | feature | [ ] |
-| Scheduled digest cron | WS8 | 1.0 | feature | [ ] |
-| @redgest/email: React Email templates | WS9 | 1.0 | feature | [ ] |
-| Resend integration | WS9 | 0.5 | feature | [ ] |
-| @redgest/slack: Block Kit formatter | WS9 | 1.0 | feature | [ ] |
-| Slack webhook client | WS9 | 0.5 | feature | [ ] |
-| llm_calls logging table + middleware writes | Gap | 1.5 | feature | [ ] |
-| Sanitize Reddit content (prompt injection defense) | Gap | 1.0 | feature | [ ] |
-| TD-002: Document Postgres port 5433 | infra | 0.5 | debt | [ ] |
+| trigger.config.ts with Prisma modern mode | WS8 | 1.0 | feature | [x] |
+| Task definitions — generate, deliver, scheduled | WS8 | 2.0 | feature | [x] |
+| Event handler: DigestRequested → tasks.trigger() | WS8 | 1.0 | feature | [x] |
+| Task result handlers — write status to Postgres | WS8 | 1.0 | feature | [x] |
+| Scheduled digest cron | WS8 | 1.0 | feature | [x] |
+| @redgest/email: React Email templates | WS9 | 1.0 | feature | [x] |
+| Resend integration | WS9 | 0.5 | feature | [x] |
+| @redgest/slack: Block Kit formatter | WS9 | 1.0 | feature | [x] |
+| Slack webhook client | WS9 | 0.5 | feature | [x] |
+| llm_calls logging table + middleware writes | Gap | 1.5 | feature | [x] |
+| Sanitize Reddit content (prompt injection defense) | Gap | 1.0 | feature | [x] |
+| TD-002: Document Postgres port 5433 | infra | 0.5 | debt | [x] |
 
-**Committed**: 12pt | **Completed**: 0pt | **Velocity**: 0%
+**Committed**: 12pt | **Completed**: 12pt | **Velocity**: 100%
 
----
-
-## Previous Sprints
+**Notes**: Phase 2 kickoff. 12 commits, 68 tests (up from 65). Trigger.dev v4 with generate-digest, deliver-digest, scheduled-digest tasks. Conditional dispatch in bootstrap.ts (Trigger.dev if TRIGGER_SECRET_KEY set, in-process fallback). React Email + Resend for email delivery. Slack Block Kit + webhook. llm_calls table with GenerateResult<T> wrapper. sanitizeContent() for prompt injection defense. Fixed Prisma schema drift (3 dropped indexes restored).
 
 ### Sprint 7 (Complete)
 
