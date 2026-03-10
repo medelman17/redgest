@@ -50,7 +50,7 @@ UpdateConfig: {
 
 ### 2. Update command handler
 
-Add `defaultDelivery` and `schedule` to the `data` and `update` objects in the upsert call. No conversion needed — both are stored as-is.
+Add `defaultDelivery` and `schedule` to the handler using the existing `if (params.X !== undefined)` guard pattern. No conversion needed for these two fields — both are stored as-is (unlike `defaultLookbackHours` which the handler already converts to `"${N}h"` string). The handler's `create` block (upsert defaults) should include `defaultDelivery: "NONE"` and `schedule: null`.
 
 ### 3. Extend updateConfigSchema in actions.ts
 
@@ -61,7 +61,7 @@ const updateConfigSchema = z.object({
   llmProvider: z.string().optional(),
   llmModel: z.string().optional(),
   defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional(),  // NEW
-  schedule: z.string().optional(),                                        // NEW
+  schedule: z.preprocess((v) => (v === "" ? null : v), z.string().nullable().optional()),  // NEW: "" → null (disable)
 });
 ```
 
