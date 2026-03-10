@@ -27,6 +27,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
+  initialSorting?: SortingState;
   renderSubComponent?: (props: { row: Row<TData> }) => ReactNode;
   getRowCanExpand?: (row: Row<TData>) => boolean;
 }
@@ -34,10 +35,11 @@ interface DataTableProps<TData> {
 export function DataTable<TData>({
   columns,
   data,
+  initialSorting,
   renderSubComponent,
   getRowCanExpand,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(initialSorting ?? []);
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const table = useReactTable({

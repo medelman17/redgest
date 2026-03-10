@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchRuns } from "@/lib/actions";
 import { DataTable } from "@/components/data-table";
@@ -16,10 +17,11 @@ export function RunHistoryTable({
   initialData,
   subredditMap,
 }: RunHistoryTableProps) {
-  const { data: runs } = useQuery<SerializedRun[]>({
+  const { data: runs } = useQuery({
     queryKey: ["runs"],
-    queryFn: fetchRuns as unknown as () => Promise<SerializedRun[]>,
+    queryFn: fetchRuns,
     initialData,
+    staleTime: 0,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
@@ -30,12 +32,16 @@ export function RunHistoryTable({
     },
   });
 
-  const columns = createColumns(subredditMap);
+  const columns = useMemo(
+    () => createColumns(subredditMap),
+    [subredditMap],
+  );
 
   return (
     <DataTable
       columns={columns}
-      data={(runs ?? []) as SerializedRun[]}
+      data={runs ?? []}
+      initialSorting={[{ id: "startedAt", desc: true }]}
       renderSubComponent={({ row }) => (
         <RunDetailPanel
           jobId={row.original.jobId}

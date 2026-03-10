@@ -166,8 +166,12 @@ export async function fetchSubreddits() {
   return dal.listSubreddits();
 }
 
-export async function fetchRuns() {
-  return dal.listRuns();
+export async function fetchRuns(): Promise<
+  import("@/lib/types").SerializedRun[]
+> {
+  const runs = await dal.listRuns();
+  const { serializeRun } = await import("@/lib/types");
+  return runs.map(serializeRun);
 }
 
 export async function fetchDigestForJob(jobId: string) {
