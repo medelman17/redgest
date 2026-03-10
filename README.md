@@ -43,6 +43,8 @@ cp .env.example .env
 
 # Start Postgres (or use Docker)
 docker compose up postgres -d
+# Note: Postgres is mapped to port 5433 (not 5432) to avoid conflicts
+# with a local Postgres installation. DATABASE_URL in .env.example reflects this.
 
 # Run migrations and generate Prisma client
 pnpm db:generate
