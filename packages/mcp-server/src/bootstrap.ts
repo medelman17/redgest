@@ -72,16 +72,46 @@ export async function bootstrap(): Promise<BootstrapResult> {
     pipelineDeps = { db, eventBus, contentSource, config };
   }
 
-  // Phase 1: in-process execution; swap to Trigger.dev in Phase 2
-  eventBus.on("DigestRequested", async (event) => {
-    const { jobId, subredditIds } = event.payload;
-    try {
-      await runDigestPipeline(jobId, subredditIds, pipelineDeps);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`[DigestRequested] Pipeline failed for job ${jobId}: ${message}`);
-    }
-  });
+  // Phase 2: Trigger.dev dispatch if configured; fallback to in-process
+  if (config.TRIGGER_SECRET_KEY) {
+    eventBus.on("DigestRequested", async (event) => {
+      const { jobId, subredditIds } = event.payload;
+      try {
+        const { tasks } = await import("@trigger.dev/sdk/v3");
+        await tasks.trigger("generate-digest", { jobId, subredditIds });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(
+          `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
+        );
+        // Fallback to in-process on dispatch failure
+        try {
+          await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+        } catch (fallbackErr) {
+          const fbMsg =
+            fallbackErr instanceof Error
+              ? fallbackErr.message
+              : String(fallbackErr);
+          console.error(
+            `[DigestRequested] Pipeline failed for job ${jobId}: ${fbMsg}`,
+          );
+        }
+      }
+    });
+  } else {
+    // In-process fallback (no Trigger.dev configured)
+    eventBus.on("DigestRequested", async (event) => {
+      const { jobId, subredditIds } = event.payload;
+      try {
+        await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(
+          `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
+        );
+      }
+    });
+  }
 
   return { execute, query, ctx, config, db };
 }

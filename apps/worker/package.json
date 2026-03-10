@@ -3,10 +3,24 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "dev": "echo 'worker placeholder'",
-    "build": "echo 'worker placeholder'",
-    "lint": "echo 'worker placeholder'",
-    "typecheck": "echo 'worker placeholder'"
+    "dev": "npx trigger.dev@latest dev",
+    "build": "tsc",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@redgest/config": "workspace:*",
+    "@redgest/core": "workspace:*",
+    "@redgest/db": "workspace:*",
+    "@redgest/email": "workspace:*",
+    "@redgest/reddit": "workspace:*",
+    "@redgest/slack": "workspace:*",
+    "@trigger.dev/sdk": "^4.4.3"
   }
 }
