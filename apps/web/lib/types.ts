@@ -1,4 +1,4 @@
-import type { SubredditView } from "@redgest/db";
+import type { Config, SubredditView } from "@redgest/db";
 
 /**
  * SubredditView with Date fields converted to ISO strings
@@ -18,6 +18,25 @@ export function serializeSubreddit(sub: SubredditView): SerializedSubreddit {
     createdAt: sub.createdAt.toISOString(),
     updatedAt: sub.updatedAt.toISOString(),
     lastDigestDate: sub.lastDigestDate?.toISOString() ?? null,
+  };
+}
+
+/**
+ * Config with Date fields converted to ISO strings
+ * for crossing the RSC → client component boundary.
+ */
+export type SerializedConfig = {
+  [K in keyof Config]: Config[K] extends Date
+    ? string
+    : Config[K] extends Date | null
+      ? string | null
+      : Config[K];
+};
+
+export function serializeConfig(config: Config): SerializedConfig {
+  return {
+    ...config,
+    updatedAt: config.updatedAt.toISOString(),
   };
 }
 
