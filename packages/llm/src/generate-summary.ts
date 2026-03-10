@@ -1,4 +1,3 @@
-import { generateText, Output } from "ai";
 import type { LanguageModel } from "ai";
 import { PostSummarySchema } from "./schemas.js";
 import type { PostSummary } from "./schemas.js";
@@ -11,6 +10,8 @@ import type {
   SummarizationComment,
 } from "./prompts/index.js";
 import { getModel } from "./provider.js";
+import { withCache } from "./cache.js";
+import { generateWithLogging } from "./middleware.js";
 
 export async function generatePostSummary(
   post: SummarizationPost,
@@ -18,12 +19,31 @@ export async function generatePostSummary(
   insightPrompts: string[],
   model?: LanguageModel,
 ): Promise<PostSummary> {
-  const result = await generateText({
-    model: model ?? getModel("summarize"),
-    system: buildSummarizationSystemPrompt(insightPrompts),
-    prompt: buildSummarizationUserPrompt(post, comments),
-    output: Output.object({ schema: PostSummarySchema }),
-  });
+  const resolvedModel = model ?? getModel("summarize");
+  const system = buildSummarizationSystemPrompt(insightPrompts);
+  const prompt = buildSummarizationUserPrompt(post, comments);
 
-  return result.output;
+  const { data, cached } = await withCache(
+    "summary",
+    { post, comments, insightPrompts },
+    async () => {
+      const { output } = await generateWithLogging({
+        task: "summarize",
+        model: resolvedModel,
+        system,
+        prompt,
+        schema: PostSummarySchema,
+      });
+      return output;
+    },
+  );
+
+  if (cached) {
+    // eslint-disable-next-line no-console -- structured LLM call log for observability
+    console.log(
+      JSON.stringify({ type: "llm_call", task: "summarize", cached: true, durationMs: 0 }),
+    );
+  }
+
+  return data;
 }

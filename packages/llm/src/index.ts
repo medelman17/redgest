@@ -19,3 +19,6 @@ export type { CandidatePost, SummarizationInput } from "./types.js";
 export { getModel, type ModelConfig } from "./provider.js";
 export { generateTriageResult } from "./generate-triage.js";
 export { generatePostSummary } from "./generate-summary.js";
+
+export { withCache, disconnectCache, type CacheResult } from "./cache.js";
+export { generateWithLogging, type LlmCallLog } from "./middleware.js";
