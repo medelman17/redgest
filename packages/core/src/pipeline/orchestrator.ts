@@ -139,10 +139,12 @@ export async function runDigestPipeline(
         candidates,
         insightPrompts,
         sub.maxPosts,
+        db,
+        jobId,
         deps.model ? getModel("triage", deps.model) : undefined,
       ];
       if (deps.generateTriage) {
-        triageArgs.push(deps.generateTriage as Parameters<typeof triageStep>[4]);
+        triageArgs.push(deps.generateTriage as Parameters<typeof triageStep>[6]);
       }
       const triageResult = await triageStep(...triageArgs);
 

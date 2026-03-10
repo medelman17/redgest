@@ -13,6 +13,11 @@ export interface LlmCallLog {
   finishReason: string;
 }
 
+export interface GenerateResult<T> {
+  data: T;
+  log: LlmCallLog | null;
+}
+
 /**
  * Wrap generateText with logging. Returns the result and logs metrics.
  */

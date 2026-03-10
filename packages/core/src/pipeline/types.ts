@@ -107,11 +107,14 @@ export interface PipelineDeps {
     targetCount: number,
     model?: unknown,
   ) => Promise<{
-    selectedPosts: Array<{
-      index: number;
-      relevanceScore: number;
-      rationale: string;
-    }>;
+    data: {
+      selectedPosts: Array<{
+        index: number;
+        relevanceScore: number;
+        rationale: string;
+      }>;
+    };
+    log: null;
   }>;
 
   /** Override summary function for testing. */
@@ -120,7 +123,10 @@ export interface PipelineDeps {
     comments: Array<{ author: string; score: number; body: string }>,
     insightPrompts: string[],
     model?: unknown,
-  ) => Promise<PostSummary>;
+  ) => Promise<{
+    data: PostSummary;
+    log: null;
+  }>;
 }
 
 /** Result of fetching + persisting posts from one subreddit. */

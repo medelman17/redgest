@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { LanguageModel } from "ai";
+import type { PrismaClient } from "@redgest/db";
 import type { TriagePostCandidate, TriageResult } from "@redgest/llm";
 
 vi.mock("@redgest/llm", () => ({
@@ -39,17 +40,37 @@ function makeCandidate(
 
 function makeTriageResult(
   selectedPosts: TriageResult["selectedPosts"],
-): TriageResult {
-  return { selectedPosts };
+): { data: TriageResult; log: null } {
+  return { data: { selectedPosts }, log: null };
+}
+
+interface MockDb {
+  llmCall: { create: ReturnType<typeof vi.fn> };
+}
+
+function makeMockDb(): MockDb {
+  return {
+    llmCall: { create: vi.fn().mockResolvedValue({}) },
+  };
 }
 
 describe("triageStep", () => {
+  let mockDb: MockDb;
+  const jobId = "job-test-1";
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDb = makeMockDb();
   });
 
   it("returns empty selected for empty candidates", async () => {
-    const result = await triageStep([], ["prompt1"], 5);
+    const result = await triageStep(
+      [],
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
     expect(result).toEqual({ selected: [] });
     expect(mockGenerateTriage).not.toHaveBeenCalled();
   });
@@ -66,7 +87,13 @@ describe("triageStep", () => {
       ]),
     );
 
-    await triageStep(candidates, ["prompt1"], 10);
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      10,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
 
     // targetCount=10 but only 2 candidates, so effectiveTarget should be 2
     expect(mockGenerateTriage).toHaveBeenCalledWith(
@@ -87,7 +114,13 @@ describe("triageStep", () => {
       ]),
     );
 
-    await triageStep(candidates, ["prompt1"], 5);
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
 
     expect(mockApplyBudget).toHaveBeenCalledWith(candidates);
     // applyTriageBudget should be called before generateTriageResult
@@ -111,7 +144,13 @@ describe("triageStep", () => {
       ]),
     );
 
-    const result = await triageStep(candidates, ["insight1", "insight2"], 2);
+    const result = await triageStep(
+      candidates,
+      ["insight1", "insight2"],
+      2,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
 
     expect(result.selected).toEqual([
       { index: 0, relevanceScore: 0.95, rationale: "Very relevant" },
@@ -128,7 +167,14 @@ describe("triageStep", () => {
       ]),
     );
 
-    await triageStep(candidates, ["prompt1"], 5, fakeModel);
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+      fakeModel,
+    );
 
     expect(mockGenerateTriage).toHaveBeenCalledWith(
       expect.anything(),
@@ -152,7 +198,13 @@ describe("triageStep", () => {
       ]),
     );
 
-    await triageStep(candidates, ["prompt1"], 5);
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
 
     expect(mockGenerateTriage).toHaveBeenCalledWith(
       budgetedCandidates,
@@ -160,5 +212,67 @@ describe("triageStep", () => {
       1,
       undefined,
     );
+  });
+
+  it("does not persist llmCall when log is null", async () => {
+    const candidates = [makeCandidate({ index: 0 })];
+    mockGenerateTriage.mockResolvedValue(
+      makeTriageResult([
+        { index: 0, relevanceScore: 0.9, rationale: "Good" },
+      ]),
+    );
+
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
+
+    expect(mockDb.llmCall.create).not.toHaveBeenCalled();
+  });
+
+  it("persists llmCall when log is non-null", async () => {
+    const candidates = [makeCandidate({ index: 0 })];
+    mockGenerateTriage.mockResolvedValue({
+      data: {
+        selectedPosts: [
+          { index: 0, relevanceScore: 0.9, rationale: "Good" },
+        ],
+      },
+      log: {
+        task: "triage",
+        model: "claude-sonnet-4-20250514",
+        inputTokens: 1000,
+        outputTokens: 200,
+        totalTokens: 1200,
+        durationMs: 500,
+        cached: false,
+        finishReason: "stop",
+      },
+    });
+
+    await triageStep(
+      candidates,
+      ["prompt1"],
+      5,
+      mockDb as unknown as PrismaClient,
+      jobId,
+    );
+
+    expect(mockDb.llmCall.create).toHaveBeenCalledWith({
+      data: {
+        jobId,
+        postId: null,
+        task: "triage",
+        model: "claude-sonnet-4-20250514",
+        inputTokens: 1000,
+        outputTokens: 200,
+        durationMs: 500,
+        cached: false,
+        finishReason: "stop",
+      },
+    });
   });
 });

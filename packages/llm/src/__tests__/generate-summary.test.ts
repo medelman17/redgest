@@ -61,7 +61,9 @@ describe("generatePostSummary", () => {
       "web development",
     ]);
 
-    expect(result).toEqual(summaryResult);
+    expect(result.data).toEqual(summaryResult);
+    expect(result.log).not.toBeNull();
+    expect(result.log?.task).toBe("summarize");
     expect(mockGenerateText).toHaveBeenCalledOnce();
 
     const callArgs = mockGenerateText.mock.calls[0]?.[0] as Record<

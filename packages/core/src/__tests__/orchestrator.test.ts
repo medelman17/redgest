@@ -293,6 +293,8 @@ describe("runDigestPipeline", () => {
       ],
       ["global test prompt", "TypeScript and web development"],
       5,
+      mockDb,
+      "job-1",
       undefined,
     );
   });
@@ -415,6 +417,8 @@ describe("runDigestPipeline", () => {
       expect.any(Array),
       [],
       5,
+      mockDb,
+      "job-1",
       undefined,
     );
   });

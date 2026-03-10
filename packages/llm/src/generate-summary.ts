@@ -12,28 +12,32 @@ import type {
 import { getModel } from "./provider.js";
 import { withCache } from "./cache.js";
 import { generateWithLogging } from "./middleware.js";
+import type { GenerateResult, LlmCallLog } from "./middleware.js";
 
 export async function generatePostSummary(
   post: SummarizationPost,
   comments: SummarizationComment[],
   insightPrompts: string[],
   model?: LanguageModel,
-): Promise<PostSummary> {
+): Promise<GenerateResult<PostSummary>> {
   const resolvedModel = model ?? getModel("summarize");
   const system = buildSummarizationSystemPrompt(insightPrompts);
   const prompt = buildSummarizationUserPrompt(post, comments);
+
+  let llmLog: LlmCallLog | null = null;
 
   const { data, cached } = await withCache(
     "summary",
     { post, comments, insightPrompts },
     async () => {
-      const { output } = await generateWithLogging({
+      const { output, log } = await generateWithLogging({
         task: "summarize",
         model: resolvedModel,
         system,
         prompt,
         schema: PostSummarySchema,
       });
+      llmLog = log;
       return output;
     },
   );
@@ -45,5 +49,5 @@ export async function generatePostSummary(
     );
   }
 
-  return data;
+  return { data, log: llmLog };
 }

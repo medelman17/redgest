@@ -27,12 +27,28 @@ export async function summarizeStep(
   };
 
   const generate = summarizeFn ?? generatePostSummary;
-  const summary = await generate(
+  const { data: summary, log } = await generate(
     truncatedPost,
     budgeted.comments,
     insightPrompts,
     model,
   );
+
+  if (log) {
+    await db.llmCall.create({
+      data: {
+        jobId,
+        postId,
+        task: "summarize",
+        model: log.model,
+        inputTokens: log.inputTokens,
+        outputTokens: log.outputTokens,
+        durationMs: log.durationMs,
+        cached: log.cached,
+        finishReason: log.finishReason,
+      },
+    });
+  }
 
   const isModelObject = model != null && typeof model === "object";
   const llmProvider =

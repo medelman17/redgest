@@ -9,28 +9,32 @@ import type { TriagePostCandidate } from "./prompts/index.js";
 import { getModel } from "./provider.js";
 import { withCache } from "./cache.js";
 import { generateWithLogging } from "./middleware.js";
+import type { GenerateResult, LlmCallLog } from "./middleware.js";
 
 export async function generateTriageResult(
   posts: TriagePostCandidate[],
   insightPrompts: string[],
   targetCount: number,
   model?: LanguageModel,
-): Promise<TriageResult> {
+): Promise<GenerateResult<TriageResult>> {
   const resolvedModel = model ?? getModel("triage");
   const system = buildTriageSystemPrompt(insightPrompts);
   const prompt = buildTriageUserPrompt(posts, targetCount);
+
+  let llmLog: LlmCallLog | null = null;
 
   const { data, cached } = await withCache(
     "triage",
     { posts, insightPrompts, targetCount },
     async () => {
-      const { output } = await generateWithLogging({
+      const { output, log } = await generateWithLogging({
         task: "triage",
         model: resolvedModel,
         system,
         prompt,
         schema: TriageResultSchema,
       });
+      llmLog = log;
       return output;
     },
   );
@@ -42,5 +46,5 @@ export async function generateTriageResult(
     );
   }
 
-  return data;
+  return { data, log: llmLog };
 }

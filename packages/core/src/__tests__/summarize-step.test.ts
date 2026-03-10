@@ -51,12 +51,16 @@ function makeComment(
 
 interface MockDb {
   postSummary: { create: ReturnType<typeof vi.fn> };
+  llmCall: { create: ReturnType<typeof vi.fn> };
 }
 
 function makeMockDb(): MockDb {
   return {
     postSummary: {
       create: vi.fn().mockResolvedValue({ id: "summary-id-1" }),
+    },
+    llmCall: {
+      create: vi.fn().mockResolvedValue({}),
     },
   };
 }
@@ -71,7 +75,7 @@ describe("summarizeStep", () => {
 
   it("applies comments-first truncation via applySummarizationBudget", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     // Create a post with very long selftext and comments
     const post = makePost({ selftext: "x".repeat(50_000) });
@@ -111,7 +115,7 @@ describe("summarizeStep", () => {
 
   it("calls generatePostSummary with truncated post and budgeted comments", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     const post = makePost({ selftext: "Short selftext" });
     const comments = [makeComment(10, "Short comment")];
@@ -144,7 +148,7 @@ describe("summarizeStep", () => {
 
   it("saves PostSummary to database with correct field mapping", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     await summarizeStep(
       makePost(),
@@ -172,7 +176,7 @@ describe("summarizeStep", () => {
 
   it("returns the DB record ID and the summary object", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
     mockDb.postSummary.create.mockResolvedValue({ id: "db-record-xyz" });
 
     const result = await summarizeStep(
@@ -190,7 +194,7 @@ describe("summarizeStep", () => {
 
   it("passes model parameter through to generatePostSummary", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     const mockModel = {
       specificationVersion: "v3" as const,
@@ -221,7 +225,7 @@ describe("summarizeStep", () => {
 
   it("records provider and model from model parameter when provided", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     const mockModel = {
       specificationVersion: "v3" as const,
@@ -252,7 +256,7 @@ describe("summarizeStep", () => {
 
   it("preserves all post metadata except selftext through truncation", async () => {
     const summary = makeSummary();
-    mockGeneratePostSummary.mockResolvedValue(summary);
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
 
     const post = makePost({
       title: "Specific Title",
@@ -281,5 +285,61 @@ describe("summarizeStep", () => {
     expect(p.score).toBe(999);
     // Selftext should be truncated
     expect(p.selftext.length).toBeLessThan(100_000);
+  });
+
+  it("does not persist llmCall when log is null", async () => {
+    const summary = makeSummary();
+    mockGeneratePostSummary.mockResolvedValue({ data: summary, log: null });
+
+    await summarizeStep(
+      makePost(),
+      [],
+      ["insight"],
+      "job-1",
+      "post-1",
+      mockDb as unknown as PrismaClient,
+    );
+
+    expect(mockDb.llmCall.create).not.toHaveBeenCalled();
+  });
+
+  it("persists llmCall when log is non-null", async () => {
+    const summary = makeSummary();
+    mockGeneratePostSummary.mockResolvedValue({
+      data: summary,
+      log: {
+        task: "summarize",
+        model: "claude-sonnet-4-20250514",
+        inputTokens: 2000,
+        outputTokens: 400,
+        totalTokens: 2400,
+        durationMs: 800,
+        cached: false,
+        finishReason: "stop",
+      },
+    });
+
+    await summarizeStep(
+      makePost(),
+      [],
+      ["insight"],
+      "job-1",
+      "post-1",
+      mockDb as unknown as PrismaClient,
+    );
+
+    expect(mockDb.llmCall.create).toHaveBeenCalledWith({
+      data: {
+        jobId: "job-1",
+        postId: "post-1",
+        task: "summarize",
+        model: "claude-sonnet-4-20250514",
+        inputTokens: 2000,
+        outputTokens: 400,
+        durationMs: 800,
+        cached: false,
+        finishReason: "stop",
+      },
+    });
   });
 });
