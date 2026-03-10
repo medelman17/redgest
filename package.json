@@ -26,10 +26,12 @@
     "ai": "^6.0.116"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^10.0.3",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "turbo": "^2.8.14",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",
