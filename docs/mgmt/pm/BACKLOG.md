@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-09
 **Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: Sprint 6
+**Active Sprint**: Sprint 7
 
 ---
 
@@ -16,10 +16,10 @@
 | 1 | WS4: Reddit Integration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS5: LLM Abstraction | 7 | 5 | 0 | 0 | 2 | 71% |
 | 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
-| 1 | WS7: MCP Server | 6 | 0 | 0 | 0 | 6 | 0% |
-| 1 | WS8: Trigger.dev | 4 | 0 | 0 | 1 | 3 | 0% |
-| 1 | Testing & Deployment | 4 | 1 | 0 | 1 | 2 | 25% |
-| **Total P1** | | **49** | **34** | **0** | **2** | **13** | **69%** |
+| 1 | WS7: MCP Server | 6 | 6 | 0 | 0 | 0 | 100% |
+| 2 | WS8: Trigger.dev (deferred) | 4 | 0 | 0 | 0 | 4 | 0% |
+| 1 | Testing & Deployment | 4 | 1 | 0 | 0 | 3 | 25% |
+| **Total P1** | | **45** | **40** | **0** | **0** | **5** | **89%** |
 
 ---
 
@@ -194,94 +194,47 @@
 ### WS7: MCP Server (5pt)
 **Deps**: WS3, WS6 | **Unblocks**: WS8, E2E testing
 
-- [ ] tools.ts: Register all 12 tools on McpServer (2pt)
-  Blocked by: None (WS6 complete)
-  Unblocks: http/stdio transports
-  Acceptance:
-  - Pipeline tools: generate_digest, get_run_status, cancel_run
-  - Content tools: get_digest, get_post, list_digests, search_posts, search_digests
-  - Config tools: list_subreddits, add_subreddit, remove_subreddit, update_config
-  - Each tool has Zod input schema and calls appropriate command/query handler
+- [x] Response envelope {ok, data, error} (0.5pt)
+  Done: 2026-03-09 | Ref: 72f14e7
+  Note: envelope() and envelopeError() utilities. 15 tests.
 
-- [ ] http.ts: Hono + @hono/mcp Streamable HTTP (1pt)
-  Blocked by: tools.ts
-  Unblocks: deployment
-  Acceptance:
-  - Hono app with @hono/mcp middleware
-  - Streamable HTTP transport (MCP spec 2025-11-25)
-  - CORS configured for web UI
+- [x] Bearer auth middleware (0.5pt)
+  Done: 2026-03-09 | Ref: 1ab94f8, 7321838
+  Note: Timing-safe comparison with crypto.timingSafeEqual. 5 tests.
 
-- [ ] stdio.ts: StdioServerTransport (0.5pt)
-  Blocked by: tools.ts
-  Unblocks: local dev with Claude Desktop
-  Acceptance:
-  - StdioServerTransport setup
-  - Can be launched via `npx` or direct node execution
-  - Claude Desktop MCP config example documented
+- [x] Bootstrap shared startup (0.5pt)
+  Done: 2026-03-09 | Ref: b7ca9a4
+  Note: Prisma, event bus, dispatchers, Reddit client, DigestRequested → runDigestPipeline wiring. 11 tests.
 
-- [ ] Bearer auth middleware (0.5pt)
-  Blocked by: None
-  Unblocks: security
-  Acceptance:
-  - Validates MCP_SERVER_API_KEY from Authorization header
-  - Returns 401 for invalid/missing keys
-  - Bypassed for stdio transport
+- [x] tools.ts: Register all 15 tools on McpServer (2pt)
+  Done: 2026-03-09 | Ref: bccb3d6
+  Note: 15 tools (14 CQRS adapters + use_redgest guide). createToolHandlers() + createToolServer(). 31 tests.
 
-- [ ] Response envelope {ok, data, error} (0.5pt)
-  Blocked by: None (WS3 error codes complete)
-  Unblocks: all tool responses
-  Acceptance:
-  - All tool responses wrapped in {ok: boolean, data?: T, error?: {code, message, details?}}
-  - JSON serialized in content text block
-  - Consistent across all 12 tools
+- [x] http.ts: Hono + @hono/mcp Streamable HTTP (1pt)
+  Done: 2026-03-09 | Ref: 9406adb, 6cc0035, 1dcd345
+  Note: StreamableHTTPTransport, eager connect, graceful shutdown. 3 tests.
 
-- [ ] Docker image for MCP server (0.5pt)
-  Blocked by: http.ts
-  Unblocks: deployment
-  Acceptance:
-  - Dockerfile with multi-stage build
-  - Runs Hono HTTP server
-  - Accepts env vars for config
-  - Health check endpoint
+- [x] stdio.ts: StdioServerTransport (0.5pt)
+  Done: 2026-03-09 | Ref: 502f9b1, 6cc0035
+  Note: Graceful shutdown with re-entrancy guard, server.close() before db disconnect.
+
+- [x] Docker image for MCP server (0.5pt)
+  Done: 2026-03-09 | Ref: dadee87, 1dcd345
+  Note: Dockerfile.mcp — multi-stage build, health check, pinned pnpm version.
+
+- [x] Barrel exports (index.ts)
+  Done: 2026-03-09 | Ref: dadee87
 
 ---
 
-### WS8: Trigger.dev Integration (5pt)
-**Deps**: WS7 | **Unblocks**: Phase 1 completion
+### WS8: Trigger.dev Integration (5pt) — DEFERRED TO PHASE 2
+**Deps**: WS7 | **Unblocks**: Production job queue
+**Decision**: In-process pipeline execution (bootstrap.ts DigestRequested handler) is sufficient for Phase 1 MVP. Trigger.dev swap-in deferred to Phase 2 for production resilience, retry, and observability.
 
 - [ ] trigger.config.ts with Prisma modern mode (1pt)
-  Blocked by: None (WS2 done)
-  Unblocks: task definitions
-  Acceptance:
-  - Trigger.dev v4 config
-  - Prisma extension with modern mode
-  - Environment variables configured
-
-- [!] Task definitions — generate, fetch, triage, summarize (2pt)
-  Blocked by: WS7 (MCP)
-  Unblocks: event handler
-  Acceptance:
-  - digest.generate: orchestrator task
-  - digest.fetch: fetches posts from Reddit
-  - digest.triage: runs LLM triage
-  - digest.summarize: runs LLM summarization per post
-  - Idempotency keys on all tasks
-
+- [ ] Task definitions — generate, fetch, triage, summarize (2pt)
 - [ ] Event handler: DigestRequested → tasks.trigger() (1pt)
-  Blocked by: None (WS6 complete)
-  Unblocks: async pipeline
-  Acceptance:
-  - Listens for DigestRequested event
-  - Calls tasks.trigger("digest.generate", {jobId, ...})
-  - Logs trigger confirmation
-
 - [ ] Task result handlers — write status to Postgres (1pt)
-  Blocked by: task definitions, WS2
-  Unblocks: job tracking, get_run_status
-  Acceptance:
-  - On task success: update Job.status = "completed", set completedAt
-  - On task failure: update Job.status = "failed", store error
-  - Emit DigestCompleted or DigestFailed events
 
 ---
 
@@ -302,16 +255,16 @@
   - Live Reddit API test (with rate limiting)
   - Database integration with test Postgres
 
-- [!] E2E: manual trigger via MCP → verify digest (2pt)
-  Blocked by: WS7, WS8
+- [ ] E2E: manual trigger via MCP → verify digest (2pt)
+  Blocked by: None (WS7 complete, WS8 deferred — in-process pipeline sufficient)
   Acceptance:
   - Call generate_digest via MCP client
   - Poll get_run_status until complete
   - Call get_digest and verify content
   - Full pipeline from trigger to storage
 
-- [!] Docker Compose verification (1pt)
-  Blocked by: all WS1-8
+- [ ] Docker Compose verification (1pt)
+  Blocked by: None (WS8 deferred — core services sufficient)
   Acceptance:
   - `docker compose up` starts Postgres + MCP server + worker
   - Health checks pass

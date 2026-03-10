@@ -1,27 +1,44 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 6
+## Active Sprint: Sprint 7
 
 **Duration**: 2026-03-09 — 2026-03-16
+**Capacity**: 5pt
+**Sprint Goal**: Validate the Phase 1 MVP end-to-end — E2E test via MCP, integration tests, Docker Compose
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| E2E: manual trigger via MCP → verify digest | Testing | 2.0 | feature | [ ] |
+| Integration tests: mock LLM, real Reddit API | Testing | 2.0 | feature | [ ] |
+| Docker Compose verification | Testing | 1.0 | feature | [ ] |
+
+**Committed**: 5pt | **Completed**: 0pt | **Velocity**: 0%
+
+**Notes**: WS8 (Trigger.dev) deferred to Phase 2 — in-process pipeline execution sufficient for MVP. This sprint validates everything works before shipping. No tech debt budget (TD-002/TD-003 both low, unrelated).
+
+---
+
+## Previous Sprints
+
+### Sprint 6 (Complete)
+
+**Duration**: 2026-03-09 — 2026-03-09
 **Capacity**: 6pt
 **Sprint Goal**: Build the MCP server (WS7) — tools registration, HTTP/stdio transports, auth, and response envelope
 
 | Task | Stream | Points | Type | Status |
 |------|--------|--------|------|--------|
-| tools.ts: Register all 12 tools on McpServer | WS7 | 2.0 | feature | [ ] |
-| Response envelope {ok, data, error} | WS7 | 0.5 | feature | [ ] |
-| Bearer auth middleware | WS7 | 0.5 | feature | [ ] |
-| http.ts: Hono + @hono/mcp Streamable HTTP | WS7 | 1.0 | feature | [ ] |
-| stdio.ts: StdioServerTransport | WS7 | 0.5 | feature | [ ] |
-| Docker image for MCP server | WS7 | 0.5 | feature | [ ] |
+| Response envelope {ok, data, error} | WS7 | 0.5 | feature | [x] |
+| Bearer auth middleware | WS7 | 0.5 | feature | [x] |
+| Bootstrap shared startup | WS7 | 0.5 | feature | [x] |
+| tools.ts: Register all 15 tools on McpServer | WS7 | 2.0 | feature | [x] |
+| http.ts: Hono + @hono/mcp Streamable HTTP | WS7 | 1.0 | feature | [x] |
+| stdio.ts: StdioServerTransport | WS7 | 0.5 | feature | [x] |
+| Docker image + barrel exports | WS7 | 0.5 | feature | [x] |
 
-**Committed**: 5pt | **Completed**: 0pt | **Velocity**: 0%
+**Committed**: 5.5pt | **Completed**: 5.5pt | **Velocity**: 100%
 
-**Notes**: No tech debt budget needed — only 2 open items (TD-002, TD-003), both low severity and unrelated to WS7. Full capacity to features. Dependency order: response envelope + auth can parallel, tools.ts depends on envelope, http.ts/stdio.ts depend on tools.ts, Docker depends on http.ts.
-
----
-
-## Previous Sprints
+**Notes**: 65 mcp-server tests (303 total). Three-stage review after each task (spec → quality → simplification). Key quality fixes: timing-safe auth, eager MCP connect (race condition), graceful shutdown on both entry points, error message sanitization, pinned Docker pnpm version.
 
 ### Sprint 5 (Complete)
 
