@@ -287,6 +287,7 @@ export type PostWhereInput = {
   comments?: Prisma.PostCommentListRelationFilter
   summaries?: Prisma.PostSummaryListRelationFilter
   digestPosts?: Prisma.DigestPostListRelationFilter
+  llmCalls?: Prisma.LlmCallListRelationFilter
 }
 
 export type PostOrderByWithRelationInput = {
@@ -306,6 +307,7 @@ export type PostOrderByWithRelationInput = {
   comments?: Prisma.PostCommentOrderByRelationAggregateInput
   summaries?: Prisma.PostSummaryOrderByRelationAggregateInput
   digestPosts?: Prisma.DigestPostOrderByRelationAggregateInput
+  llmCalls?: Prisma.LlmCallOrderByRelationAggregateInput
 }
 
 export type PostWhereUniqueInput = Prisma.AtLeast<{
@@ -328,6 +330,7 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   comments?: Prisma.PostCommentListRelationFilter
   summaries?: Prisma.PostSummaryListRelationFilter
   digestPosts?: Prisma.DigestPostListRelationFilter
+  llmCalls?: Prisma.LlmCallListRelationFilter
 }, "id" | "redditId">
 
 export type PostOrderByWithAggregationInput = {
@@ -387,6 +390,7 @@ export type PostCreateInput = {
   comments?: Prisma.PostCommentCreateNestedManyWithoutPostInput
   summaries?: Prisma.PostSummaryCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateInput = {
@@ -406,6 +410,7 @@ export type PostUncheckedCreateInput = {
   comments?: Prisma.PostCommentUncheckedCreateNestedManyWithoutPostInput
   summaries?: Prisma.PostSummaryUncheckedCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostUpdateInput = {
@@ -425,6 +430,7 @@ export type PostUpdateInput = {
   comments?: Prisma.PostCommentUpdateManyWithoutPostNestedInput
   summaries?: Prisma.PostSummaryUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateInput = {
@@ -444,6 +450,7 @@ export type PostUncheckedUpdateInput = {
   comments?: Prisma.PostCommentUncheckedUpdateManyWithoutPostNestedInput
   summaries?: Prisma.PostSummaryUncheckedUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostCreateManyInput = {
@@ -557,6 +564,11 @@ export type PostScalarRelationFilter = {
   isNot?: Prisma.PostWhereInput
 }
 
+export type PostNullableScalarRelationFilter = {
+  is?: Prisma.PostWhereInput | null
+  isNot?: Prisma.PostWhereInput | null
+}
+
 export type PostCreateNestedOneWithoutCommentsInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutCommentsInput, Prisma.PostUncheckedCreateWithoutCommentsInput>
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutCommentsInput
@@ -599,6 +611,22 @@ export type PostUpdateOneRequiredWithoutDigestPostsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutDigestPostsInput, Prisma.PostUpdateWithoutDigestPostsInput>, Prisma.PostUncheckedUpdateWithoutDigestPostsInput>
 }
 
+export type PostCreateNestedOneWithoutLlmCallsInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutLlmCallsInput, Prisma.PostUncheckedCreateWithoutLlmCallsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutLlmCallsInput
+  connect?: Prisma.PostWhereUniqueInput
+}
+
+export type PostUpdateOneWithoutLlmCallsNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutLlmCallsInput, Prisma.PostUncheckedCreateWithoutLlmCallsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutLlmCallsInput
+  upsert?: Prisma.PostUpsertWithoutLlmCallsInput
+  disconnect?: Prisma.PostWhereInput | boolean
+  delete?: Prisma.PostWhereInput | boolean
+  connect?: Prisma.PostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutLlmCallsInput, Prisma.PostUpdateWithoutLlmCallsInput>, Prisma.PostUncheckedUpdateWithoutLlmCallsInput>
+}
+
 export type PostCreateWithoutCommentsInput = {
   id?: string
   redditId: string
@@ -615,6 +643,7 @@ export type PostCreateWithoutCommentsInput = {
   fetchedAt: Date | string
   summaries?: Prisma.PostSummaryCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateWithoutCommentsInput = {
@@ -633,6 +662,7 @@ export type PostUncheckedCreateWithoutCommentsInput = {
   fetchedAt: Date | string
   summaries?: Prisma.PostSummaryUncheckedCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostCreateOrConnectWithoutCommentsInput = {
@@ -667,6 +697,7 @@ export type PostUpdateWithoutCommentsInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   summaries?: Prisma.PostSummaryUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutCommentsInput = {
@@ -685,6 +716,7 @@ export type PostUncheckedUpdateWithoutCommentsInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   summaries?: Prisma.PostSummaryUncheckedUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostCreateWithoutSummariesInput = {
@@ -703,6 +735,7 @@ export type PostCreateWithoutSummariesInput = {
   fetchedAt: Date | string
   comments?: Prisma.PostCommentCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateWithoutSummariesInput = {
@@ -721,6 +754,7 @@ export type PostUncheckedCreateWithoutSummariesInput = {
   fetchedAt: Date | string
   comments?: Prisma.PostCommentUncheckedCreateNestedManyWithoutPostInput
   digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostCreateOrConnectWithoutSummariesInput = {
@@ -755,6 +789,7 @@ export type PostUpdateWithoutSummariesInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comments?: Prisma.PostCommentUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutSummariesInput = {
@@ -773,6 +808,7 @@ export type PostUncheckedUpdateWithoutSummariesInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comments?: Prisma.PostCommentUncheckedUpdateManyWithoutPostNestedInput
   digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostCreateWithoutDigestPostsInput = {
@@ -791,6 +827,7 @@ export type PostCreateWithoutDigestPostsInput = {
   fetchedAt: Date | string
   comments?: Prisma.PostCommentCreateNestedManyWithoutPostInput
   summaries?: Prisma.PostSummaryCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateWithoutDigestPostsInput = {
@@ -809,6 +846,7 @@ export type PostUncheckedCreateWithoutDigestPostsInput = {
   fetchedAt: Date | string
   comments?: Prisma.PostCommentUncheckedCreateNestedManyWithoutPostInput
   summaries?: Prisma.PostSummaryUncheckedCreateNestedManyWithoutPostInput
+  llmCalls?: Prisma.LlmCallUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostCreateOrConnectWithoutDigestPostsInput = {
@@ -843,6 +881,7 @@ export type PostUpdateWithoutDigestPostsInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comments?: Prisma.PostCommentUpdateManyWithoutPostNestedInput
   summaries?: Prisma.PostSummaryUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutDigestPostsInput = {
@@ -861,6 +900,99 @@ export type PostUncheckedUpdateWithoutDigestPostsInput = {
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comments?: Prisma.PostCommentUncheckedUpdateManyWithoutPostNestedInput
   summaries?: Prisma.PostSummaryUncheckedUpdateManyWithoutPostNestedInput
+  llmCalls?: Prisma.LlmCallUncheckedUpdateManyWithoutPostNestedInput
+}
+
+export type PostCreateWithoutLlmCallsInput = {
+  id?: string
+  redditId: string
+  subreddit: string
+  title: string
+  body?: string | null
+  author: string
+  score: number
+  commentCount: number
+  url: string
+  permalink: string
+  flair?: string | null
+  isNsfw: boolean
+  fetchedAt: Date | string
+  comments?: Prisma.PostCommentCreateNestedManyWithoutPostInput
+  summaries?: Prisma.PostSummaryCreateNestedManyWithoutPostInput
+  digestPosts?: Prisma.DigestPostCreateNestedManyWithoutPostInput
+}
+
+export type PostUncheckedCreateWithoutLlmCallsInput = {
+  id?: string
+  redditId: string
+  subreddit: string
+  title: string
+  body?: string | null
+  author: string
+  score: number
+  commentCount: number
+  url: string
+  permalink: string
+  flair?: string | null
+  isNsfw: boolean
+  fetchedAt: Date | string
+  comments?: Prisma.PostCommentUncheckedCreateNestedManyWithoutPostInput
+  summaries?: Prisma.PostSummaryUncheckedCreateNestedManyWithoutPostInput
+  digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutPostInput
+}
+
+export type PostCreateOrConnectWithoutLlmCallsInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutLlmCallsInput, Prisma.PostUncheckedCreateWithoutLlmCallsInput>
+}
+
+export type PostUpsertWithoutLlmCallsInput = {
+  update: Prisma.XOR<Prisma.PostUpdateWithoutLlmCallsInput, Prisma.PostUncheckedUpdateWithoutLlmCallsInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutLlmCallsInput, Prisma.PostUncheckedCreateWithoutLlmCallsInput>
+  where?: Prisma.PostWhereInput
+}
+
+export type PostUpdateToOneWithWhereWithoutLlmCallsInput = {
+  where?: Prisma.PostWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutLlmCallsInput, Prisma.PostUncheckedUpdateWithoutLlmCallsInput>
+}
+
+export type PostUpdateWithoutLlmCallsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  redditId?: Prisma.StringFieldUpdateOperationsInput | string
+  subreddit?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  author?: Prisma.StringFieldUpdateOperationsInput | string
+  score?: Prisma.IntFieldUpdateOperationsInput | number
+  commentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  url?: Prisma.StringFieldUpdateOperationsInput | string
+  permalink?: Prisma.StringFieldUpdateOperationsInput | string
+  flair?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comments?: Prisma.PostCommentUpdateManyWithoutPostNestedInput
+  summaries?: Prisma.PostSummaryUpdateManyWithoutPostNestedInput
+  digestPosts?: Prisma.DigestPostUpdateManyWithoutPostNestedInput
+}
+
+export type PostUncheckedUpdateWithoutLlmCallsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  redditId?: Prisma.StringFieldUpdateOperationsInput | string
+  subreddit?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  author?: Prisma.StringFieldUpdateOperationsInput | string
+  score?: Prisma.IntFieldUpdateOperationsInput | number
+  commentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  url?: Prisma.StringFieldUpdateOperationsInput | string
+  permalink?: Prisma.StringFieldUpdateOperationsInput | string
+  flair?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comments?: Prisma.PostCommentUncheckedUpdateManyWithoutPostNestedInput
+  summaries?: Prisma.PostSummaryUncheckedUpdateManyWithoutPostNestedInput
+  digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutPostNestedInput
 }
 
 
@@ -872,12 +1004,14 @@ export type PostCountOutputType = {
   comments: number
   summaries: number
   digestPosts: number
+  llmCalls: number
 }
 
 export type PostCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   comments?: boolean | PostCountOutputTypeCountCommentsArgs
   summaries?: boolean | PostCountOutputTypeCountSummariesArgs
   digestPosts?: boolean | PostCountOutputTypeCountDigestPostsArgs
+  llmCalls?: boolean | PostCountOutputTypeCountLlmCallsArgs
 }
 
 /**
@@ -911,6 +1045,13 @@ export type PostCountOutputTypeCountDigestPostsArgs<ExtArgs extends runtime.Type
   where?: Prisma.DigestPostWhereInput
 }
 
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeCountLlmCallsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LlmCallWhereInput
+}
+
 
 export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -929,6 +1070,7 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>
   summaries?: boolean | Prisma.Post$summariesArgs<ExtArgs>
   digestPosts?: boolean | Prisma.Post$digestPostsArgs<ExtArgs>
+  llmCalls?: boolean | Prisma.Post$llmCallsArgs<ExtArgs>
   _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
 
@@ -985,6 +1127,7 @@ export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>
   summaries?: boolean | Prisma.Post$summariesArgs<ExtArgs>
   digestPosts?: boolean | Prisma.Post$digestPostsArgs<ExtArgs>
+  llmCalls?: boolean | Prisma.Post$llmCallsArgs<ExtArgs>
   _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PostIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -996,6 +1139,7 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     comments: Prisma.$PostCommentPayload<ExtArgs>[]
     summaries: Prisma.$PostSummaryPayload<ExtArgs>[]
     digestPosts: Prisma.$DigestPostPayload<ExtArgs>[]
+    llmCalls: Prisma.$LlmCallPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1408,6 +1552,7 @@ export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Typ
   comments<T extends Prisma.Post$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   summaries<T extends Prisma.Post$summariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$summariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   digestPosts<T extends Prisma.Post$digestPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$digestPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DigestPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  llmCalls<T extends Prisma.Post$llmCallsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$llmCallsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LlmCallPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1907,6 +2052,30 @@ export type Post$digestPostsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.DigestPostScalarFieldEnum | Prisma.DigestPostScalarFieldEnum[]
+}
+
+/**
+ * Post.llmCalls
+ */
+export type Post$llmCallsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LlmCall
+   */
+  select?: Prisma.LlmCallSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LlmCall
+   */
+  omit?: Prisma.LlmCallOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LlmCallInclude<ExtArgs> | null
+  where?: Prisma.LlmCallWhereInput
+  orderBy?: Prisma.LlmCallOrderByWithRelationInput | Prisma.LlmCallOrderByWithRelationInput[]
+  cursor?: Prisma.LlmCallWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LlmCallScalarFieldEnum | Prisma.LlmCallScalarFieldEnum[]
 }
 
 /**

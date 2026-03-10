@@ -60,6 +60,7 @@ export const ModelName = {
   PostSummary: 'PostSummary',
   Digest: 'Digest',
   DigestPost: 'DigestPost',
+  LlmCall: 'LlmCall',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
@@ -213,6 +214,23 @@ export const DigestPostScalarFieldEnum = {
 } as const
 
 export type DigestPostScalarFieldEnum = (typeof DigestPostScalarFieldEnum)[keyof typeof DigestPostScalarFieldEnum]
+
+
+export const LlmCallScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  postId: 'postId',
+  task: 'task',
+  model: 'model',
+  inputTokens: 'inputTokens',
+  outputTokens: 'outputTokens',
+  durationMs: 'durationMs',
+  cached: 'cached',
+  finishReason: 'finishReason',
+  createdAt: 'createdAt'
+} as const
+
+export type LlmCallScalarFieldEnum = (typeof LlmCallScalarFieldEnum)[keyof typeof LlmCallScalarFieldEnum]
 
 
 export const DigestViewScalarFieldEnum = {

@@ -393,6 +393,7 @@ export const ModelName = {
   PostSummary: 'PostSummary',
   Digest: 'Digest',
   DigestPost: 'DigestPost',
+  LlmCall: 'LlmCall',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
@@ -412,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "digestView" | "postView" | "runView" | "subredditView"
+    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "digestView" | "postView" | "runView" | "subredditView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1082,6 +1083,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LlmCall: {
+      payload: Prisma.$LlmCallPayload<ExtArgs>
+      fields: Prisma.LlmCallFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LlmCallFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LlmCallFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        findFirst: {
+          args: Prisma.LlmCallFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LlmCallFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        findMany: {
+          args: Prisma.LlmCallFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>[]
+        }
+        create: {
+          args: Prisma.LlmCallCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        createMany: {
+          args: Prisma.LlmCallCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LlmCallCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>[]
+        }
+        delete: {
+          args: Prisma.LlmCallDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        update: {
+          args: Prisma.LlmCallUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        deleteMany: {
+          args: Prisma.LlmCallDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LlmCallUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LlmCallUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>[]
+        }
+        upsert: {
+          args: Prisma.LlmCallUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LlmCallPayload>
+        }
+        aggregate: {
+          args: Prisma.LlmCallAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLlmCall>
+        }
+        groupBy: {
+          args: Prisma.LlmCallGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LlmCallGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LlmCallCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LlmCallCountAggregateOutputType> | number
+        }
+      }
+    }
     DigestView: {
       payload: Prisma.$DigestViewPayload<ExtArgs>
       fields: Prisma.DigestViewFieldRefs
@@ -1404,6 +1479,23 @@ export const DigestPostScalarFieldEnum = {
 } as const
 
 export type DigestPostScalarFieldEnum = (typeof DigestPostScalarFieldEnum)[keyof typeof DigestPostScalarFieldEnum]
+
+
+export const LlmCallScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  postId: 'postId',
+  task: 'task',
+  model: 'model',
+  inputTokens: 'inputTokens',
+  outputTokens: 'outputTokens',
+  durationMs: 'durationMs',
+  cached: 'cached',
+  finishReason: 'finishReason',
+  createdAt: 'createdAt'
+} as const
+
+export type LlmCallScalarFieldEnum = (typeof LlmCallScalarFieldEnum)[keyof typeof LlmCallScalarFieldEnum]
 
 
 export const DigestViewScalarFieldEnum = {
@@ -1761,6 +1853,7 @@ export type GlobalOmitConfig = {
   postSummary?: Prisma.PostSummaryOmit
   digest?: Prisma.DigestOmit
   digestPost?: Prisma.DigestPostOmit
+  llmCall?: Prisma.LlmCallOmit
   digestView?: Prisma.DigestViewOmit
   postView?: Prisma.PostViewOmit
   runView?: Prisma.RunViewOmit

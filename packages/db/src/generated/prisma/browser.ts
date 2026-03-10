@@ -63,6 +63,11 @@ export type Digest = Prisma.DigestModel
  */
 export type DigestPost = Prisma.DigestPostModel
 /**
+ * Model LlmCall
+ * 
+ */
+export type LlmCall = Prisma.LlmCallModel
+/**
  * Model DigestView
  * 
  */

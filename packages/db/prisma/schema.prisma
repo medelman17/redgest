@@ -81,6 +81,7 @@ model Job {
 
   postSummaries PostSummary[]
   digest        Digest?
+  llmCalls      LlmCall[]
 
   @@index([status])
   @@index([createdAt])
@@ -128,6 +129,7 @@ model Post {
   comments    PostComment[]
   summaries   PostSummary[]
   digestPosts DigestPost[]
+  llmCalls    LlmCall[]
 
   @@index([subreddit])
   @@index([fetchedAt])
@@ -206,6 +208,29 @@ model DigestPost {
   @@id([digestId, postId])
   @@index([subreddit])
   @@map("digest_posts")
+}
+
+// ─── LlmCall (per-call LLM usage logging) ────────────────
+
+model LlmCall {
+  id           String   @id @default(uuid(7))
+  jobId        String   @map("job_id")
+  postId       String?  @map("post_id")
+  task         String
+  model        String
+  inputTokens  Int      @map("input_tokens")
+  outputTokens Int      @map("output_tokens")
+  durationMs   Int      @map("duration_ms")
+  cached       Boolean
+  finishReason String   @map("finish_reason")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  job  Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([jobId])
+  @@index([task, createdAt])
+  @@map("llm_calls")
 }
 
 // ─── Views (read-only, created via SQL migration) ────────
