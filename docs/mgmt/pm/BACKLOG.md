@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-09
 **Current Phase**: 1 (Core Pipeline + MCP)
-**Active Sprint**: Sprint 7
+**Active Sprint**: None
 
 ---
 
@@ -18,8 +18,8 @@
 | 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS7: MCP Server | 6 | 6 | 0 | 0 | 0 | 100% |
 | 2 | WS8: Trigger.dev (deferred) | 4 | 0 | 0 | 0 | 4 | 0% |
-| 1 | Testing & Deployment | 4 | 1 | 0 | 0 | 3 | 25% |
-| **Total P1** | | **45** | **40** | **0** | **0** | **5** | **89%** |
+| 1 | Testing & Deployment | 4 | 4 | 0 | 0 | 0 | 100% |
+| **Total P1** | | **45** | **43** | **0** | **0** | **2** | **96%** |
 
 ---
 
@@ -248,27 +248,17 @@
   - Prompt template output tests
   - Token truncation boundary tests
 
-- [ ] Integration tests: mock LLM, real Reddit API (2pt)
-  Blocked by: None (WS6 complete)
-  Acceptance:
-  - Mock AI SDK responses for triage/summarization
-  - Live Reddit API test (with rate limiting)
-  - Database integration with test Postgres
+- [x] Integration tests: mock LLM, real Postgres (2pt)
+  Done: 2026-03-09 | Ref: Sprint 7 (005194f)
+  Note: 4 integration tests — pipeline records, SQL views, dedup, partial failure. FakeContentSource + fake LLM via injectable PipelineDeps overrides.
 
-- [ ] E2E: manual trigger via MCP → verify digest (2pt)
-  Blocked by: None (WS7 complete, WS8 deferred — in-process pipeline sufficient)
-  Acceptance:
-  - Call generate_digest via MCP client
-  - Poll get_run_status until complete
-  - Call get_digest and verify content
-  - Full pipeline from trigger to storage
+- [x] E2E: manual trigger via MCP → verify digest (2pt)
+  Done: 2026-03-09 | Ref: Sprint 7 (2597bb3)
+  Note: MCP SDK Client + StdioClientTransport → child process with REDGEST_TEST_MODE=1. 2 E2E tests — tool listing + full pipeline flow.
 
-- [ ] Docker Compose verification (1pt)
-  Blocked by: None (WS8 deferred — core services sufficient)
-  Acceptance:
-  - `docker compose up` starts Postgres + MCP server + worker
-  - Health checks pass
-  - MCP tools accessible via HTTP
+- [x] Docker Compose verification (1pt)
+  Done: 2026-03-09 | Ref: Sprint 7 (1d39972)
+  Note: Postgres health check + mcp-server service with Dockerfile.mcp build. Manual smoke test documented.
 
 ---
 

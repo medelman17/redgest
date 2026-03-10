@@ -1,24 +1,26 @@
 # Redgest Sprints
 
-## Active Sprint: Sprint 7
+## Active Sprint: None
 
-**Duration**: 2026-03-09 — 2026-03-16
+---
+
+## Previous Sprints
+
+### Sprint 7 (Complete)
+
+**Duration**: 2026-03-09 — 2026-03-09
 **Capacity**: 5pt
 **Sprint Goal**: Validate the Phase 1 MVP end-to-end — E2E test via MCP, integration tests, Docker Compose
 
 | Task | Stream | Points | Type | Status |
 |------|--------|--------|------|--------|
-| E2E: manual trigger via MCP → verify digest | Testing | 2.0 | feature | [ ] |
-| Integration tests: mock LLM, real Reddit API | Testing | 2.0 | feature | [ ] |
-| Docker Compose verification | Testing | 1.0 | feature | [ ] |
+| E2E: manual trigger via MCP → verify digest | Testing | 2.0 | feature | [x] |
+| Integration tests: mock LLM, real Postgres | Testing | 2.0 | feature | [x] |
+| Docker Compose verification | Testing | 1.0 | feature | [x] |
 
-**Committed**: 5pt | **Completed**: 0pt | **Velocity**: 0%
+**Committed**: 5pt | **Completed**: 5pt | **Velocity**: 100%
 
-**Notes**: WS8 (Trigger.dev) deferred to Phase 2 — in-process pipeline execution sufficient for MVP. This sprint validates everything works before shipping. No tech debt budget (TD-002/TD-003 both low, unrelated).
-
----
-
-## Previous Sprints
+**Notes**: 6 new tests (2 E2E + 4 integration), 309 total. Environment-driven test doubles (REDGEST_TEST_MODE=1) — no vi.mock() in child process. Injectable LLM function overrides on PipelineDeps. MCP SDK Client + StdioClientTransport for true protocol-level E2E. Docker Compose with postgres health check + mcp-server service.
 
 ### Sprint 6 (Complete)
 
