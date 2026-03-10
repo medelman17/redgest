@@ -1,2 +1,2 @@
-// @redgest/slack — placeholder
-export {};
+export { formatDigestBlocks, type SlackBlock } from "./format.js";
+export { sendDigestSlack } from "./send.js";

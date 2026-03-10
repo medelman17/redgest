@@ -10,5 +10,11 @@
     "test": "vitest run --passWithNoTests --exclude 'dist/**'",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@redgest/email": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5"
   }
 }

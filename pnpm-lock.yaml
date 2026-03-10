@@ -198,7 +198,15 @@ importers:
         specifier: ^25.3.5
         version: 25.3.5
 
-  packages/slack: {}
+  packages/slack:
+    dependencies:
+      '@redgest/email':
+        specifier: workspace:*
+        version: link:../email
+    devDependencies:
+      '@types/node':
+        specifier: ^25.3.5
+        version: 25.3.5
 
 packages:
 
