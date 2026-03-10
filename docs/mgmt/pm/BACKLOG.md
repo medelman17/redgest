@@ -14,12 +14,12 @@
 | 1 | WS2: Database | 7 | 7 | 0 | 0 | 0 | 100% |
 | 1 | WS3: CQRS Core | 8 | 8 | 0 | 0 | 0 | 100% |
 | 1 | WS4: Reddit Integration | 4 | 4 | 0 | 0 | 0 | 100% |
-| 1 | WS5: LLM Abstraction | 7 | 5 | 0 | 0 | 2 | 71% |
+| 1 | WS5: LLM Abstraction | 7 | 7 | 0 | 0 | 0 | 100% |
 | 1 | WS6: Pipeline Orchestration | 4 | 4 | 0 | 0 | 0 | 100% |
 | 1 | WS7: MCP Server | 6 | 6 | 0 | 0 | 0 | 100% |
 | 2 | WS8: Trigger.dev (deferred) | 4 | 0 | 0 | 0 | 4 | 0% |
 | 1 | Testing & Deployment | 4 | 4 | 0 | 0 | 0 | 100% |
-| **Total P1** | | **45** | **43** | **0** | **0** | **2** | **96%** |
+| **Total P1** | | **45** | **45** | **0** | **0** | **0** | **100%** |
 
 ---
 
@@ -151,22 +151,13 @@
   Done: 2026-03-09 | Ref: Sprint 4 (8258332)
   Note: getModel(taskName, override?) — AI SDK provider registry. Defaults: anthropic/claude-sonnet-4. 4 tests.
 
-- [ ] Redis cache layer (0.5pt)
-  Blocked by: None (config complete, REDIS_URL optional)
-  Unblocks: generate functions
-  Acceptance:
-  - Cache key based on content hash
-  - TTL: 2h for triage, 7d for summaries
-  - Graceful fallback if Redis unavailable
-  - Vendor-neutral (any Redis-compatible provider)
+- [x] Redis cache layer (0.5pt)
+  Done: 2026-03-09 | Ref: ed02b77
+  Note: withCache() — lazy ioredis, SHA-256 content hash keys, TTL 2h triage / 7d summary, graceful fallback when REDIS_URL unset.
 
-- [ ] Middleware logging — tokens, cost, duration (0.5pt)
-  Blocked by: None
-  Unblocks: observability
-  Acceptance:
-  - Logs per-call: model, input/output tokens, cost estimate, duration, cache hit/miss
-  - Structured logging format
-  - Optional storage in llm_calls table (Gap #1)
+- [x] Middleware logging — tokens, cost, duration (0.5pt)
+  Done: 2026-03-09 | Ref: ed02b77
+  Note: generateWithLogging() — structured JSON logs with model, tokens, duration, finish reason, cache status. 16 tests.
 
 ---
 
