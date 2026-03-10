@@ -36,4 +36,10 @@ export default tseslint.config(
       "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
+  {
+    files: ["**/components/ui/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/consistent-type-assertions": "off",
+    },
+  },
 );
