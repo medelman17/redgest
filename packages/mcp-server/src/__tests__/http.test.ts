@@ -22,7 +22,6 @@ vi.mock("../bootstrap.js", () => ({
 vi.mock("../tools.js", () => ({
   createToolServer: vi.fn().mockReturnValue({
     connect: vi.fn(),
-    isConnected: vi.fn().mockReturnValue(false),
   }),
 }));
 

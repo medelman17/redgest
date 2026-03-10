@@ -13,28 +13,13 @@ export async function createApp() {
   const mcpServer = createToolServer(deps);
   const transport = new StreamableHTTPTransport();
 
+  await mcpServer.connect(transport);
+
   const app = new Hono();
 
-  // Health check — no auth
   app.get("/health", (c) => c.json({ status: "ok" }));
-
-  // Auth on MCP routes
   app.use("/mcp", bearerAuthMiddleware(deps.config.MCP_SERVER_API_KEY));
-
-  // MCP endpoint (Streamable HTTP transport handles POST/GET/DELETE)
-  app.all("/mcp", async (c) => {
-    if (!mcpServer.isConnected()) {
-      await mcpServer.connect(transport);
-    }
-    const response = await transport.handleRequest(c);
-    if (response) {
-      return response;
-    }
-    return c.json(
-      { ok: false, error: { code: "MCP_ERROR", message: "Transport returned no response" } },
-      500,
-    );
-  });
+  app.all("/mcp", (c) => transport.handleRequest(c));
 
   return app;
 }
