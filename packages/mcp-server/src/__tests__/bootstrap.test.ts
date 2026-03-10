@@ -228,4 +228,32 @@ describe("bootstrap()", () => {
       },
     );
   });
+
+  it("DigestRequested handler catches pipeline errors without throwing", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockRunDigestPipeline.mockRejectedValueOnce(new Error("pipeline boom"));
+
+    await bootstrap();
+
+    const onCall = mockEventBusInstance.on.mock.calls.find(
+      (call: unknown[]) => call[0] === "DigestRequested",
+    );
+    expect(onCall).toBeDefined();
+    if (!onCall) throw new Error("unreachable");
+    const handler = onCall[1] as (event: {
+      type: "DigestRequested";
+      payload: { jobId: string; subredditIds: string[] };
+    }) => Promise<void>;
+
+    // Should not throw
+    await handler({
+      type: "DigestRequested",
+      payload: { jobId: "job-fail", subredditIds: [] },
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("pipeline boom"),
+    );
+    consoleSpy.mockRestore();
+  });
 });

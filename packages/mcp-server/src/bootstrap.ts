@@ -65,7 +65,12 @@ export async function bootstrap(): Promise<BootstrapResult> {
   // 8. Wire DigestRequested → runDigestPipeline (Phase 1 in-process; swap to Trigger.dev in Phase 2)
   eventBus.on("DigestRequested", async (event) => {
     const { jobId, subredditIds } = event.payload;
-    await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+    try {
+      await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[DigestRequested] Pipeline failed for job ${jobId}: ${message}`);
+    }
   });
 
   return { execute, query, ctx, config, db };
