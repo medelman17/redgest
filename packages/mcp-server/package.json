@@ -20,5 +20,8 @@
     "@redgest/db": "workspace:*",
     "@redgest/reddit": "workspace:*",
     "hono": "^4.12.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5"
   }
 }
