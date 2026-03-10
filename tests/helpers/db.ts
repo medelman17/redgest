@@ -20,17 +20,11 @@ export async function getTestDb(): Promise<PrismaClient> {
   return _db;
 }
 
-/** Truncate all tables (order matters for FK constraints). */
+/** Truncate all tables in a single atomic statement. */
 export async function truncateAll(db: PrismaClient): Promise<void> {
-  await db.$executeRawUnsafe(`TRUNCATE "digest_posts" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "digests" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "post_summaries" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "post_comments" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "posts" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "events" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "jobs" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "subreddits" CASCADE`);
-  await db.$executeRawUnsafe(`TRUNCATE "config" CASCADE`);
+  await db.$executeRawUnsafe(
+    `TRUNCATE "config", "subreddits", "jobs", "events", "posts", "post_comments", "post_summaries", "digests", "digest_posts" CASCADE`,
+  );
 }
 
 /** Disconnect from the test database. */

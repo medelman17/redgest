@@ -81,6 +81,8 @@ export {
 } from "./pipeline/index.js";
 export type {
   ContentSource,
+  FetchOptions,
+  FetchedContent,
   PipelineDeps,
   PipelineResult,
   PipelineModelConfig,

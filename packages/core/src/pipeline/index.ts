@@ -1,6 +1,8 @@
 // Pipeline types
 export type {
   ContentSource,
+  FetchOptions,
+  FetchedContent,
   PipelineDeps,
   PipelineResult,
   SubredditPipelineResult,

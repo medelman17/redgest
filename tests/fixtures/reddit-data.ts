@@ -1,5 +1,8 @@
 import type { RedditPostData, RedditCommentData } from "@redgest/reddit";
 
+/** Fixed epoch so fixture data is deterministic across runs. */
+const FIXTURE_EPOCH = 1700000000;
+
 function makePost(index: number, subreddit: string): RedditPostData {
   return {
     id: `post${index}`,
@@ -14,7 +17,7 @@ function makePost(index: number, subreddit: string): RedditPostData {
     permalink: `/r/${subreddit}/comments/post${index}`,
     link_flair_text: null,
     over_18: false,
-    created_utc: Math.floor(Date.now() / 1000) - index * 3600,
+    created_utc: FIXTURE_EPOCH - index * 3600,
     is_self: true,
   };
 }
@@ -28,7 +31,7 @@ function makeComments(postIndex: number): RedditCommentData[] {
       body: `Great analysis on post ${postIndex}. I agree with the main points.`,
       score: 25,
       depth: 0,
-      created_utc: Math.floor(Date.now() / 1000) - postIndex * 1800,
+      created_utc: FIXTURE_EPOCH - postIndex * 1800,
     },
     {
       id: `comment${postIndex}_2`,
@@ -37,7 +40,7 @@ function makeComments(postIndex: number): RedditCommentData[] {
       body: `Interesting perspective. Here's an additional data point for post ${postIndex}.`,
       score: 12,
       depth: 0,
-      created_utc: Math.floor(Date.now() / 1000) - postIndex * 900,
+      created_utc: FIXTURE_EPOCH - postIndex * 900,
     },
   ];
 }
