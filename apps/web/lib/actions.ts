@@ -37,6 +37,11 @@ const updateConfigSchema = z.object({
   defaultLookbackHours: z.coerce.number().int().min(1).max(168).optional(),
   llmProvider: z.string().optional(),
   llmModel: z.string().optional(),
+  defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional(),
+  schedule: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().nullable().optional(),
+  ),
 });
 
 const generateDigestSchema = z.object({
