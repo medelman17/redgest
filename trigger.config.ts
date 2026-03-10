@@ -1,12 +1,10 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
+import { prismaExtension } from "@trigger.dev/build/extensions/prisma";
 
 export default defineConfig({
   project: process.env.TRIGGER_PROJECT_ID ?? "proj_tfsfhcmalofjhjophduf",
   runtime: "node",
   logLevel: "log",
-  // The max compute seconds a task is allowed to run. If the task run exceeds this duration, it will be stopped.
-  // You can override this on an individual task.
-  // See https://trigger.dev/docs/runs/max-duration
   maxDuration: 3600,
   retries: {
     enabledInDev: true,
@@ -19,4 +17,7 @@ export default defineConfig({
     },
   },
   dirs: ["apps/worker/src/trigger"],
+  build: {
+    extensions: [prismaExtension({ mode: "modern" })],
+  },
 });

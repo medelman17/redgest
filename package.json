@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "@trigger.dev/build": "^4.4.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^10.0.3",
