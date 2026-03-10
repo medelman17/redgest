@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
+import { sanitizeContent } from "@redgest/reddit";
 import type { ContentSource, FetchStepResult } from "./types.js";
 
 /**
@@ -29,8 +30,8 @@ export async function fetchStep(
       create: {
         redditId: post.id,
         subreddit: post.subreddit,
-        title: post.title,
-        body: post.selftext,
+        title: sanitizeContent(post.title),
+        body: sanitizeContent(post.selftext),
         author: post.author,
         score: post.score,
         commentCount: post.num_comments,
@@ -55,7 +56,7 @@ export async function fetchStep(
           postId: dbPost.id,
           redditId: c.id,
           author: c.author,
-          body: c.body,
+          body: sanitizeContent(c.body),
           score: c.score,
           depth: c.depth,
           fetchedAt: content.fetchedAt,
