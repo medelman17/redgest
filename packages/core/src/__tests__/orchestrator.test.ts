@@ -296,6 +296,7 @@ describe("runDigestPipeline", () => {
       mockDb,
       "job-1",
       undefined,
+      undefined,
     );
   });
 
@@ -317,6 +318,7 @@ describe("runDigestPipeline", () => {
       mockDb,
       undefined,
       "Highly relevant",
+      undefined,
     );
   });
 
@@ -419,6 +421,7 @@ describe("runDigestPipeline", () => {
       5,
       mockDb,
       "job-1",
+      undefined,
       undefined,
     );
   });
