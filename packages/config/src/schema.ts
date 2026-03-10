@@ -4,7 +4,7 @@ export const configSchema = z.object({
   // Required
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
-  TRIGGER_SECRET_KEY: z.string().min(1, "TRIGGER_SECRET_KEY is required"),
+  TRIGGER_SECRET_KEY: z.string().min(1).optional(),
   MCP_SERVER_API_KEY: z.string().min(32, "MCP_SERVER_API_KEY must be at least 32 characters"),
   MCP_SERVER_PORT: z.coerce.number().int().min(1024).max(65535).default(3100),
   REDDIT_CLIENT_ID: z.string().min(1, "REDDIT_CLIENT_ID is required"),
@@ -18,8 +18,10 @@ export const configSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   SLACK_WEBHOOK_URL: z.url().optional(),
   TRIGGER_API_URL: z.url().optional(),
+  DELIVERY_EMAIL: z.string().email().optional(),
 
   // Defaults
+  DIGEST_CRON: z.string().default("0 7 * * *"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });

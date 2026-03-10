@@ -5,7 +5,6 @@ import { loadConfig, getConfig, resetConfig } from "../index.js";
 const validEnv = {
   DATABASE_URL: "postgresql://user:pass@localhost:5432/redgest",
   ANTHROPIC_API_KEY: "sk-ant-test-key-1234567890",
-  TRIGGER_SECRET_KEY: "tr_dev_test_key_1234567890",
   MCP_SERVER_API_KEY: "mcp-test-api-key-that-is-at-least-32-chars-long",
   MCP_SERVER_PORT: "3100",
   NODE_ENV: "development",
@@ -69,6 +68,57 @@ describe("configSchema", () => {
       expect(result.data.RESEND_API_KEY).toBeUndefined();
       expect(result.data.SLACK_WEBHOOK_URL).toBeUndefined();
       expect(result.data.REDIS_URL).toBeUndefined();
+      expect(result.data.TRIGGER_SECRET_KEY).toBeUndefined();
+      expect(result.data.DELIVERY_EMAIL).toBeUndefined();
+    }
+  });
+
+  it("accepts TRIGGER_SECRET_KEY when provided", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      TRIGGER_SECRET_KEY: "tr_dev_test_key_1234567890",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.TRIGGER_SECRET_KEY).toBe("tr_dev_test_key_1234567890");
+    }
+  });
+
+  it("accepts a valid DELIVERY_EMAIL", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      DELIVERY_EMAIL: "user@example.com",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DELIVERY_EMAIL).toBe("user@example.com");
+    }
+  });
+
+  it("fails when DELIVERY_EMAIL is not a valid email", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      DELIVERY_EMAIL: "not-an-email",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("applies default DIGEST_CRON value", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DIGEST_CRON).toBe("0 7 * * *");
+    }
+  });
+
+  it("accepts a custom DIGEST_CRON value", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      DIGEST_CRON: "0 9 * * 1-5",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DIGEST_CRON).toBe("0 9 * * 1-5");
     }
   });
 
