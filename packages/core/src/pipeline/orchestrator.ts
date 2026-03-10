@@ -135,18 +135,16 @@ export async function runDigestPipeline(
         selftext: p.post.selftext,
       }));
 
-      const triageArgs: Parameters<typeof triageStep> = [
+      const triageModel = deps.model ? getModel("triage", deps.model) : undefined;
+      const triageResult = await triageStep(
         candidates,
         insightPrompts,
         sub.maxPosts,
         db,
         jobId,
-        deps.model ? getModel("triage", deps.model) : undefined,
-      ];
-      if (deps.generateTriage) {
-        triageArgs.push(deps.generateTriage as Parameters<typeof triageStep>[6]);
-      }
-      const triageResult = await triageStep(...triageArgs);
+        triageModel,
+        deps.generateTriage as Parameters<typeof triageStep>[6],
+      );
 
       await emitEvent(
         db,
@@ -175,7 +173,8 @@ export async function runDigestPipeline(
               body: c.body,
             }));
 
-          const sumArgs: Parameters<typeof summarizeStep> = [
+          const sumModel = deps.model ? getModel("summarize", deps.model) : undefined;
+          const sumResult = await summarizeStep(
             {
               title: postData.post.title,
               subreddit: postData.post.subreddit,
@@ -188,13 +187,10 @@ export async function runDigestPipeline(
             jobId,
             postData.postId,
             db,
-            deps.model ? getModel("summarize", deps.model) : undefined,
+            sumModel,
             sel.rationale,
-          ];
-          if (deps.generateSummary) {
-            sumArgs.push(deps.generateSummary as Parameters<typeof summarizeStep>[8]);
-          }
-          const sumResult = await summarizeStep(...sumArgs);
+            deps.generateSummary as Parameters<typeof summarizeStep>[8],
+          );
 
           postResults.push({
             postId: postData.postId,

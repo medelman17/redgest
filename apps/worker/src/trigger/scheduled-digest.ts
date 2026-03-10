@@ -6,10 +6,8 @@ export const scheduledDigest = schedules.task({
   id: "scheduled-digest",
   cron: process.env.DIGEST_CRON ?? "0 7 * * *",
   run: async () => {
-    const db = prisma;
-
     // Find all active subreddits
-    const subreddits = await db.subreddit.findMany({
+    const subreddits = await prisma.subreddit.findMany({
       where: { isActive: true },
       select: { id: true },
     });
@@ -20,7 +18,7 @@ export const scheduledDigest = schedules.task({
     }
 
     // Create a job record
-    const job = await db.job.create({
+    const job = await prisma.job.create({
       data: {
         status: "QUEUED",
         subreddits: subreddits.map((s) => s.id),

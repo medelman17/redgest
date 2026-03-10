@@ -72,10 +72,23 @@ export async function bootstrap(): Promise<BootstrapResult> {
     pipelineDeps = { db, eventBus, contentSource, config };
   }
 
-  // Phase 2: Trigger.dev dispatch if configured; fallback to in-process
-  if (config.TRIGGER_SECRET_KEY) {
-    eventBus.on("DigestRequested", async (event) => {
-      const { jobId, subredditIds } = event.payload;
+  // Shared fallback: run pipeline in-process, log errors without throwing
+  async function runInProcess(jobId: string, subredditIds: string[]): Promise<void> {
+    try {
+      await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
+      );
+    }
+  }
+
+  // Trigger.dev dispatch if configured; otherwise in-process
+  eventBus.on("DigestRequested", async (event) => {
+    const { jobId, subredditIds } = event.payload;
+
+    if (config.TRIGGER_SECRET_KEY) {
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
         await tasks.trigger("generate-digest", { jobId, subredditIds });
@@ -84,34 +97,12 @@ export async function bootstrap(): Promise<BootstrapResult> {
         console.error(
           `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
         );
-        // Fallback to in-process on dispatch failure
-        try {
-          await runDigestPipeline(jobId, subredditIds, pipelineDeps);
-        } catch (fallbackErr) {
-          const fbMsg =
-            fallbackErr instanceof Error
-              ? fallbackErr.message
-              : String(fallbackErr);
-          console.error(
-            `[DigestRequested] Pipeline failed for job ${jobId}: ${fbMsg}`,
-          );
-        }
+        await runInProcess(jobId, subredditIds);
       }
-    });
-  } else {
-    // In-process fallback (no Trigger.dev configured)
-    eventBus.on("DigestRequested", async (event) => {
-      const { jobId, subredditIds } = event.payload;
-      try {
-        await runDigestPipeline(jobId, subredditIds, pipelineDeps);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(
-          `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
-        );
-      }
-    });
-  }
+    } else {
+      await runInProcess(jobId, subredditIds);
+    }
+  });
 
   return { execute, query, ctx, config, db };
 }

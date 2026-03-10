@@ -39,6 +39,8 @@ export async function generateWithLogging<T>(opts: {
   });
 
   const durationMs = Math.round(performance.now() - start);
+  const inputTokens = result.usage?.inputTokens ?? 0;
+  const outputTokens = result.usage?.outputTokens ?? 0;
 
   const log: LlmCallLog = {
     task: opts.task,
@@ -46,10 +48,9 @@ export async function generateWithLogging<T>(opts: {
       (opts.model as LanguageModel & { modelId?: string }).modelId ??
         "unknown",
     ),
-    inputTokens: result.usage?.inputTokens ?? 0,
-    outputTokens: result.usage?.outputTokens ?? 0,
-    totalTokens:
-      (result.usage?.inputTokens ?? 0) + (result.usage?.outputTokens ?? 0),
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
     durationMs,
     cached: opts.cached ?? false,
     finishReason: result.finishReason ?? "unknown",

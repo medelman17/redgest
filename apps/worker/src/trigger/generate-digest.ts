@@ -17,7 +17,6 @@ export const generateDigest = task({
   retry: { maxAttempts: 2 },
   run: async (payload: { jobId: string; subredditIds: string[] }) => {
     const config = loadConfig();
-    const db = prisma;
     const eventBus = new DomainEventBus();
 
     const redditClient = new RedditClient({
@@ -28,7 +27,7 @@ export const generateDigest = task({
     const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
     const contentSource = new RedditContentSource(redditClient, rateLimiter);
 
-    const deps: PipelineDeps = { db, eventBus, contentSource, config };
+    const deps: PipelineDeps = { db: prisma, eventBus, contentSource, config };
 
     logger.info("Starting digest pipeline", {
       jobId: payload.jobId,

@@ -9,10 +9,9 @@ export const deliverDigest = task({
   retry: { maxAttempts: 3 },
   run: async (payload: { digestId: string }) => {
     const config = loadConfig();
-    const db = prisma;
 
     // Load digest with related data
-    const digest = await db.digest.findUniqueOrThrow({
+    const digest = await prisma.digest.findUniqueOrThrow({
       where: { id: payload.digestId },
       include: {
         digestPosts: {
@@ -72,28 +71,25 @@ export const deliverDigest = task({
     }> = [];
 
     if (config.RESEND_API_KEY && config.DELIVERY_EMAIL) {
+      const { DELIVERY_EMAIL, RESEND_API_KEY } = config;
       channels.push({
         name: "email",
         send: () =>
-          sendDigestEmail(
-            deliveryData,
-            config.DELIVERY_EMAIL as string,
-            config.RESEND_API_KEY as string,
-          ),
+          sendDigestEmail(deliveryData, DELIVERY_EMAIL, RESEND_API_KEY),
       });
     }
 
     if (config.SLACK_WEBHOOK_URL) {
+      const webhookUrl = config.SLACK_WEBHOOK_URL;
       channels.push({
         name: "slack",
-        send: () =>
-          sendDigestSlack(deliveryData, config.SLACK_WEBHOOK_URL as string),
+        send: () => sendDigestSlack(deliveryData, webhookUrl),
       });
     }
 
     if (channels.length === 0) {
       logger.info("No delivery channels configured, skipping");
-      return { delivered: [] as string[] };
+      return { delivered: [] };
     }
 
     const results = await Promise.allSettled(
