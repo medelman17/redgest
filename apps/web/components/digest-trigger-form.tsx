@@ -1,0 +1,297 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import {
+  Loader2,
+  Play,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+} from "lucide-react";
+import { generateDigestAction, fetchRunStatus } from "@/lib/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import type { SerializedSubreddit, ActionResult } from "@/lib/types";
+
+interface DigestTriggerFormProps {
+  subreddits: SerializedSubreddit[];
+  defaultLookbackHours: number;
+}
+
+export function DigestTriggerForm({
+  subreddits,
+  defaultLookbackHours,
+}: DigestTriggerFormProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    () => new Set(subreddits.map((s) => s.id)),
+  );
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+
+  const [state, formAction, isPending] = useActionState(
+    async (
+      prev: ActionResult<{ jobId: string; status: string }>,
+      formData: FormData,
+    ) => {
+      const result = await generateDigestAction(prev, formData);
+      if (result?.ok) {
+        setActiveJobId(result.data.jobId);
+      }
+      return result;
+    },
+    null,
+  );
+
+  const toggleSubreddit = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === subreddits.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(subreddits.map((s) => s.id)));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-mono text-base">
+            Configure Digest
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction} className="space-y-6">
+            {/* Hidden field with selected subreddit IDs */}
+            <input
+              type="hidden"
+              name="subredditIds"
+              value={Array.from(selectedIds).join(",")}
+            />
+
+            {/* Subreddit selection */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Subreddits</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-2 py-1 text-xs text-muted-foreground"
+                  onClick={toggleAll}
+                >
+                  {selectedIds.size === subreddits.length
+                    ? "Deselect all"
+                    : "Select all"}
+                </Button>
+              </div>
+
+              {subreddits.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No active subreddits.{" "}
+                  <Link href="/subreddits" className="text-primary underline">
+                    Add some first
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {subreddits.map((sub) => (
+                    <label
+                      key={sub.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md border p-3 transition-colors hover:bg-accent"
+                    >
+                      <Checkbox
+                        checked={selectedIds.has(sub.id)}
+                        onCheckedChange={() => toggleSubreddit(sub.id)}
+                      />
+                      <span className="text-sm font-medium">
+                        r/{sub.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lookback hours */}
+            <div className="space-y-2">
+              <Label htmlFor="lookbackHours">Lookback hours</Label>
+              <Input
+                id="lookbackHours"
+                name="lookbackHours"
+                type="number"
+                min={1}
+                max={168}
+                defaultValue={defaultLookbackHours}
+                className="w-32"
+              />
+              <p className="text-xs text-muted-foreground">
+                How far back to look for posts (1-168 hours)
+              </p>
+            </div>
+
+            {/* Error message */}
+            {state && !state.ok && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {state.error}
+              </div>
+            )}
+
+            {/* Submit button */}
+            <Button
+              type="submit"
+              disabled={isPending || selectedIds.size === 0 || !!activeJobId}
+              className="gap-2"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Triggering...
+                </>
+              ) : (
+                <>
+                  <Play className="size-4" />
+                  Generate Digest
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Job status card */}
+      {activeJobId && (
+        <JobStatusCard
+          jobId={activeJobId}
+          onReset={() => setActiveJobId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function JobStatusCard({
+  jobId,
+  onReset,
+}: {
+  jobId: string;
+  onReset: () => void;
+}) {
+  const { data: status } = useQuery({
+    queryKey: ["runStatus", jobId],
+    queryFn: () => fetchRunStatus(jobId),
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return 2000;
+      if (
+        data.status === "COMPLETED" ||
+        data.status === "FAILED" ||
+        data.status === "PARTIAL"
+      ) {
+        return false;
+      }
+      return 2000;
+    },
+  });
+
+  const isTerminal =
+    status?.status === "COMPLETED" ||
+    status?.status === "FAILED" ||
+    status?.status === "PARTIAL";
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-mono text-base">
+          Job Status
+          {status && (
+            <Badge
+              variant={
+                status.status === "COMPLETED"
+                  ? "default"
+                  : status.status === "FAILED"
+                    ? "destructive"
+                    : "secondary"
+              }
+            >
+              {status.status}
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!status && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Loading status...
+          </div>
+        )}
+
+        {status && !isTerminal && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Processing digest...
+          </div>
+        )}
+
+        {status?.status === "COMPLETED" && (
+          <div className="flex items-center gap-2 text-sm text-green-500">
+            <CheckCircle2 className="size-4" />
+            Digest generated successfully
+          </div>
+        )}
+
+        {status?.status === "PARTIAL" && (
+          <div className="flex items-center gap-2 text-sm text-yellow-500">
+            <CheckCircle2 className="size-4" />
+            Digest generated with partial results
+          </div>
+        )}
+
+        {status?.status === "FAILED" && (
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <XCircle className="size-4" />
+            Digest generation failed
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          {isTerminal && (
+            <>
+              <Button asChild variant="outline" size="sm" className="gap-1">
+                <Link href="/history">
+                  View in History
+                  <ArrowRight className="size-3" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onReset}>
+                Generate Another
+              </Button>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
