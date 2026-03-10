@@ -1,4 +1,4 @@
-import type { Config, SubredditView } from "@redgest/db";
+import type { Config, SubredditView, RunView, DigestView } from "@redgest/db";
 
 /** Convert Date fields to strings for crossing the RSC → client boundary. */
 type Serialized<T> = {
@@ -26,6 +26,29 @@ export function serializeConfig(config: Config): SerializedConfig {
   return {
     ...config,
     updatedAt: config.updatedAt.toISOString(),
+  };
+}
+
+export type SerializedRun = Serialized<RunView>;
+
+export function serializeRun(run: RunView): SerializedRun {
+  return {
+    ...run,
+    lastEventAt: run.lastEventAt?.toISOString() ?? null,
+    startedAt: run.startedAt?.toISOString() ?? null,
+    completedAt: run.completedAt?.toISOString() ?? null,
+    createdAt: run.createdAt.toISOString(),
+  };
+}
+
+export type SerializedDigest = Serialized<DigestView>;
+
+export function serializeDigest(digest: DigestView): SerializedDigest {
+  return {
+    ...digest,
+    startedAt: digest.startedAt?.toISOString() ?? null,
+    completedAt: digest.completedAt?.toISOString() ?? null,
+    createdAt: digest.createdAt.toISOString(),
   };
 }
 

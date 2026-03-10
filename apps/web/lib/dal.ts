@@ -159,6 +159,13 @@ export async function getRunStatus(
   return query("GetRunStatus", { jobId }, queryCtx);
 }
 
+export async function getDigestByJobId(
+  jobId: string,
+): Promise<QueryResultMap["GetDigestByJobId"]> {
+  const { query, queryCtx } = await getBootstrap();
+  return query("GetDigestByJobId", { jobId }, queryCtx);
+}
+
 // --- Command wrappers ---
 
 export async function addSubreddit(

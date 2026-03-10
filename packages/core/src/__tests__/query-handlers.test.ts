@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { DomainEventBus } from "../events/bus.js";
 import type { HandlerContext } from "../context.js";
 import { handleGetDigest } from "../queries/handlers/get-digest.js";
+import { handleGetDigestByJobId } from "../queries/handlers/get-digest-by-job-id.js";
 import { handleListDigests } from "../queries/handlers/list-digests.js";
 import { handleSearchDigests } from "../queries/handlers/search-digests.js";
 import { handleGetPost } from "../queries/handlers/get-post.js";
@@ -46,6 +47,30 @@ describe("handleGetDigest", () => {
     const ctx = makeCtx({ digestView: { findUnique: mockFindUnique } });
 
     const result = await handleGetDigest({ digestId: "nonexistent" }, ctx);
+
+    expect(result).toBeNull();
+  });
+});
+
+describe("handleGetDigestByJobId", () => {
+  it("returns digest when found", async () => {
+    const fakeDigest = { digestId: "d-1", jobId: "j-1", contentMarkdown: "# Digest" };
+    const mockFindFirst = vi.fn().mockResolvedValue(fakeDigest);
+    const ctx = makeCtx({ digestView: { findFirst: mockFindFirst } });
+
+    const result = await handleGetDigestByJobId({ jobId: "j-1" }, ctx);
+
+    expect(result).toEqual(fakeDigest);
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { jobId: "j-1" },
+    });
+  });
+
+  it("returns null when no digest exists for jobId", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ digestView: { findFirst: mockFindFirst } });
+
+    const result = await handleGetDigestByJobId({ jobId: "j-999" }, ctx);
 
     expect(result).toBeNull();
   });
@@ -275,8 +300,9 @@ describe("handleGetConfig", () => {
 });
 
 describe("queryHandlers registry", () => {
-  it("registers all 9 handlers", () => {
+  it("registers all 10 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
+    expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
     expect(queryHandlers.SearchDigests).toBe(handleSearchDigests);
     expect(queryHandlers.GetPost).toBe(handleGetPost);
@@ -287,8 +313,8 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.GetConfig).toBe(handleGetConfig);
   });
 
-  it("has exactly 9 entries", () => {
+  it("has exactly 10 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(9);
+    expect(handlerCount).toBe(10);
   });
 });

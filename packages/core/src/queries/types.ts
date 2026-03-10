@@ -15,6 +15,7 @@ import type {
  */
 export interface QueryMap {
   GetDigest: { digestId: string };
+  GetDigestByJobId: { jobId: string };
   GetPost: { postId: string };
   GetRunStatus: { jobId: string };
   ListDigests: { limit?: number };
@@ -31,6 +32,7 @@ export interface QueryMap {
  */
 export interface QueryResultMap {
   GetDigest: DigestView | null;
+  GetDigestByJobId: DigestView | null;
   GetPost: PostView | null;
   GetRunStatus: RunView | null;
   ListDigests: DigestView[];

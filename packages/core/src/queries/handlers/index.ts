@@ -1,5 +1,6 @@
 import type { QueryType, QueryHandler } from "../types.js";
 import { handleGetDigest } from "./get-digest.js";
+import { handleGetDigestByJobId } from "./get-digest-by-job-id.js";
 import { handleListDigests } from "./list-digests.js";
 import { handleSearchDigests } from "./search-digests.js";
 import { handleGetPost } from "./get-post.js";
@@ -15,6 +16,7 @@ type QueryHandlerRegistry = {
 
 export const queryHandlers: QueryHandlerRegistry = {
   GetDigest: handleGetDigest,
+  GetDigestByJobId: handleGetDigestByJobId,
   ListDigests: handleListDigests,
   SearchDigests: handleSearchDigests,
   GetPost: handleGetPost,
@@ -27,6 +29,7 @@ export const queryHandlers: QueryHandlerRegistry = {
 
 export {
   handleGetDigest,
+  handleGetDigestByJobId,
   handleListDigests,
   handleSearchDigests,
   handleGetPost,

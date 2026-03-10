@@ -165,3 +165,11 @@ export async function fetchRunStatus(jobId: string) {
 export async function fetchSubreddits() {
   return dal.listSubreddits();
 }
+
+export async function fetchRuns() {
+  return dal.listRuns();
+}
+
+export async function fetchDigestForJob(jobId: string) {
+  return dal.getDigestByJobId(jobId);
+}
