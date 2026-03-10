@@ -1,6 +1,11 @@
 import { createMiddleware } from "hono/factory";
 import { timingSafeEqual } from "node:crypto";
 
+const UNAUTHORIZED_BODY = {
+  ok: false,
+  error: { code: "UNAUTHORIZED", message: "Missing or invalid authorization" },
+} as const;
+
 /**
  * Bearer token authentication middleware for MCP HTTP transport.
  *
@@ -12,16 +17,7 @@ export function bearerAuthMiddleware(apiKey: string) {
     const header = c.req.header("Authorization");
 
     if (!header || !header.startsWith("Bearer ")) {
-      return c.json(
-        {
-          ok: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Missing or invalid authorization",
-          },
-        },
-        401,
-      );
+      return c.json(UNAUTHORIZED_BODY, 401);
     }
 
     const token = header.slice(7);
@@ -29,16 +25,7 @@ export function bearerAuthMiddleware(apiKey: string) {
     const keyBuf = Buffer.from(apiKey);
 
     if (tokenBuf.length !== keyBuf.length || !timingSafeEqual(tokenBuf, keyBuf)) {
-      return c.json(
-        {
-          ok: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Missing or invalid authorization",
-          },
-        },
-        401,
-      );
+      return c.json(UNAUTHORIZED_BODY, 401);
     }
 
     await next();
