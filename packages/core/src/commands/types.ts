@@ -30,6 +30,8 @@ export interface CommandMap {
     defaultLookbackHours?: number;
     llmProvider?: string;
     llmModel?: string;
+    defaultDelivery?: import("@redgest/db").DeliveryChannel;
+    schedule?: string | null;
   };
 }
 

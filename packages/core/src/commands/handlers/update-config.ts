@@ -18,6 +18,12 @@ export const handleUpdateConfig: CommandHandler<"UpdateConfig"> = async (
   if (params.llmModel !== undefined) {
     changes.llmModel = params.llmModel;
   }
+  if (params.defaultDelivery !== undefined) {
+    changes.defaultDelivery = params.defaultDelivery;
+  }
+  if (params.schedule !== undefined) {
+    changes.schedule = params.schedule;
+  }
 
   await ctx.db.config.upsert({
     where: { id: 1 },

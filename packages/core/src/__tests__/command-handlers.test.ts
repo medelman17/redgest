@@ -269,6 +269,50 @@ describe("handleUpdateConfig", () => {
       },
     });
   });
+
+  it("passes defaultDelivery to upsert", async () => {
+    const mockUpsert = vi.fn().mockResolvedValue({ id: 1 });
+    const ctx = makeCtx({ config: { upsert: mockUpsert } });
+
+    const result = await handleUpdateConfig(
+      { defaultDelivery: "EMAIL" as import("@redgest/db").DeliveryChannel },
+      ctx,
+    );
+
+    expect(result.event).toEqual({
+      changes: { defaultDelivery: "EMAIL" },
+    });
+    expect(mockUpsert).toHaveBeenCalledWith({
+      where: { id: 1 },
+      update: { defaultDelivery: "EMAIL" },
+      create: expect.objectContaining({
+        id: 1,
+        defaultDelivery: "EMAIL",
+      }),
+    });
+  });
+
+  it("passes schedule (including null to disable) to upsert", async () => {
+    const mockUpsert = vi.fn().mockResolvedValue({ id: 1 });
+    const ctx = makeCtx({ config: { upsert: mockUpsert } });
+
+    const result = await handleUpdateConfig(
+      { schedule: "0 7 * * *" },
+      ctx,
+    );
+
+    expect(result.event).toEqual({
+      changes: { schedule: "0 7 * * *" },
+    });
+
+    // Test null (disable schedule)
+    await handleUpdateConfig({ schedule: null }, ctx);
+    expect(mockUpsert).toHaveBeenLastCalledWith({
+      where: { id: 1 },
+      update: { schedule: null },
+      create: expect.objectContaining({ id: 1, schedule: null }),
+    });
+  });
 });
 
 describe("commandHandlers registry", () => {
