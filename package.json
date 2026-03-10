@@ -15,7 +15,15 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
+    "test:e2e": "vitest run --config tests/vitest.config.ts",
     "prepare": "git config core.hooksPath .githooks"
+  },
+  "dependencies": {
+    "@redgest/core": "workspace:*",
+    "@redgest/db": "workspace:*",
+    "@redgest/llm": "workspace:*",
+    "@redgest/reddit": "workspace:*",
+    "ai": "^6.0.116"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.56.1",

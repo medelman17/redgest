@@ -7,6 +7,22 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@redgest/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@redgest/db':
+        specifier: workspace:*
+        version: link:packages/db
+      '@redgest/llm':
+        specifier: workspace:*
+        version: link:packages/llm
+      '@redgest/reddit':
+        specifier: workspace:*
+        version: link:packages/reddit
+      ai:
+        specifier: ^6.0.116
+        version: 6.0.116(zod@4.3.6)
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.56.1
@@ -138,6 +154,13 @@ importers:
       hono:
         specifier: ^4.12.5
         version: 4.12.5
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: ^25.3.5
+        version: 25.3.5
 
   packages/reddit:
     dependencies:
