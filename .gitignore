@@ -13,3 +13,5 @@ coverage/
 .agent/
 .agents/
 .claude/skills/next-best-practices
+
+.trigger
