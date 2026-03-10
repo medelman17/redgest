@@ -29,7 +29,7 @@ import { createApp } from "../http.js";
 
 describe("HTTP server", () => {
   it("GET /health returns 200 without auth", async () => {
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await app.request("/health");
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -37,13 +37,13 @@ describe("HTTP server", () => {
   });
 
   it("POST /mcp without auth returns 401", async () => {
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await app.request("/mcp", { method: "POST" });
     expect(res.status).toBe(401);
   });
 
   it("POST /mcp with valid auth does not return 401", async () => {
-    const app = await createApp();
+    const { app } = await createApp();
     const res = await app.request("/mcp", {
       method: "POST",
       headers: {
