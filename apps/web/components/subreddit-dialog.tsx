@@ -19,8 +19,7 @@ import {
   addSubredditAction,
   updateSubredditAction,
 } from "@/lib/actions";
-import type { SerializedSubreddit, ActionResult } from "@/lib/types";
-import type { OptimisticAction } from "@/components/subreddit-table";
+import type { SerializedSubreddit, ActionResult, OptimisticAction } from "@/lib/types";
 
 interface SubredditDialogProps {
   mode: "add" | "edit";
@@ -194,10 +193,6 @@ export function SubredditDialog({
                 Active (include in digests)
               </Label>
             </div>
-          )}
-
-          {state && !state.ok && (
-            <p className="text-sm text-destructive">{state.error}</p>
           )}
 
           <DialogFooter>

@@ -26,3 +26,8 @@ export type ActionResult<T = { subredditId: string }> =
   | { ok: true; data: T }
   | { ok: false; error: string }
   | null;
+
+export type OptimisticAction =
+  | { type: "add"; subreddit: SerializedSubreddit }
+  | { type: "remove"; id: string }
+  | { type: "update"; id: string; changes: Partial<SerializedSubreddit> };

@@ -17,14 +17,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { SerializedSubreddit } from "@/lib/types";
+import type { SerializedSubreddit, OptimisticAction } from "@/lib/types";
 import { SubredditDialog } from "@/components/subreddit-dialog";
 import { DeleteSubredditDialog } from "@/components/delete-subreddit-dialog";
-
-export type OptimisticAction =
-  | { type: "add"; subreddit: SerializedSubreddit }
-  | { type: "remove"; id: string }
-  | { type: "update"; id: string; changes: Partial<SerializedSubreddit> };
 
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return "Never";

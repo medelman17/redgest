@@ -13,8 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { removeSubredditAction } from "@/lib/actions";
-import type { SerializedSubreddit, ActionResult } from "@/lib/types";
-import type { OptimisticAction } from "@/components/subreddit-table";
+import type { SerializedSubreddit, ActionResult, OptimisticAction } from "@/lib/types";
 
 interface DeleteSubredditDialogProps {
   subreddit: SerializedSubreddit;
@@ -64,10 +63,6 @@ export function DeleteSubredditDialog({
 
         <form action={handleSubmit}>
           <input type="hidden" name="subredditId" value={subreddit.id} />
-
-          {state && !state.ok && (
-            <p className="mb-4 text-sm text-destructive">{state.error}</p>
-          )}
 
           <DialogFooter>
             <Button

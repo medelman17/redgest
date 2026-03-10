@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import * as dal from "@/lib/dal";
+import type { ActionResult } from "@/lib/types";
 
 // --- Schemas ---
 
@@ -42,12 +43,6 @@ const generateDigestSchema = z.object({
   subredditIds: z.array(z.string()).optional(),
   lookbackHours: z.coerce.number().int().min(1).max(168).optional(),
 });
-
-// --- Action result type ---
-
-type ActionResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
 
 // --- Actions ---
 
