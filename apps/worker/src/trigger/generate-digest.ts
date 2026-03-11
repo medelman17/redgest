@@ -59,17 +59,31 @@ export const generateDigest = task({
         digestId: result.digestId,
       });
 
-      // Trigger delivery if digest was produced
+      // Trigger delivery if digest was produced.
+      // Wrapped in its own try/catch — delivery dispatch failure must NOT
+      // overwrite the job's COMPLETED/PARTIAL status set by the pipeline.
       if (result.digestId) {
-        const { deliverDigest } = await import("./deliver-digest.js");
-        await deliverDigest.trigger(
-          { digestId: result.digestId },
-          {
-            idempotencyKey: await idempotencyKeys.create(
-              `deliver-${result.digestId}`,
-            ),
-          },
-        );
+        try {
+          const { deliverDigest } = await import("./deliver-digest.js");
+          await deliverDigest.trigger(
+            { digestId: result.digestId },
+            {
+              idempotencyKey: await idempotencyKeys.create(
+                `deliver-${result.digestId}`,
+              ),
+            },
+          );
+        } catch (deliveryErr) {
+          const msg =
+            deliveryErr instanceof Error
+              ? deliveryErr.message
+              : String(deliveryErr);
+          logger.error(
+            `Delivery dispatch failed for digest ${result.digestId}`,
+            { error: msg },
+          );
+          // Don't re-throw — pipeline succeeded, digest exists
+        }
       }
 
       return {

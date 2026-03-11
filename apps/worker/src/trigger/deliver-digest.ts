@@ -109,6 +109,18 @@ export const deliverDigest = task({
       }
     }
 
+    // If all channels failed, throw so Trigger.dev retries (retry: 3)
+    if (delivered.length === 0 && channels.length > 0) {
+      const failures = results
+        .filter(
+          (r): r is PromiseRejectedResult => r.status === "rejected",
+        )
+        .map((r) => String(r.reason));
+      throw new Error(
+        `All delivery channels failed: ${failures.join("; ")}`,
+      );
+    }
+
     logger.info("Delivery complete", { delivered });
     return { delivered };
   },

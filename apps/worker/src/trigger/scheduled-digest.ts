@@ -1,4 +1,9 @@
-import { schedules, logger, idempotencyKeys } from "@trigger.dev/sdk/v3";
+import {
+  schedules,
+  logger,
+  idempotencyKeys,
+  AbortTaskRunError,
+} from "@trigger.dev/sdk/v3";
 import { prisma } from "@redgest/db";
 import { generateDigest } from "./generate-digest.js";
 
@@ -33,12 +38,28 @@ export const scheduledDigest = schedules.task({
       subredditCount: subredditIds.length,
     });
 
-    await generateDigest.trigger(
-      { jobId: job.id, subredditIds },
-      {
-        idempotencyKey: await idempotencyKeys.create(`generate-${job.id}`),
-      },
-    );
+    try {
+      await generateDigest.trigger(
+        { jobId: job.id, subredditIds },
+        {
+          idempotencyKey: await idempotencyKeys.create(`generate-${job.id}`),
+        },
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(`Trigger dispatch failed for job ${job.id}`, {
+        error: message,
+      });
+      await prisma.job.update({
+        where: { id: job.id },
+        data: { status: "FAILED", completedAt: new Date(), error: message },
+      });
+      // Abort (don't retry) — retrying would create a duplicate job record.
+      // The next cron cycle will create a fresh job.
+      throw new AbortTaskRunError(
+        `Trigger dispatch failed for job ${job.id}: ${message}`,
+      );
+    }
 
     return { jobId: job.id, subredditCount: subredditIds.length };
   },
