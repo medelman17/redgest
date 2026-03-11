@@ -8,20 +8,52 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  // Remove stale test subreddits from earlier seeds
+  await prisma.subreddit.deleteMany({
+    where: { name: { startsWith: "__" } },
+  });
+
   const subreddits = [
     {
-      name: "machinelearning",
-      insightPrompt: "AI/ML research breakthroughs, new model architectures, practical deployment techniques",
+      name: "ClaudeAI",
+      insightPrompt:
+        "New Claude model releases, prompt engineering techniques, API updates, novel use cases, and Anthropic announcements",
       maxPosts: 5,
     },
     {
-      name: "typescript",
-      insightPrompt: "TypeScript language features, type system patterns, tooling improvements",
+      name: "ClaudeCode",
+      insightPrompt:
+        "Claude Code CLI tips, workflow patterns, MCP server integrations, new features, and productivity hacks",
       maxPosts: 5,
     },
     {
-      name: "selfhosted",
-      insightPrompt: "Self-hosting tools, Docker setups, privacy-first alternatives to SaaS",
+      name: "nextjs",
+      insightPrompt:
+        "Next.js framework updates, App Router patterns, Server Components, deployment strategies, and performance optimization",
+      maxPosts: 5,
+    },
+    {
+      name: "vibecoding",
+      insightPrompt:
+        "AI-assisted coding workflows, tool comparisons, creative coding with LLMs, and emerging development paradigms",
+      maxPosts: 5,
+    },
+    {
+      name: "HomeNetworking",
+      insightPrompt:
+        "Home network gear recommendations, WiFi optimization, firewall and VLAN setups, and troubleshooting guides",
+      maxPosts: 3,
+    },
+    {
+      name: "electricians",
+      insightPrompt:
+        "Electrical code updates, tool recommendations, residential wiring techniques, and safety best practices",
+      maxPosts: 3,
+    },
+    {
+      name: "newjersey",
+      insightPrompt:
+        "Notable local news, community events, infrastructure updates, and restaurant or activity recommendations",
       maxPosts: 3,
     },
   ];
@@ -29,18 +61,21 @@ async function main() {
   for (const sub of subreddits) {
     await prisma.subreddit.upsert({
       where: { name: sub.name },
-      update: sub,
+      update: { insightPrompt: sub.insightPrompt, maxPosts: sub.maxPosts },
       create: sub,
     });
   }
 
   await prisma.config.upsert({
     where: { id: 1 },
-    update: {},
+    update: {
+      globalInsightPrompt:
+        "Prioritize posts with high-signal technical content: new releases, architectural patterns, production war stories, and emerging tools. Deprioritize memes, beginner questions, job posts, and low-effort content. Favor discussions with substantive community debate over link-only shares.",
+    },
     create: {
       id: 1,
       globalInsightPrompt:
-        "I'm a software engineer interested in AI/ML, TypeScript ecosystem, and self-hosting. Focus on practical, actionable content.",
+        "Prioritize posts with high-signal technical content: new releases, architectural patterns, production war stories, and emerging tools. Deprioritize memes, beginner questions, job posts, and low-effort content. Favor discussions with substantive community debate over link-only shares.",
       defaultLookback: "24h",
       defaultDelivery: "NONE",
       llmProvider: "anthropic",
@@ -48,7 +83,7 @@ async function main() {
     },
   });
 
-  console.log("Seed complete: 3 subreddits + config singleton");
+  console.log(`Seed complete: ${subreddits.length} subreddits + config singleton`);
 }
 
 main()
