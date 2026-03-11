@@ -21,6 +21,7 @@ import {
   PublicRedditClient,
   TokenBucket,
   RedditContentSource,
+  type RedditApiClient,
 } from "@redgest/reddit";
 
 // --- Bootstrap singleton (globalThis guard for HMR) ---
@@ -61,8 +62,8 @@ async function getBootstrap(): Promise<BootstrapResult> {
   const query = createQuery(queryHandlers);
 
   // Pipeline deps for in-process fallback
-  let redditClient;
-  let rateLimiter;
+  let redditClient: RedditApiClient;
+  let rateLimiter: TokenBucket;
   if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
     redditClient = new RedditClient({
       clientId: config.REDDIT_CLIENT_ID,
