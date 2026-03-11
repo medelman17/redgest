@@ -148,7 +148,6 @@ export async function generateDigestAction(
   }
   try {
     const result = await dal.generateDigest(parsed.data);
-    revalidatePath("/trigger");
     revalidatePath("/history");
     return { ok: true, data: result };
   } catch (err) {
