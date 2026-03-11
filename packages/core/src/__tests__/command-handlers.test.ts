@@ -130,12 +130,12 @@ describe("handleAddSubreddit", () => {
 });
 
 describe("handleRemoveSubreddit", () => {
-  it("soft-deletes by setting isActive to false", async () => {
-    const mockUpdate = vi.fn().mockResolvedValue({
+  it("deletes the subreddit record and emits event", async () => {
+    const mockDelete = vi.fn().mockResolvedValue({
       id: "sub-del",
       name: "oldsubreddit",
     });
-    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+    const ctx = makeCtx({ subreddit: { delete: mockDelete } });
 
     const result = await handleRemoveSubreddit(
       { subredditId: "sub-del" },
@@ -147,9 +147,8 @@ describe("handleRemoveSubreddit", () => {
       subredditId: "sub-del",
       name: "oldsubreddit",
     });
-    expect(mockUpdate).toHaveBeenCalledWith({
+    expect(mockDelete).toHaveBeenCalledWith({
       where: { id: "sub-del" },
-      data: { isActive: false },
       select: { id: true, name: true },
     });
   });
