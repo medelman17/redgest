@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { RedgestError, type ExecuteContext } from "@redgest/core";
+import type { DeliveryChannel } from "@redgest/db";
 import type { BootstrapResult } from "./bootstrap.js";
 import { envelope, envelopeError, type ToolResult } from "./envelope.js";
 
@@ -23,8 +24,18 @@ async function safe(fn: () => Promise<ToolResult>): Promise<ToolResult> {
 
 function parseLookback(lookback?: string): number | undefined {
   if (!lookback) return undefined;
-  const match = lookback.match(/^(\d+)h$/);
-  return match ? Number(match[1]) : undefined;
+  const match = lookback.match(/^(\d+)(m|h|d)$/);
+  if (!match) {
+    throw new RedgestError(
+      "VALIDATION_ERROR",
+      `Invalid lookback format "${lookback}". Use a number with m (minutes), h (hours), or d (days), e.g. "48h", "2d", "30m".`,
+    );
+  }
+  const value = Number(match[1]);
+  const unit = match[2];
+  if (unit === "m") return value / 60;
+  if (unit === "d") return value * 24;
+  return value; // hours
 }
 
 async function lookupSubredditId(
@@ -36,6 +47,39 @@ async function lookupSubredditId(
     (s) => s.name.toLowerCase() === name.toLowerCase(),
   );
   return match ? match.id : null;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveSubredditIds(
+  inputs: string[],
+  deps: BootstrapResult,
+): Promise<string[]> {
+  const ids: string[] = [];
+  const namesToResolve: string[] = [];
+
+  for (const s of inputs) {
+    if (UUID_RE.test(s)) {
+      ids.push(s);
+    } else {
+      namesToResolve.push(s);
+    }
+  }
+
+  if (namesToResolve.length === 0) return ids;
+
+  const allSubs = await deps.query("ListSubreddits", {}, deps.ctx);
+  for (const name of namesToResolve) {
+    const match = allSubs.find(
+      (s) => s.name.toLowerCase() === name.toLowerCase(),
+    );
+    if (!match) {
+      throw new RedgestError("NOT_FOUND", `Subreddit "${name}" not found`);
+    }
+    ids.push(match.id);
+  }
+
+  return ids;
 }
 
 /** Runtime deps.db is always the full PrismaClient; cast is safe. */
@@ -82,7 +126,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 
 ### Configuration
 - **get_config** — View current global configuration
-- **update_config** — Update global settings (insight prompt, lookback, LLM provider/model)
+- **update_config** — Update global settings (insight prompt, lookback, LLM provider/model, delivery channel, schedule)
 
 ### Help
 - **use_redgest** — Show this usage guide`;
@@ -103,10 +147,14 @@ export function createToolHandlers(
       return safe(async () => {
         const subreddits = args.subreddits as string[] | undefined;
         const lookback = args.lookback as string | undefined;
+        const subredditIds =
+          subreddits && subreddits.length > 0
+            ? await resolveSubredditIds(subreddits, deps)
+            : subreddits;
         const result = await deps.execute(
           "GenerateDigest",
           {
-            subredditIds: subreddits,
+            subredditIds,
             lookbackHours: parseLookback(lookback),
           },
           eCtx,
@@ -188,7 +236,17 @@ export function createToolHandlers(
           { limit },
           deps.ctx,
         );
-        return envelope(result);
+        const summaries = result.map((d) => ({
+          digestId: d.digestId,
+          jobId: d.jobId,
+          jobStatus: d.jobStatus,
+          startedAt: d.startedAt,
+          completedAt: d.completedAt,
+          subredditList: d.subredditList,
+          postCount: d.postCount,
+          createdAt: d.createdAt,
+        }));
+        return envelope(summaries);
       });
     },
 
@@ -297,6 +355,8 @@ export function createToolHandlers(
             defaultLookbackHours: args.defaultLookbackHours as number | undefined,
             llmProvider: args.llmProvider as string | undefined,
             llmModel: args.llmModel as string | undefined,
+            defaultDelivery: args.defaultDelivery as DeliveryChannel | undefined,
+            schedule: args.schedule as string | null | undefined,
           },
           eCtx,
         );
@@ -332,10 +392,10 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "generate_digest",
-    "Start a new digest run. Fetches posts, triages, summarizes, and assembles a digest.",
+    "Start a new digest run. Returns a jobId — poll with get_run_status until complete, then fetch with get_digest.",
     {
-      subreddits: z.array(z.string()).optional().describe("Subreddit IDs to include (omit for all active)"),
-      lookback: z.string().optional().describe('Lookback window, e.g. "48h"'),
+      subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (omit for all active)"),
+      lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (default: 24h)'),
     },
     async (args) => call("generate_digest", args),
   );
@@ -349,8 +409,8 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "list_runs",
-    "List recent digest runs.",
-    { limit: z.number().optional().describe("Max number of runs to return") },
+    "List recent digest runs with status and timing.",
+    { limit: z.number().optional().describe("Max number of runs to return (default: 10)") },
     async (args) => call("list_runs", args),
   );
 
@@ -370,8 +430,8 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "list_digests",
-    "List recent digests.",
-    { limit: z.number().optional().describe("Max number of digests to return") },
+    "List recent digests (metadata only — use get_digest for full content).",
+    { limit: z.number().optional().describe("Max number of digests to return (default: 10)") },
     async (args) => call("list_digests", args),
   );
 
@@ -380,7 +440,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "Full-text search across post summaries.",
     {
       query: z.string().describe("Search query"),
-      limit: z.number().optional().describe("Max results"),
+      limit: z.number().optional().describe("Max results (default: 10)"),
     },
     async (args) => call("search_posts", args),
   );
@@ -390,7 +450,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "Full-text search across digests.",
     {
       query: z.string().describe("Search query"),
-      limit: z.number().optional().describe("Max results"),
+      limit: z.number().optional().describe("Max results (default: 10)"),
     },
     async (args) => call("search_digests", args),
   );
@@ -446,6 +506,8 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       defaultLookbackHours: z.number().optional().describe("Default lookback window in hours"),
       llmProvider: z.string().optional().describe("LLM provider (anthropic, openai)"),
       llmModel: z.string().optional().describe("LLM model name"),
+      defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional().describe("Default delivery channel for digests"),
+      schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null to disable"),
     },
     async (args) => call("update_config", args),
   );

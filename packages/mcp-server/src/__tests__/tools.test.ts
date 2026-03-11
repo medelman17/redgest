@@ -107,19 +107,54 @@ describe("generate_digest", () => {
     handlers = createToolHandlers(deps.result);
   });
 
-  it("translates subreddits → subredditIds and lookback → lookbackHours", async () => {
+  it("resolves subreddit names to IDs", async () => {
+    deps.query.mockResolvedValue([
+      { id: "s1", name: "typescript" },
+      { id: "s2", name: "rust" },
+    ]);
     deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
 
     await invoke(handlers, "generate_digest", {
-      subreddits: ["sub-1", "sub-2"],
+      subreddits: ["typescript", "rust"],
       lookback: "48h",
     });
 
     expect(deps.execute).toHaveBeenCalledWith(
       "GenerateDigest",
-      { subredditIds: ["sub-1", "sub-2"], lookbackHours: 48 },
+      { subredditIds: ["s1", "s2"], lookbackHours: 48 },
       deps.result.ctx,
     );
+  });
+
+  it("passes UUIDs through without resolution", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
+    const uuid = "01234567-89ab-cdef-0123-456789abcdef";
+
+    await invoke(handlers, "generate_digest", {
+      subreddits: [uuid],
+      lookback: "48h",
+    });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "GenerateDigest",
+      { subredditIds: [uuid], lookbackHours: 48 },
+      deps.result.ctx,
+    );
+    // Should not call ListSubreddits when all inputs are UUIDs
+    expect(deps.query).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND when subreddit name cannot be resolved", async () => {
+    deps.query.mockResolvedValue([{ id: "s1", name: "typescript" }]);
+
+    const result = await invoke(handlers, "generate_digest", {
+      subreddits: ["nonexistent"],
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+    expect(env.error?.message).toContain("nonexistent");
   });
 
   it("passes defaults when no params provided", async () => {
@@ -405,16 +440,38 @@ describe("edge cases", () => {
     );
   });
 
-  it("parseLookback returns undefined for invalid formats", async () => {
+  it("parseLookback supports minutes", async () => {
+    deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
+
+    await invoke(handlers, "generate_digest", { lookback: "30m" });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "GenerateDigest",
+      { subredditIds: undefined, lookbackHours: 0.5 },
+      expect.anything(),
+    );
+  });
+
+  it("parseLookback supports days", async () => {
     deps.execute.mockResolvedValue({ jobId: "j1", status: "pending" });
 
     await invoke(handlers, "generate_digest", { lookback: "2d" });
 
     expect(deps.execute).toHaveBeenCalledWith(
       "GenerateDigest",
-      { subredditIds: undefined, lookbackHours: undefined },
+      { subredditIds: undefined, lookbackHours: 48 },
       expect.anything(),
     );
+  });
+
+  it("parseLookback returns VALIDATION_ERROR for invalid formats", async () => {
+    const result = await invoke(handlers, "generate_digest", { lookback: "bad" });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("VALIDATION_ERROR");
+    expect(env.error?.message).toContain("Invalid lookback format");
+    expect(result.isError).toBe(true);
   });
 
   it("get_config returns NOT_FOUND when config is null", async () => {
@@ -448,14 +505,33 @@ describe("pass-through tools", () => {
     expect(env.data).toEqual([{ id: "r1" }]);
   });
 
-  it("list_digests queries ListDigests", async () => {
-    deps.query.mockResolvedValue([{ id: "d1" }]);
+  it("list_digests returns metadata without content fields", async () => {
+    deps.query.mockResolvedValue([
+      {
+        digestId: "d1",
+        jobId: "j1",
+        jobStatus: "COMPLETED",
+        startedAt: "2026-03-10T00:00:00Z",
+        completedAt: "2026-03-10T00:01:00Z",
+        subredditList: ["typescript"],
+        postCount: 5,
+        contentMarkdown: "# Long markdown content...",
+        contentHtml: "<h1>Long HTML content...</h1>",
+        createdAt: "2026-03-10T00:01:00Z",
+      },
+    ]);
 
     const result = await invoke(handlers, "list_digests", { limit: 10 });
 
     expect(deps.query).toHaveBeenCalledWith("ListDigests", { limit: 10 }, deps.result.ctx);
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
+    const data = env.data as Record<string, unknown>[];
+    expect(data).toHaveLength(1);
+    expect(data[0]).toHaveProperty("digestId", "d1");
+    expect(data[0]).toHaveProperty("postCount", 5);
+    expect(data[0]).not.toHaveProperty("contentMarkdown");
+    expect(data[0]).not.toHaveProperty("contentHtml");
   });
 
   it("get_post queries GetPost and handles NOT_FOUND", async () => {
@@ -538,11 +614,42 @@ describe("pass-through tools", () => {
 
     expect(deps.execute).toHaveBeenCalledWith(
       "UpdateConfig",
-      { globalInsightPrompt: "new prompt", llmProvider: "openai" },
+      {
+        globalInsightPrompt: "new prompt",
+        defaultLookbackHours: undefined,
+        llmProvider: "openai",
+        llmModel: undefined,
+        defaultDelivery: undefined,
+        schedule: undefined,
+      },
       deps.result.ctx,
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
     expect(env.data).toEqual({ success: true });
+  });
+
+  it("update_config passes defaultDelivery and schedule", async () => {
+    deps.execute.mockResolvedValue({ success: true });
+
+    const result = await invoke(handlers, "update_config", {
+      defaultDelivery: "EMAIL",
+      schedule: "0 7 * * *",
+    });
+
+    expect(deps.execute).toHaveBeenCalledWith(
+      "UpdateConfig",
+      {
+        globalInsightPrompt: undefined,
+        defaultLookbackHours: undefined,
+        llmProvider: undefined,
+        llmModel: undefined,
+        defaultDelivery: "EMAIL",
+        schedule: "0 7 * * *",
+      },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
   });
 });
