@@ -1,5 +1,7 @@
 export { RedditClient } from "./client.js";
-export type { RedditClientOptions } from "./client.js";
+export type { RedditApiClient, RedditClientOptions } from "./client.js";
+export { PublicRedditClient } from "./public-client.js";
+export type { PublicRedditClientOptions } from "./public-client.js";
 export { TokenBucket } from "./rate-limiter.js";
 export type { TokenBucketOptions } from "./rate-limiter.js";
 export { fetchSubredditContent } from "./fetcher.js";

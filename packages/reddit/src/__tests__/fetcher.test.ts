@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fetchSubredditContent } from "../fetcher.js";
 import type { FetchOptions } from "../fetcher.js";
-import type { RedditClient } from "../client.js";
+import type { RedditApiClient } from "../client.js";
 import type { TokenBucket } from "../rate-limiter.js";
 import type {
   RedditListing,
@@ -83,7 +83,7 @@ describe("fetchSubredditContent", () => {
   const mockGet = vi.fn();
   const mockAcquire = vi.fn().mockResolvedValue(undefined);
 
-  const client = { get: mockGet } as unknown as RedditClient;
+  const client = { get: mockGet } as unknown as RedditApiClient;
   const rateLimiter = { acquire: mockAcquire } as unknown as TokenBucket;
 
   beforeEach(() => {

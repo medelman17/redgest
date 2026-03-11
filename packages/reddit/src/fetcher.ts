@@ -1,4 +1,4 @@
-import type { RedditClient } from "./client.js";
+import type { RedditApiClient } from "./client.js";
 import type { TokenBucket } from "./rate-limiter.js";
 import type {
   RedditListing,
@@ -23,7 +23,7 @@ export interface FetchedContent {
 }
 
 export async function fetchSubredditContent(
-  client: RedditClient,
+  client: RedditApiClient,
   rateLimiter: TokenBucket,
   subreddit: string,
   options: FetchOptions,

@@ -1,11 +1,11 @@
-import type { RedditClient } from "./client.js";
+import type { RedditApiClient } from "./client.js";
 import type { TokenBucket } from "./rate-limiter.js";
 import { fetchSubredditContent } from "./fetcher.js";
 import type { FetchOptions, FetchedContent } from "./fetcher.js";
 
 export class RedditContentSource {
   constructor(
-    private client: RedditClient,
+    private client: RedditApiClient,
     private rateLimiter: TokenBucket,
   ) {}
 
