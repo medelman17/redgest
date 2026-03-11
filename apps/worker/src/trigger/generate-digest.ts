@@ -18,63 +18,80 @@ export const generateDigest = task({
   id: "generate-digest",
   retry: { maxAttempts: 2 },
   run: async (payload: { jobId: string; subredditIds: string[] }) => {
-    const config = loadConfig();
-    const eventBus = new DomainEventBus();
+    try {
+      const config = loadConfig();
+      const eventBus = new DomainEventBus();
 
-    let redditClient: RedditApiClient;
-    let rateLimiter: TokenBucket;
+      let redditClient: RedditApiClient;
+      let rateLimiter: TokenBucket;
 
-    if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
-      redditClient = new RedditClient({
-        clientId: config.REDDIT_CLIENT_ID,
-        clientSecret: config.REDDIT_CLIENT_SECRET,
-        userAgent: "redgest/1.0.0",
+      if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
+        redditClient = new RedditClient({
+          clientId: config.REDDIT_CLIENT_ID,
+          clientSecret: config.REDDIT_CLIENT_SECRET,
+          userAgent: "redgest/1.0.0",
+        });
+        rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
+      } else {
+        logger.warn("REDDIT_CLIENT_ID/SECRET not set — using public .json endpoint (10 req/min limit)");
+        redditClient = new PublicRedditClient({ userAgent: "redgest/1.0.0" });
+        rateLimiter = new TokenBucket({ capacity: 10, refillRate: 10 / 60 });
+      }
+
+      const contentSource = new RedditContentSource(redditClient, rateLimiter);
+
+      const deps: PipelineDeps = { db: prisma, eventBus, contentSource, config };
+
+      logger.info("Starting digest pipeline", {
+        jobId: payload.jobId,
+        subredditCount: payload.subredditIds.length,
       });
-      rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
-    } else {
-      logger.warn("REDDIT_CLIENT_ID/SECRET not set — using public .json endpoint (10 req/min limit)");
-      redditClient = new PublicRedditClient({ userAgent: "redgest/1.0.0" });
-      rateLimiter = new TokenBucket({ capacity: 10, refillRate: 10 / 60 });
-    }
 
-    const contentSource = new RedditContentSource(redditClient, rateLimiter);
-
-    const deps: PipelineDeps = { db: prisma, eventBus, contentSource, config };
-
-    logger.info("Starting digest pipeline", {
-      jobId: payload.jobId,
-      subredditCount: payload.subredditIds.length,
-    });
-
-    const result = await runDigestPipeline(
-      payload.jobId,
-      payload.subredditIds,
-      deps,
-    );
-
-    logger.info("Pipeline complete", {
-      jobId: result.jobId,
-      status: result.status,
-      digestId: result.digestId,
-    });
-
-    // Trigger delivery if digest was produced
-    if (result.digestId) {
-      const { deliverDigest } = await import("./deliver-digest.js");
-      await deliverDigest.trigger(
-        { digestId: result.digestId },
-        {
-          idempotencyKey: await idempotencyKeys.create(
-            `deliver-${result.digestId}`,
-          ),
-        },
+      const result = await runDigestPipeline(
+        payload.jobId,
+        payload.subredditIds,
+        deps,
       );
-    }
 
-    return {
-      jobId: result.jobId,
-      status: result.status,
-      digestId: result.digestId,
-    };
+      logger.info("Pipeline complete", {
+        jobId: result.jobId,
+        status: result.status,
+        digestId: result.digestId,
+      });
+
+      // Trigger delivery if digest was produced
+      if (result.digestId) {
+        const { deliverDigest } = await import("./deliver-digest.js");
+        await deliverDigest.trigger(
+          { digestId: result.digestId },
+          {
+            idempotencyKey: await idempotencyKeys.create(
+              `deliver-${result.digestId}`,
+            ),
+          },
+        );
+      }
+
+      return {
+        jobId: result.jobId,
+        status: result.status,
+        digestId: result.digestId,
+      };
+    } catch (err) {
+      // Ensure job is marked FAILED for pre-pipeline errors (config loading,
+      // Reddit client construction, etc.). The orchestrator handles pipeline-internal
+      // errors, but this covers cases where the pipeline was never reached.
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(`Task failed for job ${payload.jobId}`, { error: message });
+      try {
+        await prisma.job.update({
+          where: { id: payload.jobId },
+          data: { status: "FAILED", completedAt: new Date(), error: message },
+        });
+      } catch {
+        logger.error(`Failed to update job ${payload.jobId} status to FAILED`);
+      }
+      throw err; // Re-throw so Trigger.dev retry logic can retry
+    }
   },
 });

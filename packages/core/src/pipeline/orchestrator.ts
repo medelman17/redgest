@@ -57,13 +57,59 @@ export async function runDigestPipeline(
   subredditIds: string[],
   deps: PipelineDeps,
 ): Promise<PipelineResult> {
-  const { db, eventBus, contentSource } = deps;
+  const { db, eventBus } = deps;
 
   // 1. Update job status to RUNNING
   await db.job.update({
     where: { id: jobId },
     data: { status: "RUNNING", startedAt: new Date() },
   });
+
+  // Defense-in-depth: catch any unhandled exception after RUNNING
+  // and ensure the job is marked FAILED (issue #3)
+  try {
+    return await runPipelineBody(jobId, subredditIds, deps, db, eventBus);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Best-effort: mark job as FAILED in DB
+    try {
+      await db.job.update({
+        where: { id: jobId },
+        data: { status: "FAILED", completedAt: new Date(), error: message },
+      });
+    } catch {
+      // DB may be unavailable — nothing more we can do
+    }
+    // Best-effort: emit failure event
+    try {
+      await emitEvent(
+        db,
+        eventBus,
+        "DigestFailed",
+        { jobId, error: message },
+        jobId,
+      );
+    } catch {
+      // Event persistence may fail — swallow
+    }
+    return {
+      jobId,
+      status: "FAILED" as const,
+      subredditResults: [],
+      errors: [message],
+    };
+  }
+}
+
+/** Inner pipeline body — extracted so the outer function can catch unhandled exceptions. */
+async function runPipelineBody(
+  jobId: string,
+  subredditIds: string[],
+  deps: PipelineDeps,
+  db: PrismaClient,
+  eventBus: DomainEventBus,
+): Promise<PipelineResult> {
+  const { contentSource } = deps;
 
   // 2. Load subreddits
   const subreddits = await db.subreddit.findMany({

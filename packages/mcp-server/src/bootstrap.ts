@@ -86,7 +86,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
     pipelineDeps = { db, eventBus, contentSource, config };
   }
 
-  // Shared fallback: run pipeline in-process, log errors without throwing
+  // Shared fallback: run pipeline in-process, update job status on failure
   async function runInProcess(jobId: string, subredditIds: string[]): Promise<void> {
     try {
       await runDigestPipeline(jobId, subredditIds, pipelineDeps);
@@ -95,6 +95,16 @@ export async function bootstrap(): Promise<BootstrapResult> {
       console.error(
         `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
       );
+      // Defensive: ensure job is marked FAILED (orchestrator should handle this,
+      // but guard against edge cases where it can't, e.g. DB down during pipeline)
+      try {
+        await db.job.update({
+          where: { id: jobId },
+          data: { status: "FAILED", completedAt: new Date(), error: message },
+        });
+      } catch {
+        console.error(`[DigestRequested] Failed to update job ${jobId} status to FAILED`);
+      }
     }
   }
 

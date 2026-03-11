@@ -81,7 +81,7 @@ async function getBootstrap(): Promise<BootstrapResult> {
   const contentSource = new RedditContentSource(redditClient, rateLimiter);
   const pipelineDeps: PipelineDeps = { db, eventBus, contentSource, config };
 
-  // In-process pipeline fallback
+  // In-process pipeline fallback — update job status on failure
   async function runInProcess(
     jobId: string,
     subredditIds: string[],
@@ -93,6 +93,16 @@ async function getBootstrap(): Promise<BootstrapResult> {
       console.error(
         `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
       );
+      // Defensive: ensure job is marked FAILED (orchestrator should handle this,
+      // but guard against edge cases where it can't, e.g. DB down during pipeline)
+      try {
+        await db.job.update({
+          where: { id: jobId },
+          data: { status: "FAILED", completedAt: new Date(), error: message },
+        });
+      } catch {
+        console.error(`[DigestRequested] Failed to update job ${jobId} status to FAILED`);
+      }
     }
   }
 

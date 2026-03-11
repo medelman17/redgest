@@ -631,3 +631,62 @@ describe("error recovery - total failure", () => {
     expect(mockAssembleStep).not.toHaveBeenCalled();
   });
 });
+
+describe("error recovery - unhandled exceptions (issue #3)", () => {
+  it("marks job as FAILED when assembleStep throws", async () => {
+    mockAssembleStep.mockRejectedValue(new Error("DB write failed"));
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("FAILED");
+    const lastData = getLastJobUpdate(mockDb);
+    expect(lastData["status"]).toBe("FAILED");
+    expect(String(lastData["error"])).toContain("DB write failed");
+    expect(lastData["completedAt"]).toBeInstanceOf(Date);
+  });
+
+  it("marks job as FAILED when subreddit.findMany throws", async () => {
+    mockDb.subreddit.findMany.mockRejectedValue(
+      new Error("Connection refused"),
+    );
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("FAILED");
+    const lastData = getLastJobUpdate(mockDb);
+    expect(lastData["status"]).toBe("FAILED");
+    expect(String(lastData["error"])).toContain("Connection refused");
+  });
+
+  it("marks job as FAILED when config.findFirst throws", async () => {
+    mockDb.config.findFirst.mockRejectedValue(new Error("Config table gone"));
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("FAILED");
+    const lastData = getLastJobUpdate(mockDb);
+    expect(lastData["status"]).toBe("FAILED");
+    expect(String(lastData["error"])).toContain("Config table gone");
+  });
+
+  it("emits DigestFailed event on unhandled exception", async () => {
+    mockAssembleStep.mockRejectedValue(new Error("Unexpected crash"));
+
+    await runDigestPipeline("job-1", [], deps);
+
+    const payload = findPersistedEvent("DigestFailed");
+    expect(payload).toBeDefined();
+    expect(String(payload?.["error"])).toContain("Unexpected crash");
+  });
+
+  it("still returns a PipelineResult even on unhandled exceptions", async () => {
+    mockAssembleStep.mockRejectedValue(new Error("Crash"));
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result).toHaveProperty("jobId", "job-1");
+    expect(result).toHaveProperty("status", "FAILED");
+    expect(result).toHaveProperty("errors");
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+});
