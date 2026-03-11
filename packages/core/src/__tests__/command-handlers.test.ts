@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { DomainEventBus } from "../events/bus.js";
 import type { HandlerContext } from "../context.js";
+import { RedgestError } from "../errors.js";
 import { handleGenerateDigest } from "../commands/handlers/generate-digest.js";
 import { handleAddSubreddit } from "../commands/handlers/add-subreddit.js";
 import { handleRemoveSubreddit } from "../commands/handlers/remove-subreddit.js";
@@ -25,11 +26,12 @@ function makeCtx(dbMock: Record<string, unknown>): HandlerContext {
 
 describe("handleGenerateDigest", () => {
   it("creates a job with QUEUED status and returns jobId", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
     const mockCreate = vi.fn().mockResolvedValue({
       id: "job-123",
       status: "QUEUED",
     });
-    const ctx = makeCtx({ job: { create: mockCreate } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst, create: mockCreate } });
 
     const result = await handleGenerateDigest(
       { subredditIds: ["sub-1", "sub-2"], lookbackHours: 48 },
@@ -51,11 +53,12 @@ describe("handleGenerateDigest", () => {
   });
 
   it("uses defaults when no params provided", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
     const mockCreate = vi.fn().mockResolvedValue({
       id: "job-456",
       status: "QUEUED",
     });
-    const ctx = makeCtx({ job: { create: mockCreate } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst, create: mockCreate } });
 
     const result = await handleGenerateDigest({}, ctx);
 
@@ -68,6 +71,26 @@ describe("handleGenerateDigest", () => {
         lookback: "24h",
       },
     });
+  });
+
+  it("rejects with CONFLICT when a job is already active", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({
+      id: "active-job",
+      status: "RUNNING",
+      createdAt: new Date(),
+    });
+    const mockCreate = vi.fn();
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst, create: mockCreate } });
+
+    await expect(
+      handleGenerateDigest({ subredditIds: ["sub-1"] }, ctx),
+    ).rejects.toThrow(RedgestError);
+
+    await expect(
+      handleGenerateDigest({ subredditIds: ["sub-1"] }, ctx),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });
 
