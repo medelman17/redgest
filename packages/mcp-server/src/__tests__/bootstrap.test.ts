@@ -10,16 +10,11 @@ const {
   mockCreateQuery,
   mockEventBusInstance,
   MockDomainEventBus,
-  mockRunDigestPipeline,
+  mockWireDigestDispatch,
   mockCommandHandlers,
   mockQueryHandlers,
-  mockRedditClientInstance,
-  MockRedditClient,
-  mockTokenBucketInstance,
-  MockTokenBucket,
   mockContentSourceInstance,
-  MockRedditContentSource,
-  mockTasksTrigger,
+  mockCreateContentSource,
 } = vi.hoisted(() => {
   const mockLoadConfig = vi.fn();
 
@@ -45,26 +40,12 @@ const {
     return mockEventBusInstance;
   });
 
-  const mockRunDigestPipeline = vi.fn();
+  const mockWireDigestDispatch = vi.fn();
   const mockCommandHandlers = { GenerateDigest: vi.fn() };
   const mockQueryHandlers = { GetDigest: vi.fn() };
 
-  const mockRedditClientInstance = { authenticate: vi.fn() };
-  const MockRedditClient = vi.fn(function () {
-    return mockRedditClientInstance;
-  });
-
-  const mockTokenBucketInstance = { acquire: vi.fn() };
-  const MockTokenBucket = vi.fn(function () {
-    return mockTokenBucketInstance;
-  });
-
   const mockContentSourceInstance = { fetchContent: vi.fn() };
-  const MockRedditContentSource = vi.fn(function () {
-    return mockContentSourceInstance;
-  });
-
-  const mockTasksTrigger = vi.fn();
+  const mockCreateContentSource = vi.fn().mockReturnValue(mockContentSourceInstance);
 
   return {
     mockLoadConfig,
@@ -75,16 +56,11 @@ const {
     mockCreateQuery,
     mockEventBusInstance,
     MockDomainEventBus,
-    mockRunDigestPipeline,
+    mockWireDigestDispatch,
     mockCommandHandlers,
     mockQueryHandlers,
-    mockRedditClientInstance,
-    MockRedditClient,
-    mockTokenBucketInstance,
-    MockTokenBucket,
     mockContentSourceInstance,
-    MockRedditContentSource,
-    mockTasksTrigger,
+    mockCreateContentSource,
   };
 });
 
@@ -101,19 +77,13 @@ vi.mock("@redgest/core", () => ({
   createExecute: mockCreateExecute,
   createQuery: mockCreateQuery,
   DomainEventBus: MockDomainEventBus,
-  runDigestPipeline: mockRunDigestPipeline,
+  wireDigestDispatch: mockWireDigestDispatch,
   commandHandlers: mockCommandHandlers,
   queryHandlers: mockQueryHandlers,
 }));
 
 vi.mock("@redgest/reddit", () => ({
-  RedditClient: MockRedditClient,
-  TokenBucket: MockTokenBucket,
-  RedditContentSource: MockRedditContentSource,
-}));
-
-vi.mock("@trigger.dev/sdk/v3", () => ({
-  tasks: { trigger: mockTasksTrigger },
+  createContentSource: mockCreateContentSource,
 }));
 
 // ── Import under test (after mocks) ──────────────────────────────────
@@ -147,14 +117,6 @@ describe("bootstrap()", () => {
     expect(MockDomainEventBus).toHaveBeenCalledOnce();
   });
 
-  it("registers DigestRequested event handler on the event bus", async () => {
-    await bootstrap();
-    expect(mockEventBusInstance.on).toHaveBeenCalledWith(
-      "DigestRequested",
-      expect.any(Function),
-    );
-  });
-
   it("creates command dispatcher from commandHandlers registry", async () => {
     await bootstrap();
     expect(mockCreateExecute).toHaveBeenCalledWith(mockCommandHandlers);
@@ -165,29 +127,26 @@ describe("bootstrap()", () => {
     expect(mockCreateQuery).toHaveBeenCalledWith(mockQueryHandlers);
   });
 
-  it("creates RedditClient with config credentials", async () => {
+  it("calls createContentSource with Reddit credentials from config", async () => {
     await bootstrap();
-    expect(MockRedditClient).toHaveBeenCalledWith({
+    expect(mockCreateContentSource).toHaveBeenCalledWith({
       clientId: "reddit-id",
       clientSecret: "reddit-secret",
-      userAgent: "redgest/1.0.0",
     });
   });
 
-  it("creates TokenBucket with 60 req/min (capacity 60, refillRate 1)", async () => {
+  it("calls wireDigestDispatch with eventBus, pipelineDeps, and triggerSecretKey", async () => {
     await bootstrap();
-    expect(MockTokenBucket).toHaveBeenCalledWith({
-      capacity: 60,
-      refillRate: 1,
+    expect(mockWireDigestDispatch).toHaveBeenCalledWith({
+      eventBus: mockEventBusInstance,
+      pipelineDeps: {
+        db: mockPrismaClient,
+        eventBus: mockEventBusInstance,
+        contentSource: mockContentSourceInstance,
+        config: fakeConfig,
+      },
+      triggerSecretKey: "tr_test",
     });
-  });
-
-  it("creates RedditContentSource with client and rate limiter", async () => {
-    await bootstrap();
-    expect(MockRedditContentSource).toHaveBeenCalledWith(
-      mockRedditClientInstance,
-      mockTokenBucketInstance,
-    );
   });
 
   it("returns execute, query, ctx, config, and db", async () => {
@@ -202,100 +161,6 @@ describe("bootstrap()", () => {
       eventBus: mockEventBusInstance,
       config: fakeConfig,
     });
-  });
-
-  it("DigestRequested handler dispatches via Trigger.dev when TRIGGER_SECRET_KEY is set", async () => {
-    await bootstrap();
-
-    const onCall = mockEventBusInstance.on.mock.calls.find(
-      (call: unknown[]) => call[0] === "DigestRequested",
-    );
-    expect(onCall).toBeDefined();
-    if (!onCall) throw new Error("unreachable");
-
-    const handler = onCall[1] as (event: {
-      type: "DigestRequested";
-      payload: { jobId: string; subredditIds: string[] };
-    }) => Promise<void>;
-
-    await handler({
-      type: "DigestRequested",
-      payload: { jobId: "job-123", subredditIds: ["sub-1", "sub-2"] },
-    });
-
-    expect(mockTasksTrigger).toHaveBeenCalledWith("generate-digest", {
-      jobId: "job-123",
-      subredditIds: ["sub-1", "sub-2"],
-    });
-    expect(mockRunDigestPipeline).not.toHaveBeenCalled();
-  });
-
-  it("DigestRequested handler falls back to in-process when Trigger.dev dispatch fails", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    mockTasksTrigger.mockRejectedValueOnce(new Error("dispatch failed"));
-
-    await bootstrap();
-
-    const onCall = mockEventBusInstance.on.mock.calls.find(
-      (call: unknown[]) => call[0] === "DigestRequested",
-    );
-    expect(onCall).toBeDefined();
-    if (!onCall) throw new Error("unreachable");
-
-    const handler = onCall[1] as (event: {
-      type: "DigestRequested";
-      payload: { jobId: string; subredditIds: string[] };
-    }) => Promise<void>;
-
-    await handler({
-      type: "DigestRequested",
-      payload: { jobId: "job-123", subredditIds: ["sub-1", "sub-2"] },
-    });
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("dispatch failed"),
-    );
-    expect(mockRunDigestPipeline).toHaveBeenCalledWith(
-      "job-123",
-      ["sub-1", "sub-2"],
-      {
-        db: mockPrismaClient,
-        eventBus: mockEventBusInstance,
-        contentSource: mockContentSourceInstance,
-        config: fakeConfig,
-      },
-    );
-    consoleSpy.mockRestore();
-  });
-
-  it("DigestRequested handler catches fallback pipeline errors without throwing", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    mockTasksTrigger.mockRejectedValueOnce(new Error("dispatch failed"));
-    mockRunDigestPipeline.mockRejectedValueOnce(new Error("pipeline boom"));
-
-    await bootstrap();
-
-    const onCall = mockEventBusInstance.on.mock.calls.find(
-      (call: unknown[]) => call[0] === "DigestRequested",
-    );
-    expect(onCall).toBeDefined();
-    if (!onCall) throw new Error("unreachable");
-
-    const handler = onCall[1] as (event: {
-      type: "DigestRequested";
-      payload: { jobId: string; subredditIds: string[] };
-    }) => Promise<void>;
-
-    // Should not throw
-    await handler({
-      type: "DigestRequested",
-      payload: { jobId: "job-fail", subredditIds: [] },
-    });
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("pipeline boom"),
-    );
-    consoleSpy.mockRestore();
   });
 
   describe("without TRIGGER_SECRET_KEY", () => {
@@ -314,64 +179,13 @@ describe("bootstrap()", () => {
       mockLoadConfig.mockReturnValue(configWithoutTrigger);
     });
 
-    it("DigestRequested handler calls runDigestPipeline directly", async () => {
+    it("passes undefined triggerSecretKey to wireDigestDispatch", async () => {
       await bootstrap();
-
-      const onCall = mockEventBusInstance.on.mock.calls.find(
-        (call: unknown[]) => call[0] === "DigestRequested",
+      expect(mockWireDigestDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerSecretKey: undefined,
+        }),
       );
-      expect(onCall).toBeDefined();
-      if (!onCall) throw new Error("unreachable");
-
-      const handler = onCall[1] as (event: {
-        type: "DigestRequested";
-        payload: { jobId: string; subredditIds: string[] };
-      }) => Promise<void>;
-
-      await handler({
-        type: "DigestRequested",
-        payload: { jobId: "job-123", subredditIds: ["sub-1", "sub-2"] },
-      });
-
-      expect(mockRunDigestPipeline).toHaveBeenCalledWith(
-        "job-123",
-        ["sub-1", "sub-2"],
-        {
-          db: mockPrismaClient,
-          eventBus: mockEventBusInstance,
-          contentSource: mockContentSourceInstance,
-          config: configWithoutTrigger,
-        },
-      );
-      expect(mockTasksTrigger).not.toHaveBeenCalled();
-    });
-
-    it("DigestRequested handler catches pipeline errors without throwing", async () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      mockRunDigestPipeline.mockRejectedValueOnce(new Error("pipeline boom"));
-
-      await bootstrap();
-
-      const onCall = mockEventBusInstance.on.mock.calls.find(
-        (call: unknown[]) => call[0] === "DigestRequested",
-      );
-      expect(onCall).toBeDefined();
-      if (!onCall) throw new Error("unreachable");
-
-      const handler = onCall[1] as (event: {
-        type: "DigestRequested";
-        payload: { jobId: string; subredditIds: string[] };
-      }) => Promise<void>;
-
-      await handler({
-        type: "DigestRequested",
-        payload: { jobId: "job-fail", subredditIds: [] },
-      });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("pipeline boom"),
-      );
-      consoleSpy.mockRestore();
     });
   });
 });

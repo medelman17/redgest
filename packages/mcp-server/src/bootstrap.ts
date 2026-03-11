@@ -6,17 +6,11 @@ import {
   createQuery,
   commandHandlers,
   queryHandlers,
-  runDigestPipeline,
+  wireDigestDispatch,
   type HandlerContext,
   type PipelineDeps,
 } from "@redgest/core";
-import {
-  RedditClient,
-  PublicRedditClient,
-  TokenBucket,
-  RedditContentSource,
-} from "@redgest/reddit";
-import type { RedditApiClient } from "@redgest/reddit";
+import { createContentSource } from "@redgest/reddit";
 
 /** Return type of bootstrap() — shared state injected into MCP tool handlers. */
 export interface BootstrapResult {
@@ -63,69 +57,18 @@ export async function bootstrap(): Promise<BootstrapResult> {
       generateSummary: llmMod.fakeGeneratePostSummary as PipelineDeps["generateSummary"],
     };
   } else {
-    let redditClient: RedditApiClient;
-    let rateLimiter: TokenBucket;
-
-    if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
-      redditClient = new RedditClient({
-        clientId: config.REDDIT_CLIENT_ID,
-        clientSecret: config.REDDIT_CLIENT_SECRET,
-        userAgent: "redgest/1.0.0",
-      });
-      rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
-    } else {
-      console.warn(
-        "[bootstrap] REDDIT_CLIENT_ID/SECRET not set — using public .json endpoint (10 req/min limit)",
-      );
-      redditClient = new PublicRedditClient({ userAgent: "redgest/1.0.0" });
-      rateLimiter = new TokenBucket({ capacity: 10, refillRate: 10 / 60 });
-    }
-
-    const contentSource = new RedditContentSource(redditClient, rateLimiter);
+    const contentSource = createContentSource({
+      clientId: config.REDDIT_CLIENT_ID,
+      clientSecret: config.REDDIT_CLIENT_SECRET,
+    });
 
     pipelineDeps = { db, eventBus, contentSource, config };
   }
 
-  // Shared fallback: run pipeline in-process, update job status on failure
-  async function runInProcess(jobId: string, subredditIds: string[]): Promise<void> {
-    try {
-      await runDigestPipeline(jobId, subredditIds, pipelineDeps);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(
-        `[DigestRequested] Pipeline failed for job ${jobId}: ${message}`,
-      );
-      // Defensive: ensure job is marked FAILED (orchestrator should handle this,
-      // but guard against edge cases where it can't, e.g. DB down during pipeline)
-      try {
-        await db.job.update({
-          where: { id: jobId },
-          data: { status: "FAILED", completedAt: new Date(), error: message },
-        });
-      } catch {
-        console.error(`[DigestRequested] Failed to update job ${jobId} status to FAILED`);
-      }
-    }
-  }
-
-  // Trigger.dev dispatch if configured; otherwise in-process
-  eventBus.on("DigestRequested", async (event) => {
-    const { jobId, subredditIds } = event.payload;
-
-    if (config.TRIGGER_SECRET_KEY) {
-      try {
-        const { tasks } = await import("@trigger.dev/sdk/v3");
-        await tasks.trigger("generate-digest", { jobId, subredditIds });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(
-          `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
-        );
-        await runInProcess(jobId, subredditIds);
-      }
-    } else {
-      await runInProcess(jobId, subredditIds);
-    }
+  wireDigestDispatch({
+    eventBus,
+    pipelineDeps,
+    triggerSecretKey: config.TRIGGER_SECRET_KEY,
   });
 
   return { execute, query, ctx, config, db };

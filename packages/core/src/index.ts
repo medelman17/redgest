@@ -63,6 +63,12 @@ export {
 
 // Context
 export type { HandlerContext, DbClient } from "./context.js";
+
+// Digest dispatch
+export {
+  wireDigestDispatch,
+  type DigestDispatchDeps,
+} from "./digest-dispatch.js";
 // Pipeline
 export {
   runDigestPipeline,

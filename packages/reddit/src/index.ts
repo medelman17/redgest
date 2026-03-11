@@ -8,6 +8,10 @@ export { fetchSubredditContent } from "./fetcher.js";
 export type { FetchOptions, FetchedContent } from "./fetcher.js";
 export { RedditContentSource } from "./content-source.js";
 export { sanitizeContent } from "./sanitize.js";
+export {
+  createContentSource,
+  type CreateContentSourceOptions,
+} from "./content-source-factory.js";
 export type {
   RedditAuthToken,
   RedditListing,
