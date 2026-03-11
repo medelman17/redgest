@@ -10,7 +10,7 @@ import {
   type HandlerContext,
   type PipelineDeps,
 } from "@redgest/core";
-import { createContentSource } from "@redgest/reddit";
+import { createContentSource, type ConnectivityStatus } from "@redgest/reddit";
 
 /** Return type of bootstrap() — shared state injected into MCP tool handlers. */
 export interface BootstrapResult {
@@ -19,6 +19,7 @@ export interface BootstrapResult {
   ctx: HandlerContext;
   config: RedgestConfig;
   db: PrismaClient;
+  checkConnectivity?: () => Promise<ConnectivityStatus>;
 }
 
 /**
@@ -39,6 +40,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const query = createQuery(queryHandlers);
 
   let pipelineDeps: PipelineDeps;
+  let checkConnectivity: (() => Promise<ConnectivityStatus>) | undefined;
 
   if (process.env.REDGEST_TEST_MODE === "1") {
     // Dynamic import from tests/fixtures — only in test mode.
@@ -62,6 +64,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
       clientSecret: config.REDDIT_CLIENT_SECRET,
     });
 
+    checkConnectivity = () => contentSource.checkConnectivity();
     pipelineDeps = { db, eventBus, contentSource, config };
   }
 
@@ -71,5 +74,5 @@ export async function bootstrap(): Promise<BootstrapResult> {
     triggerSecretKey: config.TRIGGER_SECRET_KEY,
   });
 
-  return { execute, query, ctx, config, db };
+  return { execute, query, ctx, config, db, checkConnectivity };
 }

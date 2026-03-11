@@ -85,6 +85,22 @@ export class TokenBucket {
     }, intervalMs);
   }
 
+  /** Snapshot of current rate limiter state for diagnostics. */
+  getState(): {
+    availableTokens: number;
+    capacity: number;
+    refillRate: number;
+    pendingRequests: number;
+  } {
+    this.refill();
+    return {
+      availableTokens: this.tokens,
+      capacity: this.capacity,
+      refillRate: this.refillRate,
+      pendingRequests: this.waiters.length,
+    };
+  }
+
   private drainWaiters(): void {
     while (this.waiters.length > 0 && this.tokens >= 1) {
       this.tokens -= 1;

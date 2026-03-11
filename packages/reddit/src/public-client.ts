@@ -1,5 +1,5 @@
 import { RedgestError } from "@redgest/core";
-import type { RedditApiClient } from "./client.js";
+import type { RedditApiClient, ConnectionTestResult } from "./client.js";
 
 const PUBLIC_BASE = "https://www.reddit.com";
 
@@ -26,6 +26,25 @@ export class PublicRedditClient implements RedditApiClient {
 
   isAuthenticated(): boolean {
     return true;
+  }
+
+  async testConnection(): Promise<ConnectionTestResult> {
+    const start = Date.now();
+    try {
+      await this.get("/r/all?limit=1");
+      return {
+        ok: true,
+        authType: "public",
+        latencyMs: Date.now() - start,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        authType: "public",
+        latencyMs: Date.now() - start,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   async get<T>(path: string): Promise<T> {

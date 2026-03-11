@@ -86,4 +86,54 @@ describe("TokenBucket", () => {
     }
     expect(true).toBe(true);
   });
+
+  describe("getState", () => {
+    it("returns capacity, refillRate, and available tokens", () => {
+      const bucket = new TokenBucket({ capacity: 60, refillRate: 1 });
+
+      const state = bucket.getState();
+
+      expect(state).toEqual({
+        availableTokens: 60,
+        capacity: 60,
+        refillRate: 1,
+        pendingRequests: 0,
+      });
+    });
+
+    it("reflects tokens consumed by acquire()", async () => {
+      const bucket = new TokenBucket({ capacity: 5, refillRate: 1 });
+
+      await bucket.acquire();
+      await bucket.acquire();
+
+      const state = bucket.getState();
+      expect(state.availableTokens).toBe(3);
+      expect(state.pendingRequests).toBe(0);
+    });
+
+    it("reflects pending waiters when tokens exhausted", async () => {
+      const bucket = new TokenBucket({ capacity: 1, refillRate: 1 });
+
+      await bucket.acquire(); // Drain the bucket
+
+      // These will queue as waiters
+      bucket.acquire();
+      bucket.acquire();
+
+      const state = bucket.getState();
+      expect(state.availableTokens).toBe(0);
+      expect(state.pendingRequests).toBe(2);
+    });
+
+    it("reflects sync() adjustments", () => {
+      const bucket = new TokenBucket({ capacity: 60, refillRate: 1 });
+
+      bucket.sync(5, 30);
+
+      const state = bucket.getState();
+      expect(state.availableTokens).toBe(5);
+      expect(state.capacity).toBe(60);
+    });
+  });
 });

@@ -4,11 +4,20 @@ import type { RedditAuthToken } from "./types.js";
 const TOKEN_URL = "https://www.reddit.com/api/v1/access_token";
 const API_BASE = "https://oauth.reddit.com";
 
+/** Result of a connectivity test against the Reddit API. */
+export interface ConnectionTestResult {
+  ok: boolean;
+  authType: "oauth" | "public";
+  latencyMs: number;
+  error?: string;
+}
+
 /** Shared interface for OAuth and public Reddit API clients. */
 export interface RedditApiClient {
   authenticate(): Promise<void>;
   isAuthenticated(): boolean;
   get<T>(path: string): Promise<T>;
+  testConnection(): Promise<ConnectionTestResult>;
 }
 
 export interface RedditClientOptions {
@@ -62,6 +71,28 @@ export class RedditClient implements RedditApiClient {
 
   isAuthenticated(): boolean {
     return this.token !== null && Date.now() < this.token.expiresAt;
+  }
+
+  async testConnection(): Promise<ConnectionTestResult> {
+    const start = Date.now();
+    try {
+      if (!this.isAuthenticated()) {
+        await this.authenticate();
+      }
+      await this.get("/api/v1/me");
+      return {
+        ok: true,
+        authType: "oauth",
+        latencyMs: Date.now() - start,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        authType: "oauth",
+        latencyMs: Date.now() - start,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   async get<T>(path: string): Promise<T> {

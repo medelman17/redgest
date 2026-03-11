@@ -60,12 +60,15 @@ function createMockDeps(): MockDeps {
 
   const ctx: BootstrapResult["ctx"] = { db, eventBus, config };
 
+  const checkConnectivity = vi.fn();
+
   const result: BootstrapResult = {
     execute: execute as unknown as BootstrapResult["execute"],
     query: query as unknown as BootstrapResult["query"],
     ctx,
     config,
     db,
+    checkConnectivity: checkConnectivity as unknown as BootstrapResult["checkConnectivity"],
   };
 
   return { result, execute, query };
@@ -659,5 +662,80 @@ describe("pass-through tools", () => {
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
+  });
+});
+
+describe("check_reddit_connectivity", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("returns connectivity status with rate limiter state", async () => {
+    const checkConnectivity = deps.result.checkConnectivity as MockFn;
+    checkConnectivity.mockResolvedValue({
+      ok: true,
+      authType: "oauth",
+      latencyMs: 42,
+      rateLimiter: {
+        availableTokens: 55,
+        capacity: 60,
+        refillRate: 1,
+        pendingRequests: 0,
+      },
+    });
+
+    const result = await invoke(handlers, "check_reddit_connectivity");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    const data = env.data as Record<string, unknown>;
+    expect(data.ok).toBe(true);
+    expect(data.authType).toBe("oauth");
+    expect(data.latencyMs).toBe(42);
+    expect(data.rateLimiter).toEqual({
+      availableTokens: 55,
+      capacity: 60,
+      refillRate: 1,
+      pendingRequests: 0,
+    });
+  });
+
+  it("returns error details when connectivity fails", async () => {
+    const checkConnectivity = deps.result.checkConnectivity as MockFn;
+    checkConnectivity.mockResolvedValue({
+      ok: false,
+      authType: "public",
+      latencyMs: 100,
+      error: "Reddit API rate limit exceeded",
+      rateLimiter: {
+        availableTokens: 0,
+        capacity: 10,
+        refillRate: 0.167,
+        pendingRequests: 3,
+      },
+    });
+
+    const result = await invoke(handlers, "check_reddit_connectivity");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true); // MCP envelope is ok, the data reports the failure
+    const data = env.data as Record<string, unknown>;
+    expect(data.ok).toBe(false);
+    expect(data.error).toBe("Reddit API rate limit exceeded");
+  });
+
+  it("returns INTERNAL_ERROR when checkConnectivity is not configured", async () => {
+    deps.result.checkConnectivity = undefined;
+    handlers = createToolHandlers(deps.result);
+
+    const result = await invoke(handlers, "check_reddit_connectivity");
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("INTERNAL_ERROR");
   });
 });

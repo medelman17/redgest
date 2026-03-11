@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PublicRedditClient } from "../public-client.js";
+import type { ConnectionTestResult } from "../client.js";
 
 const USER_AGENT = "redgest:test:v0.0.1";
 
@@ -137,6 +138,53 @@ describe("PublicRedditClient", () => {
       await expect(client.get("/r/test/hot")).rejects.toThrow(
         expect.objectContaining({ code: "REDDIT_API_ERROR" }),
       );
+    });
+  });
+
+  describe("testConnection", () => {
+    it("returns ok:true with authType 'public' when API responds", async () => {
+      mockFetch.mockResolvedValueOnce(mockApiResponse({ kind: "Listing" }));
+
+      const result: ConnectionTestResult = await client.testConnection();
+
+      expect(result.ok).toBe(true);
+      expect(result.authType).toBe("public");
+      expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+      expect(result.error).toBeUndefined();
+    });
+
+    it("fetches r/all.json for connectivity test", async () => {
+      mockFetch.mockResolvedValueOnce(mockApiResponse({ kind: "Listing" }));
+
+      await client.testConnection();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://www.reddit.com/r/all.json?limit=1",
+        expect.objectContaining({
+          headers: { "User-Agent": USER_AGENT },
+        }),
+      );
+    });
+
+    it("returns ok:false with error when API call fails", async () => {
+      mockFetch.mockResolvedValueOnce(mockErrorResponse(403, "Forbidden"));
+
+      const result = await client.testConnection();
+
+      expect(result.ok).toBe(false);
+      expect(result.authType).toBe("public");
+      expect(result.error).toBeDefined();
+      expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it("returns ok:false when fetch throws network error", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      const result = await client.testConnection();
+
+      expect(result.ok).toBe(false);
+      expect(result.authType).toBe("public");
+      expect(result.error).toContain("Network error");
     });
   });
 });

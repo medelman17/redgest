@@ -130,6 +130,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 
 ### Observability
 - **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
+- **check_reddit_connectivity** — Test Reddit API health: status, auth type, latency, rate limiter state
 
 ### Help
 - **use_redgest** — Show this usage guide
@@ -159,7 +160,8 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | list_runs, list_digests, list_subreddits | INTERNAL_ERROR |
 | search_posts, search_digests | INTERNAL_ERROR |
 | add_subreddit, update_config | INTERNAL_ERROR |
-| get_llm_metrics | INTERNAL_ERROR |`;
+| get_llm_metrics | INTERNAL_ERROR |
+| check_reddit_connectivity | INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -414,6 +416,19 @@ export function createToolHandlers(
         return envelope(result);
       });
     },
+
+    check_reddit_connectivity: async () => {
+      return safe(async () => {
+        if (!deps.checkConnectivity) {
+          return envelopeError(
+            ErrorCode.INTERNAL_ERROR,
+            "Reddit connectivity check is not available (test mode or missing credentials)",
+          );
+        }
+        const result = await deps.checkConnectivity();
+        return envelope(result);
+      });
+    },
   };
 
   return handlers;
@@ -565,6 +580,12 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       limit: z.number().optional().describe("Number of recent jobs to aggregate over (default: 10, ignored when jobId set)"),
     },
     async (args) => call("get_llm_metrics", args),
+  );
+
+  server.tool(
+    "check_reddit_connectivity",
+    "Test Reddit API connectivity. Returns: API status, auth type (oauth/public), latency, and rate limiter state (tokens remaining, capacity, pending requests).",
+    async () => call("check_reddit_connectivity", {}),
   );
 
   server.tool(

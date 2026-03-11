@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { RedditClient } from "../client.js";
+import { RedditClient, type ConnectionTestResult } from "../client.js";
 
 const CLIENT_ID = "test-client-id";
 const CLIENT_SECRET = "test-client-secret";
@@ -132,6 +132,60 @@ describe("RedditClient", () => {
       expect(result).toEqual({ data: "success" });
       // 1 initial auth + 1 failed API call + 1 re-auth + 1 retry = 4 total
       expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  describe("testConnection", () => {
+    it("returns ok:true with authType 'oauth' and latency when API responds", async () => {
+      // authenticate first
+      mockFetch.mockResolvedValueOnce(mockTokenResponse());
+      await client.authenticate();
+
+      // testConnection call
+      mockFetch.mockResolvedValueOnce(mockApiResponse({ name: "test-user" }));
+
+      const result: ConnectionTestResult = await client.testConnection();
+
+      expect(result.ok).toBe(true);
+      expect(result.authType).toBe("oauth");
+      expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+      expect(result.error).toBeUndefined();
+    });
+
+    it("authenticates first if not already authenticated", async () => {
+      // Not authenticated yet — testConnection should auto-authenticate
+      mockFetch.mockResolvedValueOnce(mockTokenResponse()); // auth
+      mockFetch.mockResolvedValueOnce(mockApiResponse({ name: "test-user" })); // test call
+
+      const result = await client.testConnection();
+
+      expect(result.ok).toBe(true);
+      expect(result.authType).toBe("oauth");
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("returns ok:false with error when authentication fails", async () => {
+      mockFetch.mockResolvedValueOnce(mockErrorResponse(401, "Unauthorized"));
+
+      const result = await client.testConnection();
+
+      expect(result.ok).toBe(false);
+      expect(result.authType).toBe("oauth");
+      expect(result.error).toBeDefined();
+      expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it("returns ok:false with error when API call fails", async () => {
+      mockFetch.mockResolvedValueOnce(mockTokenResponse());
+      await client.authenticate();
+
+      mockFetch.mockResolvedValueOnce(mockErrorResponse(500, "Internal Server Error"));
+
+      const result = await client.testConnection();
+
+      expect(result.ok).toBe(false);
+      expect(result.authType).toBe("oauth");
+      expect(result.error).toBeDefined();
     });
   });
 });
