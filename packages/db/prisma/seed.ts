@@ -71,7 +71,7 @@ async function main() {
     update: {
       globalInsightPrompt:
         "Prioritize posts with high-signal technical content: new releases, architectural patterns, production war stories, and emerging tools. Deprioritize memes, beginner questions, job posts, and low-effort content. Favor discussions with substantive community debate over link-only shares.",
-      llmModel: "claude-sonnet-4-6-20250627",
+      llmModel: "claude-haiku-4-5-20251001",
     },
     create: {
       id: 1,
@@ -80,7 +80,7 @@ async function main() {
       defaultLookback: "24h",
       defaultDelivery: "NONE",
       llmProvider: "anthropic",
-      llmModel: "claude-sonnet-4-6-20250627",
+      llmModel: "claude-haiku-4-5-20251001",
     },
   });
 
