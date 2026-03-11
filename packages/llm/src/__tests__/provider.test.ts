@@ -21,7 +21,7 @@ describe("getModel", () => {
     const model = getModel("triage");
     expect(model).toEqual({
       provider: "anthropic",
-      modelId: "claude-sonnet-4-20250514",
+      modelId: "claude-haiku-4-5-20251001",
     });
   });
 
@@ -29,7 +29,7 @@ describe("getModel", () => {
     const model = getModel("summarize");
     expect(model).toEqual({
       provider: "anthropic",
-      modelId: "claude-sonnet-4-20250514",
+      modelId: "claude-haiku-4-5-20251001",
     });
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Markdown from "react-markdown";
 import { Loader2 } from "lucide-react";
 import { JobStatus } from "@redgest/db/enums";
 import { fetchDigestForJob } from "@/lib/actions";
@@ -75,9 +76,9 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
           dangerouslySetInnerHTML={{ __html: digest.contentHtml }}
         />
       ) : digest.contentMarkdown ? (
-        <pre className="whitespace-pre-wrap text-sm text-muted-foreground">
-          {digest.contentMarkdown}
-        </pre>
+        <div className="prose prose-invert prose-sm max-w-none">
+          <Markdown>{digest.contentMarkdown}</Markdown>
+        </div>
       ) : null}
     </div>
   );
