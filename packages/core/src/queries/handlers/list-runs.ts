@@ -1,11 +1,17 @@
-import type { QueryHandler } from "../types.js";
+import { DEFAULT_PAGE_SIZE, type QueryHandler } from "../types.js";
+import { paginate } from "../paginate.js";
 
 export const handleListRuns: QueryHandler<"ListRuns"> = async (
   params,
   ctx,
 ) => {
-  return ctx.db.runView.findMany({
+  const limit = params.limit ?? DEFAULT_PAGE_SIZE;
+  const items = await ctx.db.runView.findMany({
     orderBy: { createdAt: "desc" },
-    take: params.limit,
+    take: limit + 1,
+    ...(params.cursor
+      ? { cursor: { jobId: params.cursor }, skip: 1 }
+      : {}),
   });
+  return paginate(items, limit, (r) => r.jobId);
 };

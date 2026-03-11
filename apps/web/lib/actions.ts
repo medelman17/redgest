@@ -167,7 +167,7 @@ export async function fetchSubreddits() {
 
 export async function fetchRuns() {
   const runs = await dal.listRuns();
-  return runs.map(serializeRun);
+  return runs.items.map(serializeRun);
 }
 
 export async function fetchDigestForJob(jobId: string) {

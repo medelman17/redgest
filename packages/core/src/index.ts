@@ -34,9 +34,12 @@ export type {
   QueryType,
   Query,
   QueryHandler,
+  Paginated,
   LlmMetrics,
   LlmTaskMetrics,
 } from "./queries/types.js";
+export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
+export { paginate } from "./queries/paginate.js";
 export { createQuery } from "./queries/dispatch.js";
 
 // Command handlers

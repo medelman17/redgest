@@ -77,7 +77,7 @@ describe("handleGetDigestByJobId", () => {
 });
 
 describe("handleListDigests", () => {
-  it("returns digests ordered by createdAt desc with limit", async () => {
+  it("returns paginated digests ordered by createdAt desc", async () => {
     const mockDigests = [
       { digestId: "d-2", createdAt: new Date() },
       { digestId: "d-1", createdAt: new Date() },
@@ -87,14 +87,16 @@ describe("handleListDigests", () => {
 
     const result = await handleListDigests({ limit: 10 }, ctx);
 
-    expect(result).toEqual(mockDigests);
+    expect(result.items).toEqual(mockDigests);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
     expect(mockFindMany).toHaveBeenCalledWith({
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 11,
     });
   });
 
-  it("passes undefined take when no limit provided", async () => {
+  it("uses default page size when no limit provided", async () => {
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({ digestView: { findMany: mockFindMany } });
 
@@ -102,7 +104,36 @@ describe("handleListDigests", () => {
 
     expect(mockFindMany).toHaveBeenCalledWith({
       orderBy: { createdAt: "desc" },
-      take: undefined,
+      take: 11,
+    });
+  });
+
+  it("sets hasMore and nextCursor when more items exist", async () => {
+    const items = Array.from({ length: 11 }, (_, i) => ({
+      digestId: `d-${i}`,
+      createdAt: new Date(),
+    }));
+    const mockFindMany = vi.fn().mockResolvedValue(items);
+    const ctx = makeCtx({ digestView: { findMany: mockFindMany } });
+
+    const result = await handleListDigests({ limit: 10 }, ctx);
+
+    expect(result.items).toHaveLength(10);
+    expect(result.hasMore).toBe(true);
+    expect(result.nextCursor).toBe("d-9");
+  });
+
+  it("passes cursor to findMany when provided", async () => {
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({ digestView: { findMany: mockFindMany } });
+
+    await handleListDigests({ limit: 5, cursor: "d-prev" }, ctx);
+
+    expect(mockFindMany).toHaveBeenCalledWith({
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      cursor: { digestId: "d-prev" },
+      skip: 1,
     });
   });
 });
@@ -118,23 +149,26 @@ describe("handleSearchDigests", () => {
       ctx,
     );
 
-    expect(result).toEqual(mockDigests);
+    expect(result.items).toEqual(mockDigests);
+    expect(result.hasMore).toBe(false);
     expect(mockFindMany).toHaveBeenCalledWith({
       where: {
         contentMarkdown: { contains: "typescript", mode: "insensitive" },
       },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 6,
     });
   });
 
-  it("returns empty array when no matches", async () => {
+  it("returns empty items when no matches", async () => {
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({ digest: { findMany: mockFindMany } });
 
     const result = await handleSearchDigests({ query: "nonexistent" }, ctx);
 
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
   });
 });
 
@@ -163,7 +197,7 @@ describe("handleGetPost", () => {
 });
 
 describe("handleSearchPosts", () => {
-  it("searches posts by title case-insensitive", async () => {
+  it("searches posts by title case-insensitive with pagination", async () => {
     const mockPosts = [{ id: "post-1", title: "TypeScript Tips" }];
     const mockFindMany = vi.fn().mockResolvedValue(mockPosts);
     const ctx = makeCtx({ post: { findMany: mockFindMany } });
@@ -173,21 +207,39 @@ describe("handleSearchPosts", () => {
       ctx,
     );
 
-    expect(result).toEqual(mockPosts);
+    expect(result.items).toEqual(mockPosts);
+    expect(result.hasMore).toBe(false);
     expect(mockFindMany).toHaveBeenCalledWith({
       where: { title: { contains: "typescript", mode: "insensitive" } },
       orderBy: { fetchedAt: "desc" },
-      take: 10,
+      take: 11,
     });
   });
 
-  it("returns empty array when no matches", async () => {
+  it("returns empty items when no matches", async () => {
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({ post: { findMany: mockFindMany } });
 
     const result = await handleSearchPosts({ query: "nothing" }, ctx);
 
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
+  });
+
+  it("passes cursor to findMany when provided", async () => {
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({ post: { findMany: mockFindMany } });
+
+    await handleSearchPosts({ query: "test", limit: 5, cursor: "p-1" }, ctx);
+
+    expect(mockFindMany).toHaveBeenCalledWith({
+      where: { title: { contains: "test", mode: "insensitive" } },
+      orderBy: { fetchedAt: "desc" },
+      take: 6,
+      cursor: { id: "p-1" },
+      skip: 1,
+    });
   });
 });
 
@@ -216,7 +268,7 @@ describe("handleGetRunStatus", () => {
 });
 
 describe("handleListRuns", () => {
-  it("returns runs ordered by createdAt desc with limit", async () => {
+  it("returns paginated runs ordered by createdAt desc", async () => {
     const mockRuns = [
       { jobId: "j-2", status: "COMPLETED" },
       { jobId: "j-1", status: "FAILED" },
@@ -226,14 +278,16 @@ describe("handleListRuns", () => {
 
     const result = await handleListRuns({ limit: 5 }, ctx);
 
-    expect(result).toEqual(mockRuns);
+    expect(result.items).toEqual(mockRuns);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
     expect(mockFindMany).toHaveBeenCalledWith({
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 6,
     });
   });
 
-  it("passes undefined take when no limit provided", async () => {
+  it("uses default page size when no limit provided", async () => {
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({ runView: { findMany: mockFindMany } });
 
@@ -241,7 +295,21 @@ describe("handleListRuns", () => {
 
     expect(mockFindMany).toHaveBeenCalledWith({
       orderBy: { createdAt: "desc" },
-      take: undefined,
+      take: 11,
+    });
+  });
+
+  it("passes cursor to findMany when provided", async () => {
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({ runView: { findMany: mockFindMany } });
+
+    await handleListRuns({ limit: 5, cursor: "j-prev" }, ctx);
+
+    expect(mockFindMany).toHaveBeenCalledWith({
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      cursor: { jobId: "j-prev" },
+      skip: 1,
     });
   });
 });

@@ -258,7 +258,7 @@ describe("get_digest", () => {
   });
 
   it("falls back to latest when no digestId", async () => {
-    deps.query.mockResolvedValueOnce([{ digestId: "d-latest" }]);
+    deps.query.mockResolvedValueOnce({ items: [{ digestId: "d-latest" }], nextCursor: null, hasMore: false });
     deps.query.mockResolvedValueOnce({ digestId: "d-latest", content: "latest digest" });
 
     const result = await invoke(handlers, "get_digest");
@@ -271,7 +271,7 @@ describe("get_digest", () => {
   });
 
   it("returns NOT_FOUND when no digests exist and no digestId", async () => {
-    deps.query.mockResolvedValue([]);
+    deps.query.mockResolvedValue({ items: [], nextCursor: null, hasMore: false });
 
     const result = await invoke(handlers, "get_digest");
 
@@ -494,44 +494,50 @@ describe("pass-through tools", () => {
     handlers = createToolHandlers(deps.result);
   });
 
-  it("list_runs queries ListRuns", async () => {
-    deps.query.mockResolvedValue([{ id: "r1" }]);
+  it("list_runs queries ListRuns with cursor", async () => {
+    deps.query.mockResolvedValue({ items: [{ id: "r1" }], nextCursor: null, hasMore: false });
 
-    const result = await invoke(handlers, "list_runs", { limit: 5 });
+    const result = await invoke(handlers, "list_runs", { limit: 5, cursor: "r-prev" });
 
-    expect(deps.query).toHaveBeenCalledWith("ListRuns", { limit: 5 }, deps.result.ctx);
+    expect(deps.query).toHaveBeenCalledWith("ListRuns", { limit: 5, cursor: "r-prev" }, deps.result.ctx);
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
-    expect(env.data).toEqual([{ id: "r1" }]);
+    expect(env.data).toEqual({ items: [{ id: "r1" }], nextCursor: null, hasMore: false });
   });
 
-  it("list_digests returns metadata without content fields", async () => {
-    deps.query.mockResolvedValue([
-      {
-        digestId: "d1",
-        jobId: "j1",
-        jobStatus: "COMPLETED",
-        startedAt: "2026-03-10T00:00:00Z",
-        completedAt: "2026-03-10T00:01:00Z",
-        subredditList: ["typescript"],
-        postCount: 5,
-        contentMarkdown: "# Long markdown content...",
-        contentHtml: "<h1>Long HTML content...</h1>",
-        createdAt: "2026-03-10T00:01:00Z",
-      },
-    ]);
+  it("list_digests returns paginated metadata without content fields", async () => {
+    deps.query.mockResolvedValue({
+      items: [
+        {
+          digestId: "d1",
+          jobId: "j1",
+          jobStatus: "COMPLETED",
+          startedAt: "2026-03-10T00:00:00Z",
+          completedAt: "2026-03-10T00:01:00Z",
+          subredditList: ["typescript"],
+          postCount: 5,
+          contentMarkdown: "# Long markdown content...",
+          contentHtml: "<h1>Long HTML content...</h1>",
+          createdAt: "2026-03-10T00:01:00Z",
+        },
+      ],
+      nextCursor: null,
+      hasMore: false,
+    });
 
     const result = await invoke(handlers, "list_digests", { limit: 10 });
 
-    expect(deps.query).toHaveBeenCalledWith("ListDigests", { limit: 10 }, deps.result.ctx);
+    expect(deps.query).toHaveBeenCalledWith("ListDigests", { limit: 10, cursor: undefined }, deps.result.ctx);
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
-    const data = env.data as Record<string, unknown>[];
-    expect(data).toHaveLength(1);
-    expect(data[0]).toHaveProperty("digestId", "d1");
-    expect(data[0]).toHaveProperty("postCount", 5);
-    expect(data[0]).not.toHaveProperty("contentMarkdown");
-    expect(data[0]).not.toHaveProperty("contentHtml");
+    const data = env.data as { items: Record<string, unknown>[]; nextCursor: string | null; hasMore: boolean };
+    expect(data.items).toHaveLength(1);
+    expect(data.items[0]).toHaveProperty("digestId", "d1");
+    expect(data.items[0]).toHaveProperty("postCount", 5);
+    expect(data.items[0]).not.toHaveProperty("contentMarkdown");
+    expect(data.items[0]).not.toHaveProperty("contentHtml");
+    expect(data.hasMore).toBe(false);
+    expect(data.nextCursor).toBeNull();
   });
 
   it("get_post queries GetPost and handles NOT_FOUND", async () => {
@@ -555,32 +561,34 @@ describe("pass-through tools", () => {
     expect(env.data).toEqual({ id: "p1", title: "Test" });
   });
 
-  it("search_posts queries SearchPosts", async () => {
-    deps.query.mockResolvedValue([]);
+  it("search_posts queries SearchPosts with cursor", async () => {
+    deps.query.mockResolvedValue({ items: [], nextCursor: null, hasMore: false });
 
-    const result = await invoke(handlers, "search_posts", { query: "rust", limit: 5 });
+    const result = await invoke(handlers, "search_posts", { query: "rust", limit: 5, cursor: "p-1" });
 
     expect(deps.query).toHaveBeenCalledWith(
       "SearchPosts",
-      { query: "rust", limit: 5 },
+      { query: "rust", limit: 5, cursor: "p-1" },
       deps.result.ctx,
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ items: [], nextCursor: null, hasMore: false });
   });
 
-  it("search_digests queries SearchDigests", async () => {
-    deps.query.mockResolvedValue([]);
+  it("search_digests queries SearchDigests with cursor", async () => {
+    deps.query.mockResolvedValue({ items: [], nextCursor: null, hasMore: false });
 
-    const result = await invoke(handlers, "search_digests", { query: "AI", limit: 3 });
+    const result = await invoke(handlers, "search_digests", { query: "AI", limit: 3, cursor: "d-1" });
 
     expect(deps.query).toHaveBeenCalledWith(
       "SearchDigests",
-      { query: "AI", limit: 3 },
+      { query: "AI", limit: 3, cursor: "d-1" },
       deps.result.ctx,
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
+    expect(env.data).toEqual({ items: [], nextCursor: null, hasMore: false });
   });
 
   it("list_subreddits queries ListSubreddits", async () => {

@@ -9,6 +9,16 @@ import type {
   Post,
 } from "@redgest/db";
 
+/** Default page size for paginated queries. */
+export const DEFAULT_PAGE_SIZE = 10;
+
+/** Paginated result wrapper. */
+export interface Paginated<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 /**
  * LlmMetrics — aggregated LLM usage statistics.
  */
@@ -41,12 +51,12 @@ export interface QueryMap {
   GetDigestByJobId: { jobId: string };
   GetPost: { postId: string };
   GetRunStatus: { jobId: string };
-  ListDigests: { limit?: number };
-  ListRuns: { limit?: number };
+  ListDigests: { limit?: number; cursor?: string };
+  ListRuns: { limit?: number; cursor?: string };
   ListSubreddits: Record<string, never>;
   GetConfig: Record<string, never>;
-  SearchPosts: { query: string; limit?: number };
-  SearchDigests: { query: string; limit?: number };
+  SearchPosts: { query: string; limit?: number; cursor?: string };
+  SearchDigests: { query: string; limit?: number; cursor?: string };
   GetLlmMetrics: { jobId?: string; limit?: number };
 }
 
@@ -59,12 +69,12 @@ export interface QueryResultMap {
   GetDigestByJobId: DigestView | null;
   GetPost: PostView | null;
   GetRunStatus: RunView | null;
-  ListDigests: DigestView[];
-  ListRuns: RunView[];
+  ListDigests: Paginated<DigestView>;
+  ListRuns: Paginated<RunView>;
   ListSubreddits: SubredditView[];
   GetConfig: Config | null;
-  SearchPosts: Post[];
-  SearchDigests: Digest[];
+  SearchPosts: Paginated<Post>;
+  SearchDigests: Paginated<Digest>;
   GetLlmMetrics: LlmMetrics;
 }
 

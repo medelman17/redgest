@@ -182,9 +182,10 @@ export function createToolHandlers(
     list_runs: async (args) => {
       return safe(async () => {
         const limit = args.limit as number | undefined;
+        const cursor = args.cursor as string | undefined;
         const result = await deps.query(
           "ListRuns",
-          { limit },
+          { limit, cursor },
           deps.ctx,
         );
         return envelope(result);
@@ -196,12 +197,12 @@ export function createToolHandlers(
         let digestId = args.digestId as string | undefined;
 
         if (!digestId) {
-          const digests = await deps.query(
+          const result = await deps.query(
             "ListDigests",
             { limit: 1 },
             deps.ctx,
           );
-          const first = digests[0];
+          const first = result.items[0];
           if (!first) {
             return envelopeError("NOT_FOUND", "No digests found");
           }
@@ -234,12 +235,13 @@ export function createToolHandlers(
     list_digests: async (args) => {
       return safe(async () => {
         const limit = args.limit as number | undefined;
+        const cursor = args.cursor as string | undefined;
         const result = await deps.query(
           "ListDigests",
-          { limit },
+          { limit, cursor },
           deps.ctx,
         );
-        const summaries = result.map((d) => ({
+        const summaries = result.items.map((d) => ({
           digestId: d.digestId,
           jobId: d.jobId,
           jobStatus: d.jobStatus,
@@ -249,7 +251,11 @@ export function createToolHandlers(
           postCount: d.postCount,
           createdAt: d.createdAt,
         }));
-        return envelope(summaries);
+        return envelope({
+          items: summaries,
+          nextCursor: result.nextCursor,
+          hasMore: result.hasMore,
+        });
       });
     },
 
@@ -257,9 +263,10 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
+        const cursor = args.cursor as string | undefined;
         const result = await deps.query(
           "SearchPosts",
-          { query, limit },
+          { query, limit, cursor },
           deps.ctx,
         );
         return envelope(result);
@@ -270,9 +277,10 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
+        const cursor = args.cursor as string | undefined;
         const result = await deps.query(
           "SearchDigests",
-          { query, limit },
+          { query, limit, cursor },
           deps.ctx,
         );
         return envelope(result);
@@ -425,8 +433,11 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "list_runs",
-    "List recent digest runs with status and timing.",
-    { limit: z.number().optional().describe("Max number of runs to return (default: 10)") },
+    "List recent digest runs with status and timing. Supports cursor-based pagination.",
+    {
+      limit: z.number().optional().describe("Max number of runs to return (default: 10)"),
+      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+    },
     async (args) => call("list_runs", args),
   );
 
@@ -446,27 +457,32 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "list_digests",
-    "List recent digests (metadata only — use get_digest for full content).",
-    { limit: z.number().optional().describe("Max number of digests to return (default: 10)") },
+    "List recent digests (metadata only — use get_digest for full content). Supports cursor-based pagination.",
+    {
+      limit: z.number().optional().describe("Max number of digests to return (default: 10)"),
+      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+    },
     async (args) => call("list_digests", args),
   );
 
   server.tool(
     "search_posts",
-    "Full-text search across post summaries.",
+    "Full-text search across post summaries. Supports cursor-based pagination.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
+      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
     },
     async (args) => call("search_posts", args),
   );
 
   server.tool(
     "search_digests",
-    "Full-text search across digests.",
+    "Full-text search across digests. Supports cursor-based pagination.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
+      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
     },
     async (args) => call("search_digests", args),
   );

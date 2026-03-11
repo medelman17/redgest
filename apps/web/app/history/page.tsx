@@ -8,7 +8,7 @@ export default async function HistoryPage() {
     listSubreddits(),
   ]);
 
-  const serializedRuns = runs.map(serializeRun);
+  const serializedRuns = runs.items.map(serializeRun);
 
   const subredditMap = Object.fromEntries(
     subreddits.map((s) => [s.id, s.name]),
