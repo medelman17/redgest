@@ -18,7 +18,9 @@ export async function createApp(): Promise<{ app: Hono; deps: BootstrapResult }>
   const app = new Hono();
 
   app.get("/health", (c) => c.json({ status: "ok" }));
-  app.use("/mcp", bearerAuthMiddleware(deps.config.MCP_SERVER_API_KEY));
+  if (deps.config.MCP_SERVER_API_KEY) {
+    app.use("/mcp", bearerAuthMiddleware(deps.config.MCP_SERVER_API_KEY));
+  }
   app.all("/mcp", (c) => transport.handleRequest(c));
 
   return { app, deps };

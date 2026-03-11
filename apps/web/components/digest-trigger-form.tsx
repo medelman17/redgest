@@ -10,7 +10,7 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
-import { JobStatus } from "@redgest/db";
+import { JobStatus } from "@redgest/db/enums";
 import { generateDigestAction, fetchRunStatus } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import {

@@ -61,6 +61,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
       generateSummary: llmMod.fakeGeneratePostSummary as PipelineDeps["generateSummary"],
     };
   } else {
+    if (!config.REDDIT_CLIENT_ID || !config.REDDIT_CLIENT_SECRET) {
+      throw new Error("REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET are required");
+    }
+
     const redditClient = new RedditClient({
       clientId: config.REDDIT_CLIENT_ID,
       clientSecret: config.REDDIT_CLIENT_SECRET,

@@ -59,21 +59,30 @@ async function getBootstrap(): Promise<BootstrapResult> {
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
 
-  // Pipeline deps for in-process fallback
-  const redditClient = new RedditClient({
-    clientId: config.REDDIT_CLIENT_ID,
-    clientSecret: config.REDDIT_CLIENT_SECRET,
-    userAgent: "redgest/1.0.0",
-  });
-  const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
-  const contentSource = new RedditContentSource(redditClient, rateLimiter);
-  const pipelineDeps: PipelineDeps = { db, eventBus, contentSource, config };
+  // Pipeline deps for in-process fallback (lazy — only created when Reddit creds are available)
+  let pipelineDeps: PipelineDeps | null = null;
+  if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
+    const redditClient = new RedditClient({
+      clientId: config.REDDIT_CLIENT_ID,
+      clientSecret: config.REDDIT_CLIENT_SECRET,
+      userAgent: "redgest/1.0.0",
+    });
+    const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
+    const contentSource = new RedditContentSource(redditClient, rateLimiter);
+    pipelineDeps = { db, eventBus, contentSource, config };
+  }
 
   // In-process pipeline fallback
   async function runInProcess(
     jobId: string,
     subredditIds: string[],
   ): Promise<void> {
+    if (!pipelineDeps) {
+      console.error(
+        `[DigestRequested] Cannot run pipeline: REDDIT_CLIENT_ID/SECRET not configured`,
+      );
+      return;
+    }
     try {
       await runDigestPipeline(jobId, subredditIds, pipelineDeps);
     } catch (err) {

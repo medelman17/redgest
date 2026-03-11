@@ -1,24 +1,49 @@
 import { z } from "zod";
 
+// Treat empty strings as undefined for optional env vars
+const optionalString = z.preprocess(
+  (v) => (v === "" ? undefined : v),
+  z.string().min(1).optional(),
+);
+
+const optionalUrl = z.preprocess(
+  (v) => (v === "" ? undefined : v),
+  z.url().optional(),
+);
+
+const optionalEmail = z.preprocess(
+  (v) => (v === "" ? undefined : v),
+  z.string().email().optional(),
+);
+
 export const configSchema = z.object({
-  // Required
+  // Required — only DATABASE_URL is truly required for the app to boot
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
-  TRIGGER_SECRET_KEY: z.string().min(1).optional(),
-  MCP_SERVER_API_KEY: z.string().min(32, "MCP_SERVER_API_KEY must be at least 32 characters"),
+
+  // Required for digest generation — app boots without them, fails at runtime
+  ANTHROPIC_API_KEY: optionalString,
+  REDDIT_CLIENT_ID: optionalString,
+  REDDIT_CLIENT_SECRET: optionalString,
+
+  // MCP server only
+  MCP_SERVER_API_KEY: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().min(32, "MCP_SERVER_API_KEY must be at least 32 characters").optional(),
+  ),
   MCP_SERVER_PORT: z.coerce.number().int().min(1024).max(65535).default(3100),
-  REDDIT_CLIENT_ID: z.string().min(1, "REDDIT_CLIENT_ID is required"),
-  REDDIT_CLIENT_SECRET: z.string().min(1, "REDDIT_CLIENT_SECRET is required"),
 
-  // Optional (not needed for local dev without caching)
-  REDIS_URL: z.url("REDIS_URL must be a valid URL").optional(),
-
-  // Optional
-  OPENAI_API_KEY: z.string().min(1).optional(),
-  RESEND_API_KEY: z.string().min(1).optional(),
-  SLACK_WEBHOOK_URL: z.url().optional(),
-  TRIGGER_API_URL: z.url().optional(),
-  DELIVERY_EMAIL: z.string().email().optional(),
+  // Optional — empty strings treated as undefined
+  TRIGGER_SECRET_KEY: optionalString,
+  REDIS_URL: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.url("REDIS_URL must be a valid URL").optional(),
+  ),
+  OPENAI_API_KEY: optionalString,
+  RESEND_API_KEY: optionalString,
+  SLACK_WEBHOOK_URL: optionalUrl,
+  TRIGGER_API_URL: optionalUrl,
+  DELIVERY_EMAIL: optionalEmail,
+  TRIGGER_PROJECT_ID: optionalString,
 
   // Defaults
   DIGEST_CRON: z.string().default("0 7 * * *"),

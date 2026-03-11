@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, ArrowUpDown, Loader2 } from "lucide-react";
-import { JobStatus } from "@redgest/db";
+import { JobStatus } from "@redgest/db/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -19,6 +19,10 @@ export const generateDigest = task({
     const config = loadConfig();
     const eventBus = new DomainEventBus();
 
+    if (!config.REDDIT_CLIENT_ID || !config.REDDIT_CLIENT_SECRET) {
+      throw new Error("REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET are required for digest generation");
+    }
+
     const redditClient = new RedditClient({
       clientId: config.REDDIT_CLIENT_ID,
       clientSecret: config.REDDIT_CLIENT_SECRET,

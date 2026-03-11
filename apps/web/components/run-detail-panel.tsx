@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { JobStatus } from "@redgest/db";
+import { JobStatus } from "@redgest/db/enums";
 import { fetchDigestForJob } from "@/lib/actions";
 
 interface RunDetailPanelProps {

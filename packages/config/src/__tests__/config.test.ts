@@ -38,18 +38,30 @@ describe("configSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("fails when ANTHROPIC_API_KEY is missing", () => {
+  it("accepts missing ANTHROPIC_API_KEY (optional for web UI)", () => {
     const { ANTHROPIC_API_KEY: _key, ...env } = validEnv;
     const result = configSchema.safeParse(env);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.ANTHROPIC_API_KEY).toBeUndefined();
+    }
   });
 
-  it("fails when MCP_SERVER_API_KEY is too short", () => {
+  it("fails when MCP_SERVER_API_KEY is present but too short", () => {
     const result = configSchema.safeParse({
       ...validEnv,
       MCP_SERVER_API_KEY: "short",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts missing MCP_SERVER_API_KEY (optional for web UI)", () => {
+    const { MCP_SERVER_API_KEY: _key, ...env } = validEnv;
+    const result = configSchema.safeParse(env);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.MCP_SERVER_API_KEY).toBeUndefined();
+    }
   });
 
   it("fails when NODE_ENV is invalid", () => {
@@ -133,10 +145,14 @@ describe("configSchema", () => {
     }
   });
 
-  it("requires REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET", () => {
+  it("accepts missing Reddit credentials (optional for web UI)", () => {
     const { REDDIT_CLIENT_ID: _id, REDDIT_CLIENT_SECRET: _secret, ...env } = validEnv;
     const result = configSchema.safeParse(env);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.REDDIT_CLIENT_ID).toBeUndefined();
+      expect(result.data.REDDIT_CLIENT_SECRET).toBeUndefined();
+    }
   });
 
   it("parses valid Reddit credentials", () => {

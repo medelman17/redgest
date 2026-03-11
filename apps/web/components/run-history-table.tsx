@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { JobStatus } from "@redgest/db";
+import { JobStatus } from "@redgest/db/enums";
 import { fetchRuns } from "@/lib/actions";
 import { DataTable } from "@/components/data-table";
 import { createColumns } from "@/components/run-columns";

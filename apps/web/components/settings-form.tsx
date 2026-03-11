@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DeliveryChannel } from "@redgest/db";
+import { DeliveryChannel } from "@redgest/db/enums";
 import { updateConfigAction } from "@/lib/actions";
 import { parseLookbackHours } from "@/lib/utils";
 import type { SerializedConfig } from "@/lib/types";
