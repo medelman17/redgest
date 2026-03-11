@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { ErrorCode } from "@redgest/core";
 import { envelope, envelopeError } from "../envelope.js";
 import type { ToolResult } from "../envelope.js";
 
@@ -67,7 +68,7 @@ describe("envelope", () => {
 
 describe("envelopeError", () => {
   it("wraps an error with code and message", () => {
-    const result = envelopeError("NOT_FOUND", "Digest not found");
+    const result = envelopeError(ErrorCode.NOT_FOUND, "Digest not found");
     expect(result).toEqual({
       content: [
         {
@@ -83,17 +84,17 @@ describe("envelopeError", () => {
   });
 
   it("sets isError to true", () => {
-    const result = envelopeError("INTERNAL_ERROR", "Something broke");
+    const result = envelopeError(ErrorCode.INTERNAL_ERROR, "Something broke");
     expect(result.isError).toBe(true);
   });
 
   it("produces valid JSON", () => {
-    const result = envelopeError("VALIDATION_ERROR", "Invalid input");
+    const result = envelopeError(ErrorCode.VALIDATION_ERROR, "Invalid input");
     expect(() => JSON.parse(result.content[0].text)).not.toThrow();
   });
 
   it("preserves the error code exactly", () => {
-    const result = envelopeError("REDDIT_API_ERROR", "Rate limited");
+    const result = envelopeError(ErrorCode.REDDIT_API_ERROR, "Rate limited");
     const parsed = JSON.parse(result.content[0].text) as {
       ok: boolean;
       error: { code: string; message: string };
@@ -102,7 +103,7 @@ describe("envelopeError", () => {
   });
 
   it("preserves the error message exactly", () => {
-    const result = envelopeError("NOT_FOUND", 'Subreddit "foo" not found');
+    const result = envelopeError(ErrorCode.NOT_FOUND, 'Subreddit "foo" not found');
     const parsed = JSON.parse(result.content[0].text) as {
       ok: boolean;
       error: { code: string; message: string };
@@ -111,7 +112,7 @@ describe("envelopeError", () => {
   });
 
   it("satisfies the ToolResult interface shape", () => {
-    const result: ToolResult = envelopeError("INTERNAL_ERROR", "fail");
+    const result: ToolResult = envelopeError(ErrorCode.INTERNAL_ERROR, "fail");
     expect(result.content).toHaveLength(1);
     expect(result.content[0].type).toBe("text");
     expect(typeof result.content[0].text).toBe("string");

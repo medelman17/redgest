@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { RedgestError, type ExecuteContext } from "@redgest/core";
+import { ErrorCode, RedgestError, type ExecuteContext } from "@redgest/core";
 import type { DeliveryChannel } from "@redgest/db";
 import type { BootstrapResult } from "./bootstrap.js";
 import { envelope, envelopeError, type ToolResult } from "./envelope.js";
@@ -18,7 +18,7 @@ async function safe(fn: () => Promise<ToolResult>): Promise<ToolResult> {
     }
     const message = err instanceof Error ? err.message : String(err);
     console.error("[MCP] Unexpected error:", message);
-    return envelopeError("INTERNAL_ERROR", "An unexpected error occurred");
+    return envelopeError(ErrorCode.INTERNAL_ERROR, "An unexpected error occurred");
   }
 }
 
@@ -132,7 +132,34 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
 
 ### Help
-- **use_redgest** — Show this usage guide`;
+- **use_redgest** — Show this usage guide
+
+## Error Codes
+
+All tools return errors in a consistent envelope: \`{ ok: false, error: { code, message } }\`
+
+| Code | Meaning |
+|------|---------|
+| NOT_FOUND | Requested resource (digest, post, run, subreddit, config) does not exist |
+| VALIDATION_ERROR | Invalid input (e.g. bad lookback format "abc" — use "48h", "2d", "30m") |
+| CONFLICT | Action conflicts with current state (e.g. a digest run is already in progress) |
+| INTERNAL_ERROR | Unexpected server error — retry or check logs |
+
+### Per-Tool Error Codes
+
+| Tool | Possible Codes |
+|------|---------------|
+| generate_digest | NOT_FOUND, VALIDATION_ERROR, CONFLICT, INTERNAL_ERROR |
+| get_run_status | NOT_FOUND, INTERNAL_ERROR |
+| get_digest | NOT_FOUND, INTERNAL_ERROR |
+| get_post | NOT_FOUND, INTERNAL_ERROR |
+| remove_subreddit | NOT_FOUND, INTERNAL_ERROR |
+| update_subreddit | NOT_FOUND, INTERNAL_ERROR |
+| get_config | NOT_FOUND, INTERNAL_ERROR |
+| list_runs, list_digests, list_subreddits | INTERNAL_ERROR |
+| search_posts, search_digests | INTERNAL_ERROR |
+| add_subreddit, update_config | INTERNAL_ERROR |
+| get_llm_metrics | INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -174,7 +201,7 @@ export function createToolHandlers(
           { jobId },
           deps.ctx,
         );
-        if (!result) return envelopeError("NOT_FOUND", `Run ${jobId} not found`);
+        if (!result) return envelopeError(ErrorCode.NOT_FOUND, `Run ${jobId} not found`);
         return envelope(result);
       });
     },
@@ -204,7 +231,7 @@ export function createToolHandlers(
           );
           const first = result.items[0];
           if (!first) {
-            return envelopeError("NOT_FOUND", "No digests found");
+            return envelopeError(ErrorCode.NOT_FOUND, "No digests found");
           }
           digestId = first.digestId;
         }
@@ -214,7 +241,7 @@ export function createToolHandlers(
           { digestId },
           deps.ctx,
         );
-        if (!result) return envelopeError("NOT_FOUND", `Digest ${digestId} not found`);
+        if (!result) return envelopeError(ErrorCode.NOT_FOUND, `Digest ${digestId} not found`);
         return envelope(result);
       });
     },
@@ -227,7 +254,7 @@ export function createToolHandlers(
           { postId },
           deps.ctx,
         );
-        if (!result) return envelopeError("NOT_FOUND", `Post ${postId} not found`);
+        if (!result) return envelopeError(ErrorCode.NOT_FOUND, `Post ${postId} not found`);
         return envelope(result);
       });
     },
@@ -317,7 +344,7 @@ export function createToolHandlers(
         const name = args.name as string;
         const subredditId = await lookupSubredditId(name, deps);
         if (!subredditId) {
-          return envelopeError("NOT_FOUND", `Subreddit "${name}" not found`);
+          return envelopeError(ErrorCode.NOT_FOUND, `Subreddit "${name}" not found`);
         }
         const result = await deps.execute(
           "RemoveSubreddit",
@@ -333,7 +360,7 @@ export function createToolHandlers(
         const name = args.name as string;
         const subredditId = await lookupSubredditId(name, deps);
         if (!subredditId) {
-          return envelopeError("NOT_FOUND", `Subreddit "${name}" not found`);
+          return envelopeError(ErrorCode.NOT_FOUND, `Subreddit "${name}" not found`);
         }
         const result = await deps.execute(
           "UpdateSubreddit",
@@ -352,7 +379,7 @@ export function createToolHandlers(
     get_config: async () => {
       return safe(async () => {
         const result = await deps.query("GetConfig", {}, deps.ctx);
-        if (!result) return envelopeError("NOT_FOUND", "Config not found");
+        if (!result) return envelopeError(ErrorCode.NOT_FOUND, "Config not found");
         return envelope(result);
       });
     },
