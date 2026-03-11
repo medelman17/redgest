@@ -19,12 +19,12 @@ describe("TriageResultSchema", () => {
     }
   });
 
-  it("rejects non-integer index", () => {
-    const invalid = {
+  it("accepts non-integer index (Anthropic structured output cannot enforce int constraint)", () => {
+    const valid = {
       selectedPosts: [{ index: 1.5, relevanceScore: 7, rationale: "Some reason" }],
     };
-    const result = TriageResultSchema.safeParse(invalid);
-    expect(result.success).toBe(false);
+    const result = TriageResultSchema.safeParse(valid);
+    expect(result.success).toBe(true);
   });
 
   it("rejects missing rationale", () => {

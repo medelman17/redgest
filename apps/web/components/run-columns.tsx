@@ -60,6 +60,7 @@ export function createColumns(
   return [
     {
       id: "expand",
+      size: 40,
       header: () => null,
       cell: ({ row }) => (
         <Button
@@ -82,6 +83,7 @@ export function createColumns(
     },
     {
       accessorKey: "status",
+      size: 120,
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -100,7 +102,7 @@ export function createColumns(
       header: "Subreddits",
       accessorFn: (row) => row.subreddits,
       cell: ({ row }) => (
-        <span className="font-mono text-xs">
+        <span className="block truncate font-mono text-xs">
           {formatSubreddits(row.original.subreddits, subredditMap)}
         </span>
       ),
@@ -108,6 +110,7 @@ export function createColumns(
     },
     {
       accessorKey: "startedAt",
+      size: 120,
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -138,6 +141,7 @@ export function createColumns(
     },
     {
       accessorKey: "durationSeconds",
+      size: 110,
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -170,6 +174,7 @@ export function createColumns(
     },
     {
       accessorKey: "eventCount",
+      size: 70,
       header: "Events",
       cell: ({ getValue }) => (
         <span className="font-mono text-xs text-muted-foreground">

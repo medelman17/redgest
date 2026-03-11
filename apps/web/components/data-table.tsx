@@ -60,14 +60,17 @@ export function DataTable<TData>({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border">
+    <div className="min-w-0 space-y-4">
+      <div className="min-w-0 overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    style={header.getSize() !== 150 ? { width: header.getSize() } : undefined}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -95,7 +98,7 @@ export function DataTable<TData>({
                   </TableRow>
                   {row.getIsExpanded() && renderSubComponent && (
                     <TableRow>
-                      <TableCell colSpan={row.getVisibleCells().length}>
+                      <TableCell colSpan={row.getVisibleCells().length} className="overflow-hidden whitespace-normal">
                         {renderSubComponent({ row })}
                       </TableCell>
                     </TableRow>

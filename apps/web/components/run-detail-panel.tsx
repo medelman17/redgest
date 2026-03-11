@@ -63,7 +63,7 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
     : "";
 
   return (
-    <div className="space-y-3 py-4">
+    <div className="min-w-0 space-y-3 py-4">
       <div className="flex gap-4 text-xs text-muted-foreground">
         <span>
           <strong className="text-foreground">{digest.postCount}</strong> posts
@@ -72,11 +72,11 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
       </div>
       {digest.contentHtml ? (
         <div
-          className="prose prose-invert prose-sm max-w-none"
+          className="prose prose-invert prose-sm max-w-none break-words"
           dangerouslySetInnerHTML={{ __html: digest.contentHtml }}
         />
       ) : digest.contentMarkdown ? (
-        <div className="prose prose-invert prose-sm max-w-none">
+        <div className="prose prose-invert prose-sm max-w-none break-words">
           <Markdown>{digest.contentMarkdown}</Markdown>
         </div>
       ) : null}

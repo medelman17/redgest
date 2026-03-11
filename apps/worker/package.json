@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "dev": "npx trigger.dev@latest dev",
+    "dev": "npx trigger.dev@latest dev --config ../../trigger.config.ts",
     "build": "tsc",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"

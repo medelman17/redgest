@@ -6,8 +6,7 @@ export const TriageResultSchema = z.object({
       z.object({
         index: z
           .number()
-          .int()
-          .describe("Zero-based index of post from candidate list"),
+          .describe("Zero-based integer index of post from candidate list"),
         relevanceScore: z
           .number()
           .describe("1 (tangential) to 10 (core interest)"),
