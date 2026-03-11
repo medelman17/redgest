@@ -4,13 +4,20 @@ import type { RedditAuthToken } from "./types.js";
 const TOKEN_URL = "https://www.reddit.com/api/v1/access_token";
 const API_BASE = "https://oauth.reddit.com";
 
+/** Shared interface for OAuth and public Reddit API clients. */
+export interface RedditApiClient {
+  authenticate(): Promise<void>;
+  isAuthenticated(): boolean;
+  get<T>(path: string): Promise<T>;
+}
+
 export interface RedditClientOptions {
   clientId: string;
   clientSecret: string;
   userAgent: string;
 }
 
-export class RedditClient {
+export class RedditClient implements RedditApiClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly userAgent: string;

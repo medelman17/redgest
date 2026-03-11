@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { FetchOptions, FetchedContent } from "../fetcher.js";
-import type { RedditClient } from "../client.js";
+import type { RedditApiClient } from "../client.js";
 import type { TokenBucket } from "../rate-limiter.js";
 
 vi.mock("../fetcher.js", async (importOriginal) => {
@@ -17,7 +17,7 @@ import { fetchSubredditContent } from "../fetcher.js";
 const mockFetch = vi.mocked(fetchSubredditContent);
 
 describe("RedditContentSource", () => {
-  const client = {} as unknown as RedditClient;
+  const client = {} as unknown as RedditApiClient;
   const rateLimiter = {} as unknown as TokenBucket;
 
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe("RedditContentSource", () => {
   });
 
   it("passes client and rateLimiter from constructor", async () => {
-    const specificClient = { tag: "client" } as unknown as RedditClient;
+    const specificClient = { tag: "client" } as unknown as RedditApiClient;
     const specificLimiter = { tag: "limiter" } as unknown as TokenBucket;
     mockFetch.mockResolvedValueOnce({
       subreddit: "rust",

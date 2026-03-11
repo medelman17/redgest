@@ -18,8 +18,10 @@ import {
 } from "@redgest/core";
 import {
   RedditClient,
+  PublicRedditClient,
   TokenBucket,
   RedditContentSource,
+  type RedditApiClient,
 } from "@redgest/reddit";
 
 // --- Bootstrap singleton (globalThis guard for HMR) ---
@@ -59,30 +61,31 @@ async function getBootstrap(): Promise<BootstrapResult> {
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
 
-  // Pipeline deps for in-process fallback (lazy — only created when Reddit creds are available)
-  let pipelineDeps: PipelineDeps | null = null;
+  // Pipeline deps for in-process fallback
+  let redditClient: RedditApiClient;
+  let rateLimiter: TokenBucket;
   if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
-    const redditClient = new RedditClient({
+    redditClient = new RedditClient({
       clientId: config.REDDIT_CLIENT_ID,
       clientSecret: config.REDDIT_CLIENT_SECRET,
       userAgent: "redgest/1.0.0",
     });
-    const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
-    const contentSource = new RedditContentSource(redditClient, rateLimiter);
-    pipelineDeps = { db, eventBus, contentSource, config };
+    rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
+  } else {
+    console.warn(
+      "[dal] REDDIT_CLIENT_ID/SECRET not set — using public .json endpoint (10 req/min limit)",
+    );
+    redditClient = new PublicRedditClient({ userAgent: "redgest/1.0.0" });
+    rateLimiter = new TokenBucket({ capacity: 10, refillRate: 10 / 60 });
   }
+  const contentSource = new RedditContentSource(redditClient, rateLimiter);
+  const pipelineDeps: PipelineDeps = { db, eventBus, contentSource, config };
 
   // In-process pipeline fallback
   async function runInProcess(
     jobId: string,
     subredditIds: string[],
   ): Promise<void> {
-    if (!pipelineDeps) {
-      console.error(
-        `[DigestRequested] Cannot run pipeline: REDDIT_CLIENT_ID/SECRET not configured`,
-      );
-      return;
-    }
     try {
       await runDigestPipeline(jobId, subredditIds, pipelineDeps);
     } catch (err) {

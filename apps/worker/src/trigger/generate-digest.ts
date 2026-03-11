@@ -8,9 +8,11 @@ import {
 } from "@redgest/core";
 import {
   RedditClient,
+  PublicRedditClient,
   TokenBucket,
   RedditContentSource,
 } from "@redgest/reddit";
+import type { RedditApiClient } from "@redgest/reddit";
 
 export const generateDigest = task({
   id: "generate-digest",
@@ -19,16 +21,22 @@ export const generateDigest = task({
     const config = loadConfig();
     const eventBus = new DomainEventBus();
 
-    if (!config.REDDIT_CLIENT_ID || !config.REDDIT_CLIENT_SECRET) {
-      throw new Error("REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET are required for digest generation");
+    let redditClient: RedditApiClient;
+    let rateLimiter: TokenBucket;
+
+    if (config.REDDIT_CLIENT_ID && config.REDDIT_CLIENT_SECRET) {
+      redditClient = new RedditClient({
+        clientId: config.REDDIT_CLIENT_ID,
+        clientSecret: config.REDDIT_CLIENT_SECRET,
+        userAgent: "redgest/1.0.0",
+      });
+      rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
+    } else {
+      logger.warn("REDDIT_CLIENT_ID/SECRET not set — using public .json endpoint (10 req/min limit)");
+      redditClient = new PublicRedditClient({ userAgent: "redgest/1.0.0" });
+      rateLimiter = new TokenBucket({ capacity: 10, refillRate: 10 / 60 });
     }
 
-    const redditClient = new RedditClient({
-      clientId: config.REDDIT_CLIENT_ID,
-      clientSecret: config.REDDIT_CLIENT_SECRET,
-      userAgent: "redgest/1.0.0",
-    });
-    const rateLimiter = new TokenBucket({ capacity: 60, refillRate: 1 });
     const contentSource = new RedditContentSource(redditClient, rateLimiter);
 
     const deps: PipelineDeps = { db: prisma, eventBus, contentSource, config };
