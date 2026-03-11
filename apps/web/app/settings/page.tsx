@@ -29,7 +29,7 @@ export default async function SettingsPage() {
           Configure digest generation, LLM providers, and delivery channels
         </p>
       </div>
-      <SettingsForm config={serialized} />
+      <SettingsForm key={serialized.updatedAt} config={serialized} />
     </div>
   );
 }
