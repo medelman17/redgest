@@ -9,6 +9,7 @@ import { handleGetRunStatus } from "./get-run-status.js";
 import { handleListRuns } from "./list-runs.js";
 import { handleListSubreddits } from "./list-subreddits.js";
 import { handleGetConfig } from "./get-config.js";
+import { handleGetLlmMetrics } from "./get-llm-metrics.js";
 
 type QueryHandlerRegistry = {
   [K in QueryType]?: QueryHandler<K>;
@@ -25,6 +26,7 @@ export const queryHandlers: QueryHandlerRegistry = {
   ListRuns: handleListRuns,
   ListSubreddits: handleListSubreddits,
   GetConfig: handleGetConfig,
+  GetLlmMetrics: handleGetLlmMetrics,
 };
 
 export {
@@ -38,4 +40,5 @@ export {
   handleListRuns,
   handleListSubreddits,
   handleGetConfig,
+  handleGetLlmMetrics,
 };

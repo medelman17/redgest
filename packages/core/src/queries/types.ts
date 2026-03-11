@@ -10,6 +10,29 @@ import type {
 } from "@redgest/db";
 
 /**
+ * LlmMetrics — aggregated LLM usage statistics.
+ */
+export interface LlmTaskMetrics {
+  task: string;
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+  avgDurationMs: number;
+  cacheHitRate: number;
+}
+
+export interface LlmMetrics {
+  summary: {
+    totalCalls: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+    averageDurationMs: number;
+    cacheHitRate: number;
+  };
+  byTask: LlmTaskMetrics[];
+}
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -24,6 +47,7 @@ export interface QueryMap {
   GetConfig: Record<string, never>;
   SearchPosts: { query: string; limit?: number };
   SearchDigests: { query: string; limit?: number };
+  GetLlmMetrics: { jobId?: string; limit?: number };
 }
 
 /**
@@ -41,6 +65,7 @@ export interface QueryResultMap {
   GetConfig: Config | null;
   SearchPosts: Post[];
   SearchDigests: Digest[];
+  GetLlmMetrics: LlmMetrics;
 }
 
 // Derived types

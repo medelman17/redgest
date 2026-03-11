@@ -34,6 +34,8 @@ export type {
   QueryType,
   Query,
   QueryHandler,
+  LlmMetrics,
+  LlmTaskMetrics,
 } from "./queries/types.js";
 export { createQuery } from "./queries/dispatch.js";
 
@@ -59,6 +61,7 @@ export {
   handleListRuns,
   handleListSubreddits,
   handleGetConfig,
+  handleGetLlmMetrics,
 } from "./queries/handlers/index.js";
 
 // Context

@@ -299,8 +299,160 @@ describe("handleGetConfig", () => {
   });
 });
 
+describe("handleGetLlmMetrics", () => {
+  it("returns aggregated metrics for a specific job", async () => {
+    const mockAggregate = vi.fn().mockResolvedValue({
+      _count: { _all: 5 },
+      _sum: { inputTokens: 50000, outputTokens: 8000 },
+      _avg: { durationMs: 2500 },
+    });
+    const mockCount = vi.fn().mockResolvedValue(2);
+    const mockGroupBy = vi.fn()
+      .mockResolvedValueOnce([
+        {
+          task: "triage",
+          _count: { _all: 2 },
+          _sum: { inputTokens: 16000, outputTokens: 2000 },
+          _avg: { durationMs: 1500 },
+        },
+        {
+          task: "summarize",
+          _count: { _all: 3 },
+          _sum: { inputTokens: 34000, outputTokens: 6000 },
+          _avg: { durationMs: 3200 },
+        },
+      ])
+      .mockResolvedValueOnce([
+        { task: "triage", _count: { _all: 1 } },
+        { task: "summarize", _count: { _all: 1 } },
+      ]);
+    const ctx = makeCtx({
+      llmCall: {
+        aggregate: mockAggregate,
+        count: mockCount,
+        groupBy: mockGroupBy,
+      },
+    });
+
+    const { handleGetLlmMetrics } = await import(
+      "../queries/handlers/get-llm-metrics.js"
+    );
+    const result = await handleGetLlmMetrics({ jobId: "j-1" }, ctx);
+
+    expect(result.summary).toEqual({
+      totalCalls: 5,
+      totalInputTokens: 50000,
+      totalOutputTokens: 8000,
+      averageDurationMs: 2500,
+      cacheHitRate: 0.4,
+    });
+    expect(result.byTask).toHaveLength(2);
+    expect(result.byTask[0]).toEqual({
+      task: "triage",
+      calls: 2,
+      inputTokens: 16000,
+      outputTokens: 2000,
+      avgDurationMs: 1500,
+      cacheHitRate: 0.5,
+    });
+    expect(result.byTask[1]).toEqual({
+      task: "summarize",
+      calls: 3,
+      inputTokens: 34000,
+      outputTokens: 6000,
+      avgDurationMs: 3200,
+      cacheHitRate: expect.closeTo(0.333, 2),
+    });
+  });
+
+  it("returns metrics for recent jobs when no jobId provided", async () => {
+    const mockAggregate = vi.fn().mockResolvedValue({
+      _count: { _all: 10 },
+      _sum: { inputTokens: 100000, outputTokens: 15000 },
+      _avg: { durationMs: 3000 },
+    });
+    const mockCount = vi.fn().mockResolvedValue(4);
+    const mockGroupBy = vi.fn()
+      .mockResolvedValueOnce([
+        {
+          task: "triage",
+          _count: { _all: 4 },
+          _sum: { inputTokens: 32000, outputTokens: 4000 },
+          _avg: { durationMs: 1800 },
+        },
+        {
+          task: "summarize",
+          _count: { _all: 6 },
+          _sum: { inputTokens: 68000, outputTokens: 11000 },
+          _avg: { durationMs: 3800 },
+        },
+      ])
+      .mockResolvedValueOnce([
+        { task: "triage", _count: { _all: 2 } },
+        { task: "summarize", _count: { _all: 2 } },
+      ]);
+    const mockFindMany = vi.fn().mockResolvedValue([
+      { jobId: "j-3" },
+      { jobId: "j-2" },
+      { jobId: "j-1" },
+    ]);
+    const ctx = makeCtx({
+      llmCall: {
+        aggregate: mockAggregate,
+        count: mockCount,
+        groupBy: mockGroupBy,
+        findMany: mockFindMany,
+      },
+    });
+
+    const { handleGetLlmMetrics } = await import(
+      "../queries/handlers/get-llm-metrics.js"
+    );
+    const result = await handleGetLlmMetrics({ limit: 3 }, ctx);
+
+    expect(result.summary.totalCalls).toBe(10);
+    expect(result.summary.cacheHitRate).toBe(0.4);
+    expect(result.byTask).toHaveLength(2);
+    // Verify findMany was called to get recent job IDs
+    expect(mockFindMany).toHaveBeenCalled();
+  });
+
+  it("returns zero metrics when no LLM calls found", async () => {
+    const mockAggregate = vi.fn().mockResolvedValue({
+      _count: { _all: 0 },
+      _sum: { inputTokens: null, outputTokens: null },
+      _avg: { durationMs: null },
+    });
+    const mockCount = vi.fn().mockResolvedValue(0);
+    const mockGroupBy = vi.fn().mockResolvedValue([]);
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      llmCall: {
+        aggregate: mockAggregate,
+        count: mockCount,
+        groupBy: mockGroupBy,
+        findMany: mockFindMany,
+      },
+    });
+
+    const { handleGetLlmMetrics } = await import(
+      "../queries/handlers/get-llm-metrics.js"
+    );
+    const result = await handleGetLlmMetrics({}, ctx);
+
+    expect(result.summary).toEqual({
+      totalCalls: 0,
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      averageDurationMs: 0,
+      cacheHitRate: 0,
+    });
+    expect(result.byTask).toEqual([]);
+  });
+});
+
 describe("queryHandlers registry", () => {
-  it("registers all 10 handlers", () => {
+  it("registers all 11 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -311,10 +463,11 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.ListRuns).toBe(handleListRuns);
     expect(queryHandlers.ListSubreddits).toBe(handleListSubreddits);
     expect(queryHandlers.GetConfig).toBe(handleGetConfig);
+    expect(queryHandlers.GetLlmMetrics).toBeDefined();
   });
 
-  it("has exactly 10 entries", () => {
+  it("has exactly 11 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(10);
+    expect(handlerCount).toBe(11);
   });
 });

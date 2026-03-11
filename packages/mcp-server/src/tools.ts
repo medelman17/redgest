@@ -128,6 +128,9 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **get_config** — View current global configuration
 - **update_config** — Update global settings (insight prompt, lookback, LLM provider/model, delivery channel, schedule)
 
+### Observability
+- **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
+
 ### Help
 - **use_redgest** — Show this usage guide`;
 
@@ -363,6 +366,19 @@ export function createToolHandlers(
         return envelope(result);
       });
     },
+
+    get_llm_metrics: async (args) => {
+      return safe(async () => {
+        const jobId = args.jobId as string | undefined;
+        const limit = args.limit as number | undefined;
+        const result = await deps.query(
+          "GetLlmMetrics",
+          { jobId, limit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
   };
 
   return handlers;
@@ -496,6 +512,16 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "get_config",
     "View current global Redgest configuration.",
     async () => call("get_config", {}),
+  );
+
+  server.tool(
+    "get_llm_metrics",
+    "Get aggregated LLM usage metrics: total tokens, latency, cache hit rate, broken down by task type. Scope to a specific run with jobId, or see recent aggregate.",
+    {
+      jobId: z.string().optional().describe("Scope metrics to a specific job/run ID"),
+      limit: z.number().optional().describe("Number of recent jobs to aggregate over (default: 10, ignored when jobId set)"),
+    },
+    async (args) => call("get_llm_metrics", args),
   );
 
   server.tool(
