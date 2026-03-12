@@ -17,3 +17,5 @@ coverage/
 
 .trigger
 .superpowers/
+.mcp.json
+test-results/.last-run.json

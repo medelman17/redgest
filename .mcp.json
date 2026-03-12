@@ -3,6 +3,14 @@
     "trigger": {
       "command": "npx",
       "args": ["trigger.dev@latest", "mcp"]
+    },
+    "redgest": {
+      "command": "pnpm",
+      "args": ["--filter", "@redgest/mcp-server", "exec", "tsx", "src/stdio.ts"],
+      "cwd": "/Users/medelman/GitHub/medelman17/redgest",
+      "env": {
+        "DATABASE_URL": "postgresql://redgest:redgest@localhost:5433/redgest"
+      }
     }
   }
 }
