@@ -7,6 +7,7 @@ export interface DomainEventMap {
   DigestRequested: { jobId: string; subredditIds: string[] };
   DigestCompleted: { jobId: string; digestId: string };
   DigestFailed: { jobId: string; error: string };
+  DigestCanceled: { jobId: string };
   PostsFetched: { jobId: string; subreddit: string; count: number };
   PostsTriaged: { jobId: string; subreddit: string; selectedCount: number };
   PostsSummarized: { jobId: string; subreddit: string; summaryCount: number };

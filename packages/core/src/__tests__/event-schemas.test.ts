@@ -8,6 +8,7 @@ describe("eventPayloadSchemas", () => {
       "DigestRequested",
       "DigestCompleted",
       "DigestFailed",
+      "DigestCanceled",
       "PostsFetched",
       "PostsTriaged",
       "PostsSummarized",
@@ -99,6 +100,16 @@ describe("eventPayloadSchemas", () => {
       changes: { llmModel: "gpt-4.1" },
     });
     expect(result.success).toBe(true);
+  });
+
+  it("validates DigestCanceled payload", () => {
+    const result = parseEventPayload("DigestCanceled", { jobId: "job-123" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects DigestCanceled with missing jobId", () => {
+    const result = parseEventPayload("DigestCanceled", {});
+    expect(result.success).toBe(false);
   });
 
   it("rejects SubredditAdded with missing name", () => {

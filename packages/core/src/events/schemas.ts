@@ -19,6 +19,9 @@ export const eventPayloadSchemas = {
     jobId: z.string(),
     error: z.string(),
   }),
+  DigestCanceled: z.object({
+    jobId: z.string(),
+  }),
   PostsFetched: z.object({
     jobId: z.string(),
     subreddit: z.string(),
