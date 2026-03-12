@@ -129,8 +129,8 @@ export interface DigestComparisonResult {
  * DeliveryStatusChannel — per-channel delivery outcome.
  */
 export interface DeliveryStatusChannel {
-  channel: string;
-  status: string;
+  channel: "EMAIL" | "SLACK";
+  status: "PENDING" | "SENT" | "FAILED";
   error: string | null;
   externalId: string | null;
   sentAt: string | null;

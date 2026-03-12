@@ -1,6 +1,5 @@
 import type { EventCreateClient } from "../events/persist.js";
 import { persistEvent } from "../events/persist.js";
-import type { DomainEvent } from "../events/types.js";
 
 type DeliveryChannelType = "EMAIL" | "SLACK";
 
@@ -59,6 +58,19 @@ type DeliverySuccess = { ok: true; externalId?: string };
 type DeliveryFailure = { ok: false; error: string };
 type DeliveryResult = DeliverySuccess | DeliveryFailure;
 
+/** Shared envelope fields for delivery domain events. */
+function deliveryEventEnvelope(digestId: string, jobId: string, occurredAt: Date) {
+  return {
+    aggregateId: digestId,
+    aggregateType: "Delivery" as const,
+    version: 1,
+    correlationId: jobId,
+    causationId: null,
+    metadata: {},
+    occurredAt,
+  };
+}
+
 /**
  * Upsert PENDING delivery rows for each channel.
  * Uses upsert (not create) for Trigger.dev retry idempotency —
@@ -70,23 +82,25 @@ export async function recordDeliveryPending(
   jobId: string,
   channels: DeliveryChannelType[],
 ): Promise<void> {
-  for (const channel of channels) {
-    await db.delivery.upsert({
-      where: { digestId_channel: { digestId, channel } },
-      create: {
-        digestId,
-        jobId,
-        channel,
-        status: "PENDING",
-      },
-      update: {
-        status: "PENDING",
-        error: null,
-        externalId: null,
-        sentAt: null,
-      },
-    });
-  }
+  await Promise.all(
+    channels.map((channel) =>
+      db.delivery.upsert({
+        where: { digestId_channel: { digestId, channel } },
+        create: {
+          digestId,
+          jobId,
+          channel,
+          status: "PENDING",
+        },
+        update: {
+          status: "PENDING",
+          error: null,
+          externalId: null,
+          sentAt: null,
+        },
+      }),
+    ),
+  );
 }
 
 /**
@@ -104,8 +118,9 @@ export async function recordDeliveryResult(
   channel: DeliveryChannelType,
   result: DeliveryResult,
 ): Promise<void> {
+  const now = new Date();
+
   if (result.ok) {
-    const now = new Date();
     await tx.delivery.upsert({
       where: { digestId_channel: { digestId, channel } },
       create: {
@@ -129,19 +144,11 @@ export async function recordDeliveryResult(
         ? { jobId, digestId, channel, externalId: result.externalId }
         : { jobId, digestId, channel };
 
-    const event: DomainEvent = {
+    await persistEvent(tx, {
       type: "DeliverySucceeded",
       payload,
-      aggregateId: digestId,
-      aggregateType: "Delivery",
-      version: 1,
-      correlationId: jobId,
-      causationId: null,
-      metadata: {},
-      occurredAt: now,
-    };
-
-    await persistEvent(tx, event);
+      ...deliveryEventEnvelope(digestId, jobId, now),
+    });
   } else {
     await tx.delivery.upsert({
       where: { digestId_channel: { digestId, channel } },
@@ -158,19 +165,10 @@ export async function recordDeliveryResult(
       },
     });
 
-    const failedAt = new Date();
-    const event: DomainEvent = {
+    await persistEvent(tx, {
       type: "DeliveryFailed",
       payload: { jobId, digestId, channel, error: result.error },
-      aggregateId: digestId,
-      aggregateType: "Delivery",
-      version: 1,
-      correlationId: jobId,
-      causationId: null,
-      metadata: {},
-      occurredAt: failedAt,
-    };
-
-    await persistEvent(tx, event);
+      ...deliveryEventEnvelope(digestId, jobId, now),
+    });
   }
 }

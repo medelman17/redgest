@@ -38,6 +38,7 @@ export const deliverDigest = task({
     // Dispatch to configured channels
     const channels: Array<{
       name: string;
+      type: "EMAIL" | "SLACK";
       send: () => Promise<unknown>;
     }> = [];
 
@@ -45,6 +46,7 @@ export const deliverDigest = task({
       const { DELIVERY_EMAIL, RESEND_API_KEY } = config;
       channels.push({
         name: "email",
+        type: "EMAIL",
         send: () =>
           sendDigestEmail(deliveryData, DELIVERY_EMAIL, RESEND_API_KEY),
       });
@@ -54,6 +56,7 @@ export const deliverDigest = task({
       const webhookUrl = config.SLACK_WEBHOOK_URL;
       channels.push({
         name: "slack",
+        type: "SLACK",
         send: () => sendDigestSlack(deliveryData, webhookUrl),
       });
     }
@@ -64,15 +67,12 @@ export const deliverDigest = task({
     }
 
     // Record pending delivery rows before dispatching
-    const channelTypes = channels.map((ch) =>
-      ch.name === "email" ? ("EMAIL" as const) : ("SLACK" as const),
-    );
     // PrismaClient satisfies DeliveryClient at runtime; Prisma's generated types are stricter
     await recordDeliveryPending(
       prisma as unknown as DeliveryClient,
       payload.digestId,
       digest.jobId,
-      channelTypes,
+      channels.map((ch) => ch.type),
     );
 
     const results = await Promise.allSettled(
@@ -83,8 +83,6 @@ export const deliverDigest = task({
     for (const [i, r] of results.entries()) {
       const ch = channels[i];
       if (!ch) continue;
-      const channel =
-        ch.name === "email" ? ("EMAIL" as const) : ("SLACK" as const);
 
       if (r.status === "fulfilled") {
         delivered.push(ch.name);
@@ -97,7 +95,7 @@ export const deliverDigest = task({
           prisma as unknown as DeliveryTransactionClient,
           payload.digestId,
           digest.jobId,
-          channel,
+          ch.type,
           { ok: true, externalId },
         );
       } else {
@@ -109,7 +107,7 @@ export const deliverDigest = task({
           prisma as unknown as DeliveryTransactionClient,
           payload.digestId,
           digest.jobId,
-          channel,
+          ch.type,
           { ok: false, error: errorMsg },
         );
       }

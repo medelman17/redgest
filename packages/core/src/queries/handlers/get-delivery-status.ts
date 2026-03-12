@@ -76,8 +76,8 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
   const result: DeliveryStatusDigest[] = digests.map((digest) => {
     const rows = deliveryMap.get(digest.id) ?? [];
     const channels: DeliveryStatusChannel[] = rows.map((r) => ({
-      channel: r.channel,
-      status: r.status,
+      channel: r.channel as DeliveryStatusChannel["channel"],
+      status: r.status as DeliveryStatusChannel["status"],
       error: r.error,
       externalId: r.externalId,
       sentAt: r.sentAt ? r.sentAt.toISOString() : null,
