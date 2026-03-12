@@ -12,6 +12,7 @@ import { handleListRuns } from "../queries/handlers/list-runs.js";
 import { handleListSubreddits } from "../queries/handlers/list-subreddits.js";
 import { handleGetConfig } from "../queries/handlers/get-config.js";
 import { handleGetSubredditStats } from "../queries/handlers/get-subreddit-stats.js";
+import { handleCompareDigests } from "../queries/handlers/compare-digests.js";
 import { queryHandlers } from "../queries/handlers/index.js";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
@@ -752,8 +753,231 @@ describe("handleGetSubredditStats", () => {
   });
 });
 
+describe("handleCompareDigests", () => {
+  // Helper to build a mock digest with digestPosts
+  function mockDigestWithPosts(
+    id: string,
+    createdAt: Date,
+    posts: Array<{ id: string; redditId: string; title: string; subreddit: string; score: number; rank: number }>,
+  ) {
+    return {
+      id,
+      createdAt,
+      digestPosts: posts.map((p) => ({
+        rank: p.rank,
+        subreddit: p.subreddit,
+        post: { id: p.id, redditId: p.redditId, title: p.title, subreddit: p.subreddit, score: p.score },
+      })),
+    };
+  }
+
+  it("computes overlap, added, and removed posts between two digests", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), [
+      { id: "p1", redditId: "t3_aaa", title: "Post A1", subreddit: "typescript", score: 100, rank: 1 },
+      { id: "p2", redditId: "t3_bbb", title: "Post A2", subreddit: "typescript", score: 80, rank: 2 },
+      { id: "p3", redditId: "t3_ccc", title: "Post A3", subreddit: "rust", score: 60, rank: 3 },
+    ]);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), [
+      { id: "p2", redditId: "t3_bbb", title: "Post A2", subreddit: "typescript", score: 85, rank: 1 },
+      { id: "p4", redditId: "t3_ddd", title: "Post B1", subreddit: "rust", score: 90, rank: 2 },
+      { id: "p5", redditId: "t3_eee", title: "Post B2", subreddit: "nextjs", score: 70, rank: 3 },
+    ]);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b" },
+      ctx,
+    );
+
+    // Digest summaries
+    expect(result.digestA.id).toBe("d-a");
+    expect(result.digestA.postCount).toBe(3);
+    expect(result.digestA.subreddits).toEqual(["rust", "typescript"]);
+    expect(result.digestB.id).toBe("d-b");
+    expect(result.digestB.postCount).toBe(3);
+    expect(result.digestB.subreddits).toEqual(["nextjs", "rust", "typescript"]);
+
+    // Overlap: t3_bbb is in both
+    expect(result.overlap.count).toBe(1);
+    expect(result.overlap.percentage).toBeCloseTo(33.33, 1);
+    expect(result.overlap.posts[0]?.redditId).toBe("t3_bbb");
+
+    // Added: t3_ddd, t3_eee (in B, not A)
+    expect(result.added.count).toBe(2);
+    expect(result.added.posts.map((p) => p.redditId).sort()).toEqual(["t3_ddd", "t3_eee"]);
+
+    // Removed: t3_aaa, t3_ccc (in A, not B)
+    expect(result.removed.count).toBe(2);
+    expect(result.removed.posts.map((p) => p.redditId).sort()).toEqual(["t3_aaa", "t3_ccc"]);
+
+    // Subreddit deltas
+    expect(result.subredditDeltas).toContainEqual({ subreddit: "typescript", countA: 2, countB: 1, delta: -1 });
+    expect(result.subredditDeltas).toContainEqual({ subreddit: "rust", countA: 1, countB: 1, delta: 0 });
+    expect(result.subredditDeltas).toContainEqual({ subreddit: "nextjs", countA: 0, countB: 1, delta: 1 });
+  });
+
+  it("handles complete overlap (identical digests by content)", async () => {
+    const posts = [
+      { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
+    ];
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), posts);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), posts);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b" },
+      ctx,
+    );
+
+    expect(result.overlap.count).toBe(1);
+    expect(result.overlap.percentage).toBe(100);
+    expect(result.added.count).toBe(0);
+    expect(result.removed.count).toBe(0);
+  });
+
+  it("handles no overlap", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), [
+      { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
+    ]);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), [
+      { id: "p2", redditId: "t3_bbb", title: "Post 2", subreddit: "rust", score: 90, rank: 1 },
+    ]);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b" },
+      ctx,
+    );
+
+    expect(result.overlap.count).toBe(0);
+    expect(result.overlap.percentage).toBe(0);
+    expect(result.added.count).toBe(1);
+    expect(result.removed.count).toBe(1);
+  });
+
+  it("handles both digests empty", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), []);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), []);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b" },
+      ctx,
+    );
+
+    expect(result.overlap.count).toBe(0);
+    expect(result.overlap.percentage).toBe(0);
+    expect(result.added.count).toBe(0);
+    expect(result.removed.count).toBe(0);
+    expect(result.subredditDeltas).toEqual([]);
+  });
+
+  it("handles empty digest A (percentage is 0)", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), []);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), [
+      { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
+    ]);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b" },
+      ctx,
+    );
+
+    expect(result.overlap.percentage).toBe(0);
+    expect(result.added.count).toBe(1);
+    expect(result.removed.count).toBe(0);
+  });
+
+  it("applies subreddit filter", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), [
+      { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
+      { id: "p2", redditId: "t3_bbb", title: "Post 2", subreddit: "rust", score: 80, rank: 2 },
+    ]);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), [
+      { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
+      { id: "p3", redditId: "t3_ccc", title: "Post 3", subreddit: "typescript", score: 70, rank: 2 },
+    ]);
+
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    const result = await handleCompareDigests(
+      { digestIdA: "d-a", digestIdB: "d-b", subreddit: "typescript" },
+      ctx,
+    );
+
+    // Only typescript posts considered
+    expect(result.digestA.postCount).toBe(1);
+    expect(result.digestB.postCount).toBe(2);
+    expect(result.overlap.count).toBe(1);
+    expect(result.added.count).toBe(1);
+    expect(result.removed.count).toBe(0);
+    // Subreddit deltas only include filtered subreddit
+    expect(result.subredditDeltas).toHaveLength(1);
+    expect(result.subredditDeltas[0]).toEqual({ subreddit: "typescript", countA: 1, countB: 2, delta: 1 });
+  });
+
+  it("throws RedgestError NOT_FOUND when digest A not found", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCompareDigests({ digestIdA: "missing", digestIdB: "d-b" }, ctx),
+    ).rejects.toThrow("Digest missing not found");
+  });
+
+  it("fetches digests with correct include shape", async () => {
+    const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), []);
+    const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), []);
+    const mockFindUnique = vi.fn()
+      .mockResolvedValueOnce(digestA)
+      .mockResolvedValueOnce(digestB);
+    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+
+    await handleCompareDigests({ digestIdA: "d-a", digestIdB: "d-b" }, ctx);
+
+    const expectedQuery = {
+      where: { id: "d-a" },
+      include: {
+        digestPosts: {
+          orderBy: { rank: "asc" },
+          include: { post: true },
+        },
+      },
+    };
+    expect(mockFindUnique).toHaveBeenCalledWith(expectedQuery);
+    expect(mockFindUnique).toHaveBeenCalledWith({
+      ...expectedQuery,
+      where: { id: "d-b" },
+    });
+  });
+});
+
 describe("queryHandlers registry", () => {
-  it("registers all 12 handlers", () => {
+  it("registers all 13 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -766,10 +990,11 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.GetConfig).toBe(handleGetConfig);
     expect(queryHandlers.GetLlmMetrics).toBeDefined();
     expect(queryHandlers.GetSubredditStats).toBe(handleGetSubredditStats);
+    expect(queryHandlers.CompareDigests).toBe(handleCompareDigests);
   });
 
-  it("has exactly 12 entries", () => {
+  it("has exactly 13 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(12);
+    expect(handlerCount).toBe(13);
   });
 });

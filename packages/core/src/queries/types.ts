@@ -83,6 +83,49 @@ export type RunStatusDetail = RunView & {
 };
 
 /**
+ * ComparisonPost — minimal post metadata for digest comparison.
+ */
+export interface ComparisonPost {
+  postId: string;
+  redditId: string;
+  title: string;
+  subreddit: string;
+  score: number;
+}
+
+/**
+ * SubredditDelta — per-subreddit post count change between two digests.
+ */
+export interface SubredditDelta {
+  subreddit: string;
+  countA: number;
+  countB: number;
+  delta: number;
+}
+
+/**
+ * DigestSummaryInfo — lightweight digest metadata for comparison.
+ */
+export interface DigestSummaryInfo {
+  id: string;
+  createdAt: string;
+  postCount: number;
+  subreddits: string[];
+}
+
+/**
+ * DigestComparisonResult — full comparison between two digests.
+ */
+export interface DigestComparisonResult {
+  digestA: DigestSummaryInfo;
+  digestB: DigestSummaryInfo;
+  overlap: { count: number; percentage: number; posts: ComparisonPost[] };
+  added: { count: number; posts: ComparisonPost[] };
+  removed: { count: number; posts: ComparisonPost[] };
+  subredditDeltas: SubredditDelta[];
+}
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -99,6 +142,7 @@ export interface QueryMap {
   SearchDigests: { query: string; limit?: number; cursor?: string };
   GetLlmMetrics: { jobId?: string; limit?: number };
   GetSubredditStats: { name?: string };
+  CompareDigests: { digestIdA: string; digestIdB: string; subreddit?: string };
 }
 
 /**
@@ -118,6 +162,7 @@ export interface QueryResultMap {
   SearchDigests: Paginated<Digest>;
   GetLlmMetrics: LlmMetrics;
   GetSubredditStats: SubredditView[];
+  CompareDigests: DigestComparisonResult;
 }
 
 // Derived types

@@ -11,6 +11,7 @@ import { handleListSubreddits } from "./list-subreddits.js";
 import { handleGetConfig } from "./get-config.js";
 import { handleGetLlmMetrics } from "./get-llm-metrics.js";
 import { handleGetSubredditStats } from "./get-subreddit-stats.js";
+import { handleCompareDigests } from "./compare-digests.js";
 
 type QueryHandlerRegistry = {
   [K in QueryType]?: QueryHandler<K>;
@@ -29,6 +30,7 @@ export const queryHandlers: QueryHandlerRegistry = {
   GetConfig: handleGetConfig,
   GetLlmMetrics: handleGetLlmMetrics,
   GetSubredditStats: handleGetSubredditStats,
+  CompareDigests: handleCompareDigests,
 };
 
 export {
@@ -44,4 +46,5 @@ export {
   handleGetConfig,
   handleGetLlmMetrics,
   handleGetSubredditStats,
+  handleCompareDigests,
 };

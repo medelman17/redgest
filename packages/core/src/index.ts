@@ -41,6 +41,10 @@ export type {
   RunStatusSteps,
   SubredditStepDetail,
   StructuredError,
+  DigestComparisonResult,
+  DigestSummaryInfo,
+  ComparisonPost,
+  SubredditDelta,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -71,6 +75,7 @@ export {
   handleGetConfig,
   handleGetLlmMetrics,
   handleGetSubredditStats,
+  handleCompareDigests,
 } from "./queries/handlers/index.js";
 
 // Context
