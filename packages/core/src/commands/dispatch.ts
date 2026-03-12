@@ -52,6 +52,7 @@ const COMMAND_EVENT_TYPES: Record<CommandType, DomainEventType | undefined> = {
   RemoveSubreddit: "SubredditRemoved",
   UpdateSubreddit: undefined,
   UpdateConfig: "ConfigUpdated",
+  CancelRun: "DigestCanceled",
 };
 
 /**
@@ -63,6 +64,7 @@ const COMMAND_AGGREGATE_TYPES: Record<CommandType, string> = {
   RemoveSubreddit: "subreddit",
   UpdateSubreddit: "subreddit",
   UpdateConfig: "config",
+  CancelRun: "job",
 };
 
 type HandlerRegistry = {
@@ -160,7 +162,7 @@ function buildEvent(
  */
 function extractAggregateId(type: CommandType, data: unknown): string {
   const result = data as Record<string, unknown>;
-  if (type === "GenerateDigest" && typeof result.jobId === "string") {
+  if ((type === "GenerateDigest" || type === "CancelRun") && typeof result.jobId === "string") {
     return result.jobId;
   }
   if (typeof result.subredditId === "string") {

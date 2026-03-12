@@ -33,6 +33,9 @@ export interface CommandMap {
     defaultDelivery?: import("@redgest/db").DeliveryChannel;
     schedule?: string | null;
   };
+  CancelRun: {
+    jobId: string;
+  };
 }
 
 /**
@@ -44,6 +47,7 @@ export interface CommandResultMap {
   RemoveSubreddit: { subredditId: string };
   UpdateSubreddit: { subredditId: string };
   UpdateConfig: { success: true };
+  CancelRun: { jobId: string; status: "CANCELED" };
 }
 
 /**
@@ -56,6 +60,7 @@ export interface CommandEventMap {
   RemoveSubreddit: "SubredditRemoved";
   UpdateSubreddit: never;
   UpdateConfig: "ConfigUpdated";
+  CancelRun: "DigestCanceled";
 }
 
 // Derived types
