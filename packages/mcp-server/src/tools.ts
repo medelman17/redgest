@@ -124,6 +124,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **remove_subreddit** — Remove a monitored subreddit by name
 - **update_subreddit** — Update subreddit settings (insight prompt, max posts, active)
 - **list_subreddits** — List all monitored subreddits
+- **get_subreddit_stats** — View per-subreddit metrics (posts fetched, digest appearances, utilization)
 
 ### Configuration
 - **get_config** — View current global configuration
@@ -163,7 +164,8 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | add_subreddit, update_config | INTERNAL_ERROR |
 | cancel_run | NOT_FOUND, CONFLICT, INTERNAL_ERROR |
 | get_llm_metrics | INTERNAL_ERROR |
-| check_reddit_connectivity | INTERNAL_ERROR |`;
+| check_reddit_connectivity | INTERNAL_ERROR |
+| get_subreddit_stats | INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -321,6 +323,18 @@ export function createToolHandlers(
     list_subreddits: async () => {
       return safe(async () => {
         const result = await deps.query("ListSubreddits", {}, deps.ctx);
+        return envelope(result);
+      });
+    },
+
+    get_subreddit_stats: async (args) => {
+      return safe(async () => {
+        const name = args.name as string | undefined;
+        const result = await deps.query(
+          "GetSubredditStats",
+          { name },
+          deps.ctx,
+        );
         return envelope(result);
       });
     },
@@ -554,6 +568,18 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "list_subreddits",
     "List all monitored subreddits.",
     async () => call("list_subreddits", {}),
+  );
+
+  server.tool(
+    "get_subreddit_stats",
+    "View per-subreddit metrics: posts fetched, digest appearances, maxPosts utilization, last digest date. Useful for tuning subreddit configuration.",
+    {
+      name: z
+        .string()
+        .optional()
+        .describe("Subreddit name to get stats for (omit for all)"),
+    },
+    async (args) => call("get_subreddit_stats", args),
   );
 
   server.tool(

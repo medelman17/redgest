@@ -66,6 +66,7 @@ export {
   handleListSubreddits,
   handleGetConfig,
   handleGetLlmMetrics,
+  handleGetSubredditStats,
 } from "./queries/handlers/index.js";
 
 // Context

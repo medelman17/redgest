@@ -58,6 +58,7 @@ export interface QueryMap {
   SearchPosts: { query: string; limit?: number; cursor?: string };
   SearchDigests: { query: string; limit?: number; cursor?: string };
   GetLlmMetrics: { jobId?: string; limit?: number };
+  GetSubredditStats: { name?: string };
 }
 
 /**
@@ -76,6 +77,7 @@ export interface QueryResultMap {
   SearchPosts: Paginated<Post>;
   SearchDigests: Paginated<Digest>;
   GetLlmMetrics: LlmMetrics;
+  GetSubredditStats: SubredditView[];
 }
 
 // Derived types

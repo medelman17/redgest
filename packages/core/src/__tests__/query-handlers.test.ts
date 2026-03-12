@@ -11,6 +11,7 @@ import { handleGetRunStatus } from "../queries/handlers/get-run-status.js";
 import { handleListRuns } from "../queries/handlers/list-runs.js";
 import { handleListSubreddits } from "../queries/handlers/list-subreddits.js";
 import { handleGetConfig } from "../queries/handlers/get-config.js";
+import { handleGetSubredditStats } from "../queries/handlers/get-subreddit-stats.js";
 import { queryHandlers } from "../queries/handlers/index.js";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
@@ -519,8 +520,51 @@ describe("handleGetLlmMetrics", () => {
   });
 });
 
+describe("handleGetSubredditStats", () => {
+  it("returns all subreddits when no name provided", async () => {
+    const mockSubs = [
+      { id: "s-1", name: "askreddit", totalPostsFetched: 50, totalDigestsAppearedIn: 10 },
+      { id: "s-2", name: "typescript", totalPostsFetched: 30, totalDigestsAppearedIn: 5 },
+    ];
+    const mockFindMany = vi.fn().mockResolvedValue(mockSubs);
+    const ctx = makeCtx({ subredditView: { findMany: mockFindMany } });
+
+    const result = await handleGetSubredditStats({}, ctx);
+
+    expect(result).toEqual(mockSubs);
+    expect(mockFindMany).toHaveBeenCalledWith({
+      orderBy: { name: "asc" },
+    });
+  });
+
+  it("filters by name when provided", async () => {
+    const mockSub = [
+      { id: "s-1", name: "typescript", totalPostsFetched: 30 },
+    ];
+    const mockFindMany = vi.fn().mockResolvedValue(mockSub);
+    const ctx = makeCtx({ subredditView: { findMany: mockFindMany } });
+
+    const result = await handleGetSubredditStats({ name: "typescript" }, ctx);
+
+    expect(result).toEqual(mockSub);
+    expect(mockFindMany).toHaveBeenCalledWith({
+      where: { name: "typescript" },
+      orderBy: { name: "asc" },
+    });
+  });
+
+  it("returns empty array when name not found", async () => {
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({ subredditView: { findMany: mockFindMany } });
+
+    const result = await handleGetSubredditStats({ name: "nonexistent" }, ctx);
+
+    expect(result).toEqual([]);
+  });
+});
+
 describe("queryHandlers registry", () => {
-  it("registers all 11 handlers", () => {
+  it("registers all 12 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -532,10 +576,11 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.ListSubreddits).toBe(handleListSubreddits);
     expect(queryHandlers.GetConfig).toBe(handleGetConfig);
     expect(queryHandlers.GetLlmMetrics).toBeDefined();
+    expect(queryHandlers.GetSubredditStats).toBe(handleGetSubredditStats);
   });
 
-  it("has exactly 11 entries", () => {
+  it("has exactly 12 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(11);
+    expect(handlerCount).toBe(12);
   });
 });

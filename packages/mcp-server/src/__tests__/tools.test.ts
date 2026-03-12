@@ -604,6 +604,43 @@ describe("pass-through tools", () => {
     expect(env.ok).toBe(true);
   });
 
+  it("get_subreddit_stats queries GetSubredditStats with no name", async () => {
+    deps.query.mockResolvedValue([
+      { id: "s1", name: "typescript", totalPostsFetched: 50 },
+    ]);
+
+    const result = await invoke(handlers, "get_subreddit_stats", {});
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "GetSubredditStats",
+      { name: undefined },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual([
+      { id: "s1", name: "typescript", totalPostsFetched: 50 },
+    ]);
+  });
+
+  it("get_subreddit_stats filters by name when provided", async () => {
+    deps.query.mockResolvedValue([
+      { id: "s1", name: "typescript", totalPostsFetched: 50 },
+    ]);
+
+    const result = await invoke(handlers, "get_subreddit_stats", {
+      name: "typescript",
+    });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "GetSubredditStats",
+      { name: "typescript" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+  });
+
   it("get_config queries GetConfig", async () => {
     deps.query.mockResolvedValue({ globalInsightPrompt: "test" });
 
