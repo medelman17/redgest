@@ -117,6 +117,7 @@ describe("use_redgest", () => {
     expect(guide).toContain("add_subreddit");
     expect(guide).toContain("list_subreddits");
     expect(guide).toContain("preview_digest");
+    expect(guide).toContain("compare_digests");
   });
 });
 
@@ -1030,5 +1031,124 @@ describe("preview_digest", () => {
     expect(Array.isArray(data.content)).toBe(true);
     expect(data.metadata.blockCount).toBeGreaterThan(0);
     expect(Array.isArray(data.metadata.truncationWarnings)).toBe(true);
+  });
+});
+
+describe("compare_digests", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("delegates to CompareDigests query with resolved UUIDs", async () => {
+    const comparisonResult = {
+      digestA: { id: "d-a", createdAt: "2026-03-10T00:00:00.000Z", postCount: 3, subreddits: ["typescript"] },
+      digestB: { id: "d-b", createdAt: "2026-03-11T00:00:00.000Z", postCount: 2, subreddits: ["rust"] },
+      overlap: { count: 1, percentage: 33.33, posts: [] },
+      added: { count: 1, posts: [] },
+      removed: { count: 2, posts: [] },
+      subredditDeltas: [],
+    };
+    deps.query.mockResolvedValue(comparisonResult);
+
+    const result = await invoke(handlers, "compare_digests", {
+      digestIdA: "d-a",
+      digestIdB: "d-b",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual(comparisonResult);
+    expect(deps.query).toHaveBeenCalledWith(
+      "CompareDigests",
+      { digestIdA: "d-a", digestIdB: "d-b", subreddit: undefined },
+      deps.result.ctx,
+    );
+  });
+
+  it("resolves 'latest' and 'previous' shorthand", async () => {
+    Object.assign(deps.result.db, {
+      digest: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: "d-latest", createdAt: new Date("2026-03-11") },
+          { id: "d-previous", createdAt: new Date("2026-03-10") },
+        ]),
+      },
+    });
+    deps.query.mockResolvedValue({
+      digestA: { id: "d-previous" },
+      digestB: { id: "d-latest" },
+      overlap: { count: 0, percentage: 0, posts: [] },
+      added: { count: 0, posts: [] },
+      removed: { count: 0, posts: [] },
+      subredditDeltas: [],
+    });
+
+    await invoke(handlers, "compare_digests", {
+      digestIdA: "previous",
+      digestIdB: "latest",
+    });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "CompareDigests",
+      { digestIdA: "d-previous", digestIdB: "d-latest", subreddit: undefined },
+      deps.result.ctx,
+    );
+  });
+
+  it("returns NOT_FOUND when fewer than 2 digests exist for shorthand", async () => {
+    Object.assign(deps.result.db, {
+      digest: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: "d-only", createdAt: new Date("2026-03-11") },
+        ]),
+      },
+    });
+
+    const result = await invoke(handlers, "compare_digests", {
+      digestIdA: "previous",
+      digestIdB: "latest",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+
+  it("returns VALIDATION_ERROR when both IDs resolve to same digest", async () => {
+    const result = await invoke(handlers, "compare_digests", {
+      digestIdA: "d-same",
+      digestIdB: "d-same",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("passes subreddit filter to query", async () => {
+    deps.query.mockResolvedValue({
+      digestA: { id: "d-a" },
+      digestB: { id: "d-b" },
+      overlap: { count: 0, percentage: 0, posts: [] },
+      added: { count: 0, posts: [] },
+      removed: { count: 0, posts: [] },
+      subredditDeltas: [],
+    });
+
+    await invoke(handlers, "compare_digests", {
+      digestIdA: "d-a",
+      digestIdB: "d-b",
+      subreddit: "typescript",
+    });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "CompareDigests",
+      { digestIdA: "d-a", digestIdB: "d-b", subreddit: "typescript" },
+      deps.result.ctx,
+    );
   });
 });

@@ -117,6 +117,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **list_digests** — List recent digests
 - **search_digests** — Full-text search across digests
 - **preview_digest** — Preview a digest rendered for a specific delivery channel (markdown, email HTML, Slack blocks)
+- **compare_digests** — Compare two digests: new/dropped posts, overlap, subreddit trends
 
 ### Post Access
 - **get_post** — Get a specific post summary by ID
@@ -169,7 +170,8 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | get_llm_metrics | INTERNAL_ERROR |
 | check_reddit_connectivity | INTERNAL_ERROR |
 | get_subreddit_stats | INTERNAL_ERROR |
-| preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |`;
+| preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |
+| compare_digests | NOT_FOUND, VALIDATION_ERROR, INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -458,6 +460,55 @@ export function createToolHandlers(
           );
         }
         const result = await deps.checkConnectivity();
+        return envelope(result);
+      });
+    },
+
+    compare_digests: async (args) => {
+      return safe(async () => {
+        let digestIdA = args.digestIdA as string;
+        let digestIdB = args.digestIdB as string;
+        const subreddit = args.subreddit as string | undefined;
+
+        // Resolve shorthand
+        const needsResolution = digestIdA === "latest" || digestIdA === "previous"
+          || digestIdB === "latest" || digestIdB === "previous";
+
+        if (needsResolution) {
+          const recent = await deps.db.digest.findMany({
+            take: 2,
+            orderBy: { createdAt: "desc" },
+            select: { id: true, createdAt: true },
+          });
+
+          const resolveId = (value: string): string | null => {
+            if (value !== "latest" && value !== "previous") return value;
+            if (value === "latest") {
+              const first = recent[0];
+              return first ? first.id : null;
+            }
+            const second = recent[1];
+            return second ? second.id : null;
+          };
+
+          const resolvedA = resolveId(digestIdA);
+          const resolvedB = resolveId(digestIdB);
+
+          if (!resolvedA || !resolvedB) {
+            const needed = recent.length < 2 ? "Need at least 2 digests to compare" : "No previous digest found";
+            return envelopeError(ErrorCode.NOT_FOUND, needed);
+          }
+
+          digestIdA = resolvedA;
+          digestIdB = resolvedB;
+        }
+
+        // Validate not comparing same digest
+        if (digestIdA === digestIdB) {
+          return envelopeError(ErrorCode.VALIDATION_ERROR, "Cannot compare a digest with itself");
+        }
+
+        const result = await deps.query("CompareDigests", { digestIdA, digestIdB, subreddit }, deps.ctx);
         return envelope(result);
       });
     },
@@ -759,6 +810,17 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null to disable"),
     },
     async (args) => call("update_config", args),
+  );
+
+  server.tool(
+    "compare_digests",
+    "Compare two digests to see new/dropped posts, overlap percentage, and subreddit trends. Use for trend analysis across runs.",
+    {
+      digestIdA: z.string().describe("Digest UUID, 'latest', or 'previous'"),
+      digestIdB: z.string().describe("Digest UUID, 'latest', or 'previous'"),
+      subreddit: z.string().optional().describe("Filter comparison to a specific subreddit name"),
+    },
+    async (args) => call("compare_digests", args),
   );
 
   server.tool(
