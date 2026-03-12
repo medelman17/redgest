@@ -179,7 +179,7 @@ export interface SubredditPipelineResult {
 /** Final pipeline result with status and all subreddit outcomes. */
 export interface PipelineResult {
   jobId: string;
-  status: "COMPLETED" | "PARTIAL" | "FAILED";
+  status: "COMPLETED" | "PARTIAL" | "FAILED" | "CANCELED";
   digestId?: string;
   subredditResults: SubredditPipelineResult[];
   errors: string[];

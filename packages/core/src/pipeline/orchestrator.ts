@@ -43,6 +43,17 @@ async function emitEvent<K extends DomainEventType>(
   eventBus.emitEvent(event);
 }
 
+async function checkCancellation(
+  jobId: string,
+  db: PrismaClient,
+): Promise<boolean> {
+  const job = await db.job.findUnique({
+    where: { id: jobId },
+    select: { status: true },
+  });
+  return job?.status === "CANCELED";
+}
+
 /**
  * Run the complete digest pipeline.
  *
@@ -126,12 +137,22 @@ async function runPipelineBody(
   // 4. Load dedup set (last 3 digests)
   const previousPostIds = await findPreviousPostIds(db);
 
+  // Check cancellation before starting subreddit processing
+  if (await checkCancellation(jobId, db)) {
+    return { jobId, status: "CANCELED", subredditResults: [], errors: [] };
+  }
+
   // 5. Process each subreddit
   const subredditResults: SubredditPipelineResult[] = [];
   const errors: string[] = [];
 
   for (const sub of subreddits) {
     try {
+      // Checkpoint: before fetch
+      if (await checkCancellation(jobId, db)) {
+        break;
+      }
+
       // --- Fetch ---
       const fetchResult = await fetchStep(
         {
@@ -163,6 +184,11 @@ async function runPipelineBody(
       if (newPosts.length === 0) {
         subredditResults.push({ subreddit: sub.name, posts: [] });
         continue;
+      }
+
+      // Checkpoint: before triage
+      if (await checkCancellation(jobId, db)) {
+        break;
       }
 
       // --- Build insight prompts ---
@@ -210,6 +236,11 @@ async function runPipelineBody(
       for (const sel of triageResult.selected) {
         const postData = newPosts[sel.index];
         if (!postData) continue;
+
+        // Checkpoint: before each summarization
+        if (await checkCancellation(jobId, db)) {
+          break;
+        }
 
         try {
           const sumComments: SummarizationComment[] =
@@ -272,6 +303,19 @@ async function runPipelineBody(
       errors.push(`Failed to process r/${sub.name}: ${msg}`);
       subredditResults.push({ subreddit: sub.name, posts: [], error: msg });
     }
+  }
+
+  // Check if job was canceled — preserve CANCELED status
+  if (await checkCancellation(jobId, db)) {
+    const canceledTotalPosts = subredditResults.reduce(
+      (sum, r) => sum + r.posts.length,
+      0,
+    );
+    // Assemble partial results if any content was generated
+    if (canceledTotalPosts > 0) {
+      await assembleStep(jobId, subredditResults, db);
+    }
+    return { jobId, status: "CANCELED", subredditResults, errors };
   }
 
   // 6. Determine final status

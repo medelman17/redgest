@@ -177,7 +177,10 @@ function getLastJobUpdate(
 // --- Mock DB, EventBus, Deps ---
 
 let mockDb: {
-  job: { update: ReturnType<typeof vi.fn> };
+  job: {
+    update: ReturnType<typeof vi.fn>;
+    findUnique: ReturnType<typeof vi.fn>;
+  };
   subreddit: { findMany: ReturnType<typeof vi.fn> };
   config: { findFirst: ReturnType<typeof vi.fn> };
 };
@@ -191,7 +194,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 
   mockDb = {
-    job: { update: vi.fn().mockResolvedValue({}) },
+    job: {
+      update: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue({ status: "RUNNING" }),
+    },
     subreddit: {
       findMany: vi.fn().mockResolvedValue([makeSubreddit()]),
     },
@@ -688,5 +694,92 @@ describe("error recovery - unhandled exceptions (issue #3)", () => {
     expect(result).toHaveProperty("status", "FAILED");
     expect(result).toHaveProperty("errors");
     expect(result.errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("cancellation checkpoints", () => {
+  it("stops before fetch when job is CANCELED", async () => {
+    mockDb.job.findUnique.mockResolvedValue({ status: "CANCELED" });
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("CANCELED");
+    expect(mockFetchStep).not.toHaveBeenCalled();
+  });
+
+  it("stops before triage when job is CANCELED mid-run", async () => {
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
+      .mockResolvedValueOnce({ status: "CANCELED" }) // before triage → break
+      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("CANCELED");
+    expect(mockFetchStep).toHaveBeenCalled();
+    expect(mockTriageStep).not.toHaveBeenCalled();
+  });
+
+  it("stops before summarize when job is CANCELED mid-run", async () => {
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before triage
+      .mockResolvedValueOnce({ status: "CANCELED" }) // before summarize → break
+      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("CANCELED");
+    expect(mockFetchStep).toHaveBeenCalled();
+    expect(mockTriageStep).toHaveBeenCalled();
+    expect(mockSummarizeStep).not.toHaveBeenCalled();
+  });
+
+  it("preserves partial results when canceled after some summarization", async () => {
+    const sub1 = makeSubreddit({ id: "sub-1", name: "typescript" });
+    const sub2 = makeSubreddit({ id: "sub-2", name: "rust" });
+    mockDb.subreddit.findMany.mockResolvedValue([sub1, sub2]);
+
+    mockFetchStep.mockResolvedValue(makeFetchResult("typescript"));
+
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub1
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before triage sub1
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before summarize sub1 post
+      .mockResolvedValueOnce({ status: "CANCELED" }) // before fetch sub2 → break
+      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("CANCELED");
+    // Sub1 was fully processed before cancellation
+    expect(result.subredditResults.length).toBeGreaterThanOrEqual(1);
+    const sub1Result = result.subredditResults[0];
+    expect(sub1Result).toBeDefined();
+    expect(sub1Result?.posts).toHaveLength(1);
+  });
+
+  it("does not overwrite CANCELED status with COMPLETED", async () => {
+    // All checkpoints return RUNNING, but final check returns CANCELED
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before triage
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before summarize
+      .mockResolvedValue({ status: "CANCELED" });     // final check (after loop)
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("CANCELED");
+    // Job should NOT be updated to COMPLETED
+    const updateCalls = mockDb.job.update.mock.calls;
+    const finalStatuses = updateCalls
+      .map((c: unknown[]) => (c[0] as { data: Record<string, unknown> }).data["status"])
+      .filter((s): s is string => typeof s === "string" && s !== "RUNNING");
+    expect(finalStatuses).not.toContain("COMPLETED");
+    expect(finalStatuses).not.toContain("PARTIAL");
   });
 });
