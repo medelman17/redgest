@@ -1,7 +1,7 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { loadConfig } from "@redgest/config";
 import { prisma } from "@redgest/db";
-import { sendDigestEmail, type DigestDeliveryData } from "@redgest/email";
+import { sendDigestEmail, buildDeliveryData } from "@redgest/email";
 import { sendDigestSlack } from "@redgest/slack";
 
 export const deliverDigest = task({
@@ -27,42 +27,7 @@ export const deliverDigest = task({
       },
     });
 
-    // Build delivery data grouped by subreddit
-    const subredditMap = new Map<
-      string,
-      DigestDeliveryData["subreddits"][number]
-    >();
-
-    for (const dp of digest.digestPosts) {
-      const summary = dp.post.summaries[0];
-      if (!summary) continue;
-
-      let sub = subredditMap.get(dp.subreddit);
-      if (!sub) {
-        sub = { name: dp.subreddit, posts: [] };
-        subredditMap.set(dp.subreddit, sub);
-      }
-
-      sub.posts.push({
-        title: dp.post.title,
-        permalink: dp.post.permalink,
-        score: dp.post.score,
-        summary: summary.summary,
-        keyTakeaways: summary.keyTakeaways as string[],
-        insightNotes: summary.insightNotes,
-        commentHighlights: summary.commentHighlights as Array<{
-          author: string;
-          insight: string;
-          score: number;
-        }>,
-      });
-    }
-
-    const deliveryData: DigestDeliveryData = {
-      digestId: digest.id,
-      createdAt: digest.createdAt,
-      subreddits: Array.from(subredditMap.values()),
-    };
+    const deliveryData = buildDeliveryData(digest);
 
     // Dispatch to configured channels
     const channels: Array<{
