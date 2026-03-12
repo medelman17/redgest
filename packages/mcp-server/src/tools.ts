@@ -2,6 +2,8 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ErrorCode, RedgestError, type ExecuteContext } from "@redgest/core";
 import type { DeliveryChannel } from "@redgest/db";
+import { buildDeliveryData, renderDigestHtml } from "@redgest/email";
+import { formatDigestBlocks, type SlackBlock } from "@redgest/slack";
 import type { BootstrapResult } from "./bootstrap.js";
 import { envelope, envelopeError, type ToolResult } from "./envelope.js";
 
@@ -114,6 +116,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **get_digest** — Get a specific digest by ID, or the latest
 - **list_digests** — List recent digests
 - **search_digests** — Full-text search across digests
+- **preview_digest** — Preview a digest rendered for a specific delivery channel (markdown, email HTML, Slack blocks)
 
 ### Post Access
 - **get_post** — Get a specific post summary by ID
@@ -165,7 +168,8 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | cancel_run | NOT_FOUND, CONFLICT, INTERNAL_ERROR |
 | get_llm_metrics | INTERNAL_ERROR |
 | check_reddit_connectivity | INTERNAL_ERROR |
-| get_subreddit_stats | INTERNAL_ERROR |`;
+| get_subreddit_stats | INTERNAL_ERROR |
+| preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -457,6 +461,114 @@ export function createToolHandlers(
         return envelope(result);
       });
     },
+
+    preview_digest: async (args) => {
+      return safe(async () => {
+        const digestId = args.digestId as string;
+        const channel = (args.channel as string | undefined) ?? "markdown";
+
+        if (!["markdown", "email", "slack"].includes(channel)) {
+          return envelopeError(
+            ErrorCode.VALIDATION_ERROR,
+            `Invalid channel: ${channel}. Must be markdown, email, or slack`,
+          );
+        }
+
+        // Check digest exists and job is in terminal state
+        const digestView = await deps.db.digestView.findUnique({
+          where: { digestId },
+        });
+        if (!digestView) {
+          return envelopeError(ErrorCode.NOT_FOUND, `Digest ${digestId} not found`);
+        }
+
+        const terminalStatuses = ["COMPLETED", "PARTIAL", "FAILED", "CANCELED"];
+        if (!terminalStatuses.includes(digestView.jobStatus)) {
+          return envelopeError(
+            ErrorCode.CONFLICT,
+            `Digest ${digestId} is still being generated (status: ${digestView.jobStatus})`,
+          );
+        }
+
+        // Markdown channel — return stored contentMarkdown
+        if (channel === "markdown") {
+          const content = digestView.contentMarkdown as string;
+          return envelope({
+            channel: "markdown",
+            content,
+            metadata: {
+              sizeBytes: Buffer.byteLength(content, "utf-8"),
+            },
+          });
+        }
+
+        // Email/Slack channels — load full relations and render
+        const digest = await deps.db.digest.findUnique({
+          where: { id: digestId },
+          include: {
+            digestPosts: {
+              orderBy: { rank: "asc" },
+              include: {
+                post: {
+                  include: {
+                    summaries: { take: 1, orderBy: { createdAt: "desc" } },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!digest) {
+          return envelopeError(ErrorCode.NOT_FOUND, `Digest ${digestId} not found`);
+        }
+
+        const deliveryData = buildDeliveryData(digest);
+
+        if (channel === "email") {
+          const html = await renderDigestHtml(deliveryData);
+          return envelope({
+            channel: "email",
+            content: html,
+            metadata: {
+              sizeBytes: Buffer.byteLength(html, "utf-8"),
+            },
+          });
+        }
+
+        // Slack channel
+        const blocks: SlackBlock[] = formatDigestBlocks(deliveryData);
+        const SLACK_BLOCK_LIMIT = 50;
+        const SLACK_TEXT_LIMIT = 3000;
+        const truncationWarnings: string[] = [];
+
+        if (blocks.length > SLACK_BLOCK_LIMIT) {
+          truncationWarnings.push(
+            `Message has ${blocks.length} blocks (limit: ${SLACK_BLOCK_LIMIT})`,
+          );
+        }
+
+        for (const [i, block] of blocks.entries()) {
+          const textLen = block.text?.text?.length ?? 0;
+          if (textLen > SLACK_TEXT_LIMIT) {
+            truncationWarnings.push(
+              `Block ${i + 1} text (${textLen} chars) exceeds Slack's ${SLACK_TEXT_LIMIT} char limit`,
+            );
+          }
+        }
+
+        const serialized = JSON.stringify(blocks);
+        return envelope({
+          channel: "slack",
+          content: blocks,
+          metadata: {
+            sizeBytes: Buffer.byteLength(serialized, "utf-8"),
+            blockCount: blocks.length,
+            truncationWarnings,
+          },
+        });
+      });
+    },
   };
 
   return handlers;
@@ -647,6 +759,19 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null to disable"),
     },
     async (args) => call("update_config", args),
+  );
+
+  server.tool(
+    "preview_digest",
+    "Preview a digest rendered for a specific delivery channel without sending. Returns rendered content + metadata (size, Slack block count, truncation warnings).",
+    {
+      digestId: z.string().describe("Digest ID to preview"),
+      channel: z
+        .enum(["markdown", "email", "slack"])
+        .optional()
+        .describe('Delivery channel format to preview (default: "markdown")'),
+    },
+    async (args) => call("preview_digest", args),
   );
 
   return server;
