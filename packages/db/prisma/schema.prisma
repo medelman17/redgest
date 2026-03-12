@@ -20,6 +20,7 @@ enum JobStatus {
   COMPLETED
   FAILED
   PARTIAL
+  CANCELED
 
   @@map("job_status")
 }
