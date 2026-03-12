@@ -976,8 +976,192 @@ describe("handleCompareDigests", () => {
   });
 });
 
+describe("handleGetDeliveryStatus", () => {
+  it("returns delivery status for a specific digest", async () => {
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
+    const mockDeliveries = [
+      {
+        deliveryId: "del-1",
+        digestId: "d-1",
+        jobId: "j-1",
+        channel: "EMAIL",
+        status: "DELIVERED",
+        error: null,
+        externalId: "ext-1",
+        sentAt: new Date("2026-03-10T00:05:00Z"),
+        createdAt: new Date("2026-03-10T00:04:00Z"),
+        updatedAt: new Date("2026-03-10T00:05:00Z"),
+        digestCreatedAt: new Date("2026-03-10T00:00:00Z"),
+        jobStatus: "COMPLETED",
+      },
+      {
+        deliveryId: "del-2",
+        digestId: "d-1",
+        jobId: "j-1",
+        channel: "SLACK",
+        status: "FAILED",
+        error: "Webhook timeout",
+        externalId: null,
+        sentAt: null,
+        createdAt: new Date("2026-03-10T00:04:00Z"),
+        updatedAt: new Date("2026-03-10T00:05:00Z"),
+        digestCreatedAt: new Date("2026-03-10T00:00:00Z"),
+        jobStatus: "COMPLETED",
+      },
+    ];
+
+    const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
+    const mockFindMany = vi.fn().mockResolvedValue(mockDeliveries);
+    const ctx = makeCtx({
+      digest: { findUnique: mockFindUnique },
+      deliveryView: { findMany: mockFindMany },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+    const result = await handleGetDeliveryStatus({ digestId: "d-1" }, ctx);
+
+    expect(result.digests).toHaveLength(1);
+    expect(result.digests[0]?.digestId).toBe("d-1");
+    expect(result.digests[0]?.digestCreatedAt).toBe("2026-03-10T00:00:00.000Z");
+    expect(result.digests[0]?.jobId).toBe("j-1");
+    expect(result.digests[0]?.channels).toHaveLength(2);
+    expect(result.digests[0]?.channels[0]).toEqual({
+      channel: "EMAIL",
+      status: "DELIVERED",
+      error: null,
+      externalId: "ext-1",
+      sentAt: "2026-03-10T00:05:00.000Z",
+    });
+    expect(result.digests[0]?.channels[1]).toEqual({
+      channel: "SLACK",
+      status: "FAILED",
+      error: "Webhook timeout",
+      externalId: null,
+      sentAt: null,
+    });
+  });
+
+  it("returns recent digests when no digestId provided", async () => {
+    const mockDigests = [
+      { id: "d-2", createdAt: new Date("2026-03-11T00:00:00Z"), jobId: "j-2" },
+      { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" },
+    ];
+    const mockDeliveries = [
+      {
+        deliveryId: "del-3",
+        digestId: "d-2",
+        jobId: "j-2",
+        channel: "EMAIL",
+        status: "DELIVERED",
+        error: null,
+        externalId: "ext-3",
+        sentAt: new Date("2026-03-11T00:05:00Z"),
+        createdAt: new Date("2026-03-11T00:04:00Z"),
+        updatedAt: new Date("2026-03-11T00:05:00Z"),
+        digestCreatedAt: new Date("2026-03-11T00:00:00Z"),
+        jobStatus: "COMPLETED",
+      },
+    ];
+
+    const mockDigestFindMany = vi.fn().mockResolvedValue(mockDigests);
+    const mockDeliveryFindMany = vi.fn().mockResolvedValue(mockDeliveries);
+    const ctx = makeCtx({
+      digest: { findMany: mockDigestFindMany },
+      deliveryView: { findMany: mockDeliveryFindMany },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+    const result = await handleGetDeliveryStatus({}, ctx);
+
+    expect(result.digests).toHaveLength(2);
+    // d-2 has deliveries
+    expect(result.digests[0]?.digestId).toBe("d-2");
+    expect(result.digests[0]?.channels).toHaveLength(1);
+    // d-1 has no deliveries
+    expect(result.digests[1]?.digestId).toBe("d-1");
+    expect(result.digests[1]?.channels).toHaveLength(0);
+  });
+
+  it("throws NOT_FOUND when specific digestId not found", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({
+      digest: { findUnique: mockFindUnique },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+
+    await expect(
+      handleGetDeliveryStatus({ digestId: "nonexistent" }, ctx),
+    ).rejects.toThrow("Digest nonexistent not found");
+  });
+
+  it("clamps limit to max 20", async () => {
+    const mockDigestFindMany = vi.fn().mockResolvedValue([]);
+    const mockDeliveryFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      digest: { findMany: mockDigestFindMany },
+      deliveryView: { findMany: mockDeliveryFindMany },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+    await handleGetDeliveryStatus({ limit: 50 }, ctx);
+
+    expect(mockDigestFindMany).toHaveBeenCalledWith({
+      take: 20,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, createdAt: true, jobId: true },
+    });
+  });
+
+  it("returns empty channels for a digest with no deliveries", async () => {
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
+    const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      digest: { findUnique: mockFindUnique },
+      deliveryView: { findMany: mockFindMany },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+    const result = await handleGetDeliveryStatus({ digestId: "d-1" }, ctx);
+
+    expect(result.digests).toHaveLength(1);
+    expect(result.digests[0]?.channels).toEqual([]);
+  });
+
+  it("uses default limit of 5 when not provided", async () => {
+    const mockDigestFindMany = vi.fn().mockResolvedValue([]);
+    const mockDeliveryFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      digest: { findMany: mockDigestFindMany },
+      deliveryView: { findMany: mockDeliveryFindMany },
+    });
+
+    const { handleGetDeliveryStatus } = await import(
+      "../queries/handlers/get-delivery-status.js"
+    );
+    await handleGetDeliveryStatus({}, ctx);
+
+    expect(mockDigestFindMany).toHaveBeenCalledWith({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, createdAt: true, jobId: true },
+    });
+  });
+});
+
 describe("queryHandlers registry", () => {
-  it("registers all 13 handlers", () => {
+  it("registers all 14 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -991,10 +1175,11 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.GetLlmMetrics).toBeDefined();
     expect(queryHandlers.GetSubredditStats).toBe(handleGetSubredditStats);
     expect(queryHandlers.CompareDigests).toBe(handleCompareDigests);
+    expect(queryHandlers.GetDeliveryStatus).toBeDefined();
   });
 
-  it("has exactly 13 entries", () => {
+  it("has exactly 14 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(13);
+    expect(handlerCount).toBe(14);
   });
 });

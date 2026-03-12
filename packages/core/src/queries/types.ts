@@ -126,6 +126,34 @@ export interface DigestComparisonResult {
 }
 
 /**
+ * DeliveryStatusChannel — per-channel delivery outcome.
+ */
+export interface DeliveryStatusChannel {
+  channel: string;
+  status: string;
+  error: string | null;
+  externalId: string | null;
+  sentAt: string | null;
+}
+
+/**
+ * DeliveryStatusDigest — delivery status for a single digest.
+ */
+export interface DeliveryStatusDigest {
+  digestId: string;
+  digestCreatedAt: string;
+  jobId: string;
+  channels: DeliveryStatusChannel[];
+}
+
+/**
+ * DeliveryStatusResult — delivery status across one or more digests.
+ */
+export interface DeliveryStatusResult {
+  digests: DeliveryStatusDigest[];
+}
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -143,6 +171,7 @@ export interface QueryMap {
   GetLlmMetrics: { jobId?: string; limit?: number };
   GetSubredditStats: { name?: string };
   CompareDigests: { digestIdA: string; digestIdB: string; subreddit?: string };
+  GetDeliveryStatus: { digestId?: string; limit?: number };
 }
 
 /**
@@ -163,6 +192,7 @@ export interface QueryResultMap {
   GetLlmMetrics: LlmMetrics;
   GetSubredditStats: SubredditView[];
   CompareDigests: DigestComparisonResult;
+  GetDeliveryStatus: DeliveryStatusResult;
 }
 
 // Derived types

@@ -45,6 +45,9 @@ export type {
   DigestSummaryInfo,
   ComparisonPost,
   SubredditDelta,
+  DeliveryStatusResult,
+  DeliveryStatusDigest,
+  DeliveryStatusChannel,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -76,6 +79,7 @@ export {
   handleGetLlmMetrics,
   handleGetSubredditStats,
   handleCompareDigests,
+  handleGetDeliveryStatus,
 } from "./queries/handlers/index.js";
 
 // Context
