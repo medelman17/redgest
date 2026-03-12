@@ -81,6 +81,10 @@ export {
 // Context
 export type { HandlerContext, DbClient } from "./context.js";
 
+// Delivery recording
+export { recordDeliveryPending, recordDeliveryResult } from "./delivery/record.js";
+export type { DeliveryClient, DeliveryTransactionClient } from "./delivery/record.js";
+
 // Digest dispatch
 export {
   wireDigestDispatch,
