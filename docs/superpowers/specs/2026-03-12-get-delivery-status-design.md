@@ -2,7 +2,7 @@
 
 **Issue:** #26 — Add get_delivery_status tool for delivery tracking
 **Date:** 2026-03-12
-**Status:** Draft
+**Status:** Approved
 
 ## Problem
 
@@ -29,6 +29,8 @@ Add a `deliveries` table to persist per-channel delivery outcomes, emit domain e
 enum DeliveryChannelType {
   EMAIL
   SLACK
+
+  @@map("delivery_channel_type")
 }
 ```
 
@@ -41,6 +43,8 @@ enum DeliveryStatus {
   PENDING
   SENT
   FAILED
+
+  @@map("delivery_status")
 }
 ```
 
@@ -48,9 +52,9 @@ enum DeliveryStatus {
 
 ```prisma
 model Delivery {
-  id         String              @id @default(dbgenerated("gen_random_uuid()"))
-  digestId   String
-  jobId      String
+  id         String              @id @default(uuid(7))
+  digestId   String              @map("digest_id")
+  jobId      String              @map("job_id")
   channel    DeliveryChannelType
   status     DeliveryStatus      @default(PENDING)
   error      String?
@@ -121,6 +125,10 @@ DeliveryFailed: {
 
 Corresponding Zod schemas added to `eventPayloadSchemas`.
 
+**Event persistence strategy:** The worker persists events to the `events` table for audit trail but does NOT emit to `DomainEventBus` — the worker runs in an isolated Trigger.dev runtime without access to the MCP server's in-process event bus. The delivery row upsert and event persist are wrapped in a single `$transaction` for atomicity. This is an intentional deviation from the `createExecute()` pattern, which is only available within the MCP server process.
+
+**Note on `externalId`:** Only email deliveries populate this field (`sendDigestEmail` returns a Resend message ID). Slack webhooks return void — `externalId` will be `null` for Slack channels. The implementation must narrow the send result type to capture the Resend ID from email responses.
+
 ## Worker Changes (`deliver-digest` task)
 
 ### Current Flow
@@ -136,11 +144,10 @@ Corresponding Zod schemas added to `eventPayloadSchemas`.
 1. Load digest with relations
 2. Build delivery data via `buildDeliveryData()`
 3. Map configured channels to send functions
-4. **Create `PENDING` delivery rows** for each channel via `recordDeliveryPending()`
+4. **Upsert `PENDING` delivery rows** for each channel via `recordDeliveryPending()` (uses `upsert` for idempotency on Trigger.dev retries)
 5. `Promise.allSettled(channels.map(c => c.send()))`
-6. **Upsert delivery rows** to `SENT` or `FAILED` via `recordDeliveryResult()`
-7. **Persist domain events** (`DeliverySucceeded` / `DeliveryFailed`) via `persistEvent()`
-8. Log errors, return `{ delivered: string[] }` (no breaking change)
+6. **Upsert delivery rows to `SENT` or `FAILED` + persist domain events** via `recordDeliveryResult()` — both writes in a single `$transaction`
+7. Log errors, return `{ delivered: string[] }` (no breaking change)
 
 ### Extracted Functions
 
@@ -152,13 +159,18 @@ async function recordDeliveryPending(
   jobId: string,
   channels: DeliveryChannelType[]
 ): Promise<void>
+// Uses upsert (not create) to handle Trigger.dev retries idempotently.
+// On retry, existing PENDING/FAILED rows are reset to PENDING.
 
 async function recordDeliveryResult(
   db: PrismaClient,
   digestId: string,
+  jobId: string,
   channel: DeliveryChannelType,
   result: { status: "SENT"; externalId?: string } | { status: "FAILED"; error: string }
 ): Promise<void>
+// Wraps delivery row upsert + persistEvent() in a single $transaction.
+// Does NOT emit to DomainEventBus (worker has no access to it).
 ```
 
 These are extracted for testability — the Trigger.dev task calls them, but they can be unit tested independently.
@@ -195,7 +207,12 @@ GetDeliveryStatus: {
 - Groups rows by digest, nests channel results.
 - Digest with no delivery rows returns empty `channels: []` (delivery not attempted).
 
-**Implementation:** Query from `delivery_view`, group in handler code.
+**Implementation:** Two-step query approach:
+1. Query `digests` table for the N most recent digests (ordered by `createdAt DESC`)
+2. Query `delivery_view` for delivery rows matching those digest IDs
+3. Group in handler code, returning empty `channels: []` for digests with no delivery rows
+
+This avoids the inner-join limitation of `delivery_view` which would omit digests that have no delivery records yet.
 
 ## MCP Tool
 
@@ -220,7 +237,7 @@ GetDeliveryStatus: {
 
 - **Query handler unit tests:** Mock DB responses, verify grouping logic, `digestId` vs `limit` behavior, max limit clamping, not-found error.
 - **Event schema tests:** Zod validation for `DeliverySucceeded` and `DeliveryFailed` payloads.
-- **`recordDeliveryPending` / `recordDeliveryResult` unit tests:** Verify correct Prisma calls, upsert behavior, status transitions.
+- **`recordDeliveryPending` / `recordDeliveryResult` unit tests:** Verify correct Prisma calls, upsert behavior, status transitions, retry idempotency (calling pending twice doesn't error), and transactional atomicity of result + event persist.
 - **MCP tool integration:** Verify envelope shape, parameter validation, error responses.
 
 ## Files Changed
