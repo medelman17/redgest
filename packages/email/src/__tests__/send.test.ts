@@ -16,14 +16,9 @@ vi.mock("resend", () => {
   };
 });
 
-// Mock react-email render
-vi.mock("@react-email/components", () => ({
-  render: vi.fn().mockResolvedValue("<html>rendered</html>"),
-}));
-
-// Mock the template module
-vi.mock("../template.js", () => ({
-  DigestEmail: vi.fn().mockReturnValue(null),
+// Mock the render module (send.ts now delegates rendering to render.ts)
+vi.mock("../render.js", () => ({
+  renderDigestHtml: vi.fn().mockResolvedValue("<html>rendered</html>"),
 }));
 
 function makeDigest(): DigestDeliveryData {
