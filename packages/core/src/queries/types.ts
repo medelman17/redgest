@@ -43,6 +43,46 @@ export interface LlmMetrics {
 }
 
 /**
+ * Per-subreddit step completion detail.
+ */
+export interface SubredditStepDetail {
+  subreddit: string;
+  count: number;
+  completedAt: string;
+}
+
+/**
+ * Step-level breakdown of a pipeline run.
+ */
+export interface RunStatusSteps {
+  fetch: SubredditStepDetail[];
+  triage: SubredditStepDetail[];
+  summarize: SubredditStepDetail[];
+  assemble: {
+    status: "pending" | "completed";
+    digestId?: string;
+    completedAt?: string;
+  };
+}
+
+/**
+ * Structured error with step and subreddit context.
+ */
+export interface StructuredError {
+  step: string;
+  subreddit?: string;
+  message: string;
+}
+
+/**
+ * Enriched run status with per-step breakdown and structured errors.
+ */
+export type RunStatusDetail = RunView & {
+  steps: RunStatusSteps;
+  structuredErrors: StructuredError[];
+};
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -69,7 +109,7 @@ export interface QueryResultMap {
   GetDigest: DigestView | null;
   GetDigestByJobId: DigestView | null;
   GetPost: PostView | null;
-  GetRunStatus: RunView | null;
+  GetRunStatus: RunStatusDetail | null;
   ListDigests: Paginated<DigestView>;
   ListRuns: Paginated<RunView>;
   ListSubreddits: SubredditView[];

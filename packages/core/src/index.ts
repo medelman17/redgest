@@ -37,6 +37,10 @@ export type {
   Paginated,
   LlmMetrics,
   LlmTaskMetrics,
+  RunStatusDetail,
+  RunStatusSteps,
+  SubredditStepDetail,
+  StructuredError,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";

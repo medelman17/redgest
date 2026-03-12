@@ -245,17 +245,91 @@ describe("handleSearchPosts", () => {
 });
 
 describe("handleGetRunStatus", () => {
-  it("returns a run view by jobId", async () => {
-    const mockRun = { jobId: "j-1", status: "COMPLETED" };
+  it("returns enriched run status with step breakdown", async () => {
+    const mockRun = {
+      jobId: "j-1",
+      status: "COMPLETED",
+      error: null,
+      eventCount: 7,
+      lastEventType: "DigestCompleted",
+      lastEventAt: new Date("2026-03-12T10:05:00Z"),
+      durationSeconds: 30,
+      triggerRunId: null,
+      startedAt: new Date("2026-03-12T10:00:00Z"),
+      completedAt: new Date("2026-03-12T10:00:30Z"),
+      createdAt: new Date("2026-03-12T10:00:00Z"),
+      progress: null,
+      subreddits: ["s-1", "s-2"],
+    };
+    const mockEvents = [
+      {
+        type: "PostsFetched",
+        payload: { jobId: "j-1", subreddit: "typescript", count: 25 },
+        createdAt: new Date("2026-03-12T10:00:05Z"),
+      },
+      {
+        type: "PostsFetched",
+        payload: { jobId: "j-1", subreddit: "rust", count: 18 },
+        createdAt: new Date("2026-03-12T10:00:08Z"),
+      },
+      {
+        type: "PostsTriaged",
+        payload: { jobId: "j-1", subreddit: "typescript", selectedCount: 5 },
+        createdAt: new Date("2026-03-12T10:00:12Z"),
+      },
+      {
+        type: "PostsTriaged",
+        payload: { jobId: "j-1", subreddit: "rust", selectedCount: 3 },
+        createdAt: new Date("2026-03-12T10:00:15Z"),
+      },
+      {
+        type: "PostsSummarized",
+        payload: { jobId: "j-1", subreddit: "typescript", summaryCount: 5 },
+        createdAt: new Date("2026-03-12T10:00:22Z"),
+      },
+      {
+        type: "PostsSummarized",
+        payload: { jobId: "j-1", subreddit: "rust", summaryCount: 3 },
+        createdAt: new Date("2026-03-12T10:00:25Z"),
+      },
+      {
+        type: "DigestCompleted",
+        payload: { jobId: "j-1", digestId: "d-1" },
+        createdAt: new Date("2026-03-12T10:00:28Z"),
+      },
+    ];
     const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
-    const ctx = makeCtx({ runView: { findUnique: mockFindUnique } });
+    const mockEventFindMany = vi.fn().mockResolvedValue(mockEvents);
+    const ctx = makeCtx({
+      runView: { findUnique: mockFindUnique },
+      event: { findMany: mockEventFindMany },
+    });
 
     const result = await handleGetRunStatus({ jobId: "j-1" }, ctx);
 
-    expect(result).toEqual(mockRun);
-    expect(mockFindUnique).toHaveBeenCalledWith({
-      where: { jobId: "j-1" },
+    expect(result).not.toBeNull();
+    // Preserves all RunView fields
+    expect(result?.jobId).toBe("j-1");
+    expect(result?.status).toBe("COMPLETED");
+
+    // Step breakdown
+    expect(result?.steps.fetch).toHaveLength(2);
+    expect(result?.steps.fetch[0]).toEqual({
+      subreddit: "typescript",
+      count: 25,
+      completedAt: "2026-03-12T10:00:05.000Z",
     });
+    expect(result?.steps.triage).toHaveLength(2);
+    expect(result?.steps.triage[0]?.count).toBe(5);
+    expect(result?.steps.summarize).toHaveLength(2);
+    expect(result?.steps.assemble).toEqual({
+      status: "completed",
+      digestId: "d-1",
+      completedAt: "2026-03-12T10:00:28.000Z",
+    });
+
+    // No errors
+    expect(result?.structuredErrors).toEqual([]);
   });
 
   it("returns null when run not found", async () => {
@@ -265,6 +339,121 @@ describe("handleGetRunStatus", () => {
     const result = await handleGetRunStatus({ jobId: "nonexistent" }, ctx);
 
     expect(result).toBeNull();
+  });
+
+  it("parses structured errors from error string", async () => {
+    const mockRun = {
+      jobId: "j-2",
+      status: "PARTIAL",
+      error:
+        "Failed to process r/golang: rate limited; Failed to summarize post abc123: timeout",
+      eventCount: 3,
+      lastEventType: "DigestCompleted",
+      lastEventAt: new Date(),
+      durationSeconds: 45,
+      triggerRunId: null,
+      startedAt: new Date(),
+      completedAt: new Date(),
+      createdAt: new Date(),
+      progress: null,
+      subreddits: ["s-1"],
+    };
+    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockEventFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      runView: { findUnique: mockFindUnique },
+      event: { findMany: mockEventFindMany },
+    });
+
+    const result = await handleGetRunStatus({ jobId: "j-2" }, ctx);
+
+    expect(result?.structuredErrors).toEqual([
+      { step: "fetch", subreddit: "golang", message: "rate limited" },
+      { step: "summarize", message: "timeout" },
+    ]);
+  });
+
+  it("returns pending assemble when no DigestCompleted event", async () => {
+    const mockRun = {
+      jobId: "j-3",
+      status: "RUNNING",
+      error: null,
+      eventCount: 2,
+      lastEventType: "PostsFetched",
+      lastEventAt: new Date(),
+      durationSeconds: null,
+      triggerRunId: null,
+      startedAt: new Date(),
+      completedAt: null,
+      createdAt: new Date(),
+      progress: null,
+      subreddits: ["s-1"],
+    };
+    const mockEvents = [
+      {
+        type: "PostsFetched",
+        payload: { jobId: "j-3", subreddit: "python", count: 10 },
+        createdAt: new Date("2026-03-12T10:00:05Z"),
+      },
+    ];
+    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockEventFindMany = vi.fn().mockResolvedValue(mockEvents);
+    const ctx = makeCtx({
+      runView: { findUnique: mockFindUnique },
+      event: { findMany: mockEventFindMany },
+    });
+
+    const result = await handleGetRunStatus({ jobId: "j-3" }, ctx);
+
+    expect(result?.steps.fetch).toHaveLength(1);
+    expect(result?.steps.triage).toHaveLength(0);
+    expect(result?.steps.summarize).toHaveLength(0);
+    expect(result?.steps.assemble).toEqual({ status: "pending" });
+  });
+
+  it("queries events with correct filters", async () => {
+    const mockRun = {
+      jobId: "j-4",
+      status: "COMPLETED",
+      error: null,
+      eventCount: 0,
+      lastEventType: null,
+      lastEventAt: null,
+      durationSeconds: 10,
+      triggerRunId: null,
+      startedAt: new Date(),
+      completedAt: new Date(),
+      createdAt: new Date(),
+      progress: null,
+      subreddits: [],
+    };
+    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockEventFindMany = vi.fn().mockResolvedValue([]);
+    const ctx = makeCtx({
+      runView: { findUnique: mockFindUnique },
+      event: { findMany: mockEventFindMany },
+    });
+
+    await handleGetRunStatus({ jobId: "j-4" }, ctx);
+
+    expect(mockEventFindMany).toHaveBeenCalledWith({
+      where: {
+        aggregateId: "j-4",
+        aggregateType: "job",
+        type: {
+          in: [
+            "PostsFetched",
+            "PostsTriaged",
+            "PostsSummarized",
+            "DigestCompleted",
+            "DigestFailed",
+            "DigestCanceled",
+          ],
+        },
+      },
+      orderBy: { createdAt: "asc" },
+      select: { type: true, payload: true, createdAt: true },
+    });
   });
 });
 

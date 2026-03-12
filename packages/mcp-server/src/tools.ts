@@ -496,7 +496,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "get_run_status",
-    "Check the status of a digest run by job ID.",
+    "Check the status of a digest run by job ID. Returns per-step breakdown (fetch/triage/summarize/assemble) with per-subreddit counts and timing, plus structured error details.",
     { jobId: z.string().describe("The job ID returned by generate_digest") },
     async (args) => call("get_run_status", args),
   );
