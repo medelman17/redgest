@@ -338,6 +338,40 @@ export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBigIntFilter<$PrismaModel>
 }
 
+export type EnumDeliveryChannelTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryChannelType | Prisma.EnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel> | $Enums.DeliveryChannelType
+}
+
+export type EnumDeliveryStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryStatus | Prisma.EnumDeliveryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel> | $Enums.DeliveryStatus
+}
+
+export type EnumDeliveryChannelTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryChannelType | Prisma.EnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryChannelTypeWithAggregatesFilter<$PrismaModel> | $Enums.DeliveryChannelType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel>
+}
+
+export type EnumDeliveryStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryStatus | Prisma.EnumDeliveryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryStatusWithAggregatesFilter<$PrismaModel> | $Enums.DeliveryStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel>
+}
+
 export type IntNullableFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null
@@ -646,6 +680,40 @@ export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedBigIntFilter<$PrismaModel>
   _min?: Prisma.NestedBigIntFilter<$PrismaModel>
   _max?: Prisma.NestedBigIntFilter<$PrismaModel>
+}
+
+export type NestedEnumDeliveryChannelTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryChannelType | Prisma.EnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel> | $Enums.DeliveryChannelType
+}
+
+export type NestedEnumDeliveryStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryStatus | Prisma.EnumDeliveryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel> | $Enums.DeliveryStatus
+}
+
+export type NestedEnumDeliveryChannelTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryChannelType | Prisma.EnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryChannelType[] | Prisma.ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryChannelTypeWithAggregatesFilter<$PrismaModel> | $Enums.DeliveryChannelType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeliveryChannelTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumDeliveryStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeliveryStatus | Prisma.EnumDeliveryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DeliveryStatus[] | Prisma.ListEnumDeliveryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDeliveryStatusWithAggregatesFilter<$PrismaModel> | $Enums.DeliveryStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeliveryStatusFilter<$PrismaModel>
 }
 
 export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {

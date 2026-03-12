@@ -188,6 +188,7 @@ export type DigestWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Digest"> | Date | string
   job?: Prisma.XOR<Prisma.JobScalarRelationFilter, Prisma.JobWhereInput>
   digestPosts?: Prisma.DigestPostListRelationFilter
+  deliveries?: Prisma.DeliveryListRelationFilter
 }
 
 export type DigestOrderByWithRelationInput = {
@@ -199,6 +200,7 @@ export type DigestOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   job?: Prisma.JobOrderByWithRelationInput
   digestPosts?: Prisma.DigestPostOrderByRelationAggregateInput
+  deliveries?: Prisma.DeliveryOrderByRelationAggregateInput
 }
 
 export type DigestWhereUniqueInput = Prisma.AtLeast<{
@@ -213,6 +215,7 @@ export type DigestWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Digest"> | Date | string
   job?: Prisma.XOR<Prisma.JobScalarRelationFilter, Prisma.JobWhereInput>
   digestPosts?: Prisma.DigestPostListRelationFilter
+  deliveries?: Prisma.DeliveryListRelationFilter
 }, "id" | "jobId">
 
 export type DigestOrderByWithAggregationInput = {
@@ -247,6 +250,7 @@ export type DigestCreateInput = {
   createdAt?: Date | string
   job: Prisma.JobCreateNestedOneWithoutDigestInput
   digestPosts?: Prisma.DigestPostCreateNestedManyWithoutDigestInput
+  deliveries?: Prisma.DeliveryCreateNestedManyWithoutDigestInput
 }
 
 export type DigestUncheckedCreateInput = {
@@ -257,6 +261,7 @@ export type DigestUncheckedCreateInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutDigestInput
+  deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDigestInput
 }
 
 export type DigestUpdateInput = {
@@ -267,6 +272,7 @@ export type DigestUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   job?: Prisma.JobUpdateOneRequiredWithoutDigestNestedInput
   digestPosts?: Prisma.DigestPostUpdateManyWithoutDigestNestedInput
+  deliveries?: Prisma.DeliveryUpdateManyWithoutDigestNestedInput
 }
 
 export type DigestUncheckedUpdateInput = {
@@ -277,6 +283,7 @@ export type DigestUncheckedUpdateInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutDigestNestedInput
+  deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDigestNestedInput
 }
 
 export type DigestCreateManyInput = {
@@ -386,6 +393,20 @@ export type DigestUpdateOneRequiredWithoutDigestPostsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DigestUpdateToOneWithWhereWithoutDigestPostsInput, Prisma.DigestUpdateWithoutDigestPostsInput>, Prisma.DigestUncheckedUpdateWithoutDigestPostsInput>
 }
 
+export type DigestCreateNestedOneWithoutDeliveriesInput = {
+  create?: Prisma.XOR<Prisma.DigestCreateWithoutDeliveriesInput, Prisma.DigestUncheckedCreateWithoutDeliveriesInput>
+  connectOrCreate?: Prisma.DigestCreateOrConnectWithoutDeliveriesInput
+  connect?: Prisma.DigestWhereUniqueInput
+}
+
+export type DigestUpdateOneRequiredWithoutDeliveriesNestedInput = {
+  create?: Prisma.XOR<Prisma.DigestCreateWithoutDeliveriesInput, Prisma.DigestUncheckedCreateWithoutDeliveriesInput>
+  connectOrCreate?: Prisma.DigestCreateOrConnectWithoutDeliveriesInput
+  upsert?: Prisma.DigestUpsertWithoutDeliveriesInput
+  connect?: Prisma.DigestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DigestUpdateToOneWithWhereWithoutDeliveriesInput, Prisma.DigestUpdateWithoutDeliveriesInput>, Prisma.DigestUncheckedUpdateWithoutDeliveriesInput>
+}
+
 export type DigestCreateWithoutJobInput = {
   id?: string
   contentMarkdown: string
@@ -393,6 +414,7 @@ export type DigestCreateWithoutJobInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   digestPosts?: Prisma.DigestPostCreateNestedManyWithoutDigestInput
+  deliveries?: Prisma.DeliveryCreateNestedManyWithoutDigestInput
 }
 
 export type DigestUncheckedCreateWithoutJobInput = {
@@ -402,6 +424,7 @@ export type DigestUncheckedCreateWithoutJobInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutDigestInput
+  deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDigestInput
 }
 
 export type DigestCreateOrConnectWithoutJobInput = {
@@ -427,6 +450,7 @@ export type DigestUpdateWithoutJobInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   digestPosts?: Prisma.DigestPostUpdateManyWithoutDigestNestedInput
+  deliveries?: Prisma.DeliveryUpdateManyWithoutDigestNestedInput
 }
 
 export type DigestUncheckedUpdateWithoutJobInput = {
@@ -436,6 +460,7 @@ export type DigestUncheckedUpdateWithoutJobInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutDigestNestedInput
+  deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDigestNestedInput
 }
 
 export type DigestCreateWithoutDigestPostsInput = {
@@ -445,6 +470,7 @@ export type DigestCreateWithoutDigestPostsInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   job: Prisma.JobCreateNestedOneWithoutDigestInput
+  deliveries?: Prisma.DeliveryCreateNestedManyWithoutDigestInput
 }
 
 export type DigestUncheckedCreateWithoutDigestPostsInput = {
@@ -454,6 +480,7 @@ export type DigestUncheckedCreateWithoutDigestPostsInput = {
   contentHtml?: string | null
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDigestInput
 }
 
 export type DigestCreateOrConnectWithoutDigestPostsInput = {
@@ -479,6 +506,7 @@ export type DigestUpdateWithoutDigestPostsInput = {
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   job?: Prisma.JobUpdateOneRequiredWithoutDigestNestedInput
+  deliveries?: Prisma.DeliveryUpdateManyWithoutDigestNestedInput
 }
 
 export type DigestUncheckedUpdateWithoutDigestPostsInput = {
@@ -488,6 +516,63 @@ export type DigestUncheckedUpdateWithoutDigestPostsInput = {
   contentHtml?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDigestNestedInput
+}
+
+export type DigestCreateWithoutDeliveriesInput = {
+  id?: string
+  contentMarkdown: string
+  contentHtml?: string | null
+  contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  job: Prisma.JobCreateNestedOneWithoutDigestInput
+  digestPosts?: Prisma.DigestPostCreateNestedManyWithoutDigestInput
+}
+
+export type DigestUncheckedCreateWithoutDeliveriesInput = {
+  id?: string
+  jobId: string
+  contentMarkdown: string
+  contentHtml?: string | null
+  contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  digestPosts?: Prisma.DigestPostUncheckedCreateNestedManyWithoutDigestInput
+}
+
+export type DigestCreateOrConnectWithoutDeliveriesInput = {
+  where: Prisma.DigestWhereUniqueInput
+  create: Prisma.XOR<Prisma.DigestCreateWithoutDeliveriesInput, Prisma.DigestUncheckedCreateWithoutDeliveriesInput>
+}
+
+export type DigestUpsertWithoutDeliveriesInput = {
+  update: Prisma.XOR<Prisma.DigestUpdateWithoutDeliveriesInput, Prisma.DigestUncheckedUpdateWithoutDeliveriesInput>
+  create: Prisma.XOR<Prisma.DigestCreateWithoutDeliveriesInput, Prisma.DigestUncheckedCreateWithoutDeliveriesInput>
+  where?: Prisma.DigestWhereInput
+}
+
+export type DigestUpdateToOneWithWhereWithoutDeliveriesInput = {
+  where?: Prisma.DigestWhereInput
+  data: Prisma.XOR<Prisma.DigestUpdateWithoutDeliveriesInput, Prisma.DigestUncheckedUpdateWithoutDeliveriesInput>
+}
+
+export type DigestUpdateWithoutDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  contentMarkdown?: Prisma.StringFieldUpdateOperationsInput | string
+  contentHtml?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  job?: Prisma.JobUpdateOneRequiredWithoutDigestNestedInput
+  digestPosts?: Prisma.DigestPostUpdateManyWithoutDigestNestedInput
+}
+
+export type DigestUncheckedUpdateWithoutDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  jobId?: Prisma.StringFieldUpdateOperationsInput | string
+  contentMarkdown?: Prisma.StringFieldUpdateOperationsInput | string
+  contentHtml?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentSlackBlocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  digestPosts?: Prisma.DigestPostUncheckedUpdateManyWithoutDigestNestedInput
 }
 
 
@@ -497,10 +582,12 @@ export type DigestUncheckedUpdateWithoutDigestPostsInput = {
 
 export type DigestCountOutputType = {
   digestPosts: number
+  deliveries: number
 }
 
 export type DigestCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   digestPosts?: boolean | DigestCountOutputTypeCountDigestPostsArgs
+  deliveries?: boolean | DigestCountOutputTypeCountDeliveriesArgs
 }
 
 /**
@@ -520,6 +607,13 @@ export type DigestCountOutputTypeCountDigestPostsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.DigestPostWhereInput
 }
 
+/**
+ * DigestCountOutputType without action
+ */
+export type DigestCountOutputTypeCountDeliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeliveryWhereInput
+}
+
 
 export type DigestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -530,6 +624,7 @@ export type DigestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdAt?: boolean
   job?: boolean | Prisma.JobDefaultArgs<ExtArgs>
   digestPosts?: boolean | Prisma.Digest$digestPostsArgs<ExtArgs>
+  deliveries?: boolean | Prisma.Digest$deliveriesArgs<ExtArgs>
   _count?: boolean | Prisma.DigestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["digest"]>
 
@@ -566,6 +661,7 @@ export type DigestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type DigestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   job?: boolean | Prisma.JobDefaultArgs<ExtArgs>
   digestPosts?: boolean | Prisma.Digest$digestPostsArgs<ExtArgs>
+  deliveries?: boolean | Prisma.Digest$deliveriesArgs<ExtArgs>
   _count?: boolean | Prisma.DigestCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DigestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -580,6 +676,7 @@ export type $DigestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     job: Prisma.$JobPayload<ExtArgs>
     digestPosts: Prisma.$DigestPostPayload<ExtArgs>[]
+    deliveries: Prisma.$DeliveryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -984,6 +1081,7 @@ export interface Prisma__DigestClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   job<T extends Prisma.JobDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.JobDefaultArgs<ExtArgs>>): Prisma.Prisma__JobClient<runtime.Types.Result.GetResult<Prisma.$JobPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   digestPosts<T extends Prisma.Digest$digestPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Digest$digestPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DigestPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deliveries<T extends Prisma.Digest$deliveriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Digest$deliveriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeliveryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1436,6 +1534,30 @@ export type Digest$digestPostsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.DigestPostScalarFieldEnum | Prisma.DigestPostScalarFieldEnum[]
+}
+
+/**
+ * Digest.deliveries
+ */
+export type Digest$deliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Delivery
+   */
+  select?: Prisma.DeliverySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Delivery
+   */
+  omit?: Prisma.DeliveryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeliveryInclude<ExtArgs> | null
+  where?: Prisma.DeliveryWhereInput
+  orderBy?: Prisma.DeliveryOrderByWithRelationInput | Prisma.DeliveryOrderByWithRelationInput[]
+  cursor?: Prisma.DeliveryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeliveryScalarFieldEnum | Prisma.DeliveryScalarFieldEnum[]
 }
 
 /**

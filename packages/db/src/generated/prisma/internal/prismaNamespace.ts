@@ -394,10 +394,12 @@ export const ModelName = {
   Digest: 'Digest',
   DigestPost: 'DigestPost',
   LlmCall: 'LlmCall',
+  Delivery: 'Delivery',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
-  SubredditView: 'SubredditView'
+  SubredditView: 'SubredditView',
+  DeliveryView: 'DeliveryView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "digestView" | "postView" | "runView" | "subredditView"
+    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "delivery" | "digestView" | "postView" | "runView" | "subredditView" | "deliveryView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1157,6 +1159,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Delivery: {
+      payload: Prisma.$DeliveryPayload<ExtArgs>
+      fields: Prisma.DeliveryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DeliveryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DeliveryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        findFirst: {
+          args: Prisma.DeliveryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DeliveryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        findMany: {
+          args: Prisma.DeliveryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>[]
+        }
+        create: {
+          args: Prisma.DeliveryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        createMany: {
+          args: Prisma.DeliveryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DeliveryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>[]
+        }
+        delete: {
+          args: Prisma.DeliveryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        update: {
+          args: Prisma.DeliveryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        deleteMany: {
+          args: Prisma.DeliveryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DeliveryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DeliveryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>[]
+        }
+        upsert: {
+          args: Prisma.DeliveryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryPayload>
+        }
+        aggregate: {
+          args: Prisma.DeliveryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDelivery>
+        }
+        groupBy: {
+          args: Prisma.DeliveryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DeliveryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryCountAggregateOutputType> | number
+        }
+      }
+    }
     DigestView: {
       payload: Prisma.$DigestViewPayload<ExtArgs>
       fields: Prisma.DigestViewFieldRefs
@@ -1306,6 +1382,44 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SubredditViewCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SubredditViewCountAggregateOutputType> | number
+        }
+      }
+    }
+    DeliveryView: {
+      payload: Prisma.$DeliveryViewPayload<ExtArgs>
+      fields: Prisma.DeliveryViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DeliveryViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DeliveryViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryViewPayload>
+        }
+        findFirst: {
+          args: Prisma.DeliveryViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DeliveryViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryViewPayload>
+        }
+        findMany: {
+          args: Prisma.DeliveryViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.DeliveryViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDeliveryView>
+        }
+        groupBy: {
+          args: Prisma.DeliveryViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DeliveryViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryViewCountAggregateOutputType> | number
         }
       }
     }
@@ -1498,6 +1612,22 @@ export const LlmCallScalarFieldEnum = {
 export type LlmCallScalarFieldEnum = (typeof LlmCallScalarFieldEnum)[keyof typeof LlmCallScalarFieldEnum]
 
 
+export const DeliveryScalarFieldEnum = {
+  id: 'id',
+  digestId: 'digestId',
+  jobId: 'jobId',
+  channel: 'channel',
+  status: 'status',
+  error: 'error',
+  externalId: 'externalId',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeliveryScalarFieldEnum = (typeof DeliveryScalarFieldEnum)[keyof typeof DeliveryScalarFieldEnum]
+
+
 export const DigestViewScalarFieldEnum = {
   digestId: 'digestId',
   jobId: 'jobId',
@@ -1575,6 +1705,24 @@ export const SubredditViewScalarFieldEnum = {
 } as const
 
 export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
+
+
+export const DeliveryViewScalarFieldEnum = {
+  deliveryId: 'deliveryId',
+  digestId: 'digestId',
+  jobId: 'jobId',
+  channel: 'channel',
+  status: 'status',
+  error: 'error',
+  externalId: 'externalId',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  digestCreatedAt: 'digestCreatedAt',
+  jobStatus: 'jobStatus'
+} as const
+
+export type DeliveryViewScalarFieldEnum = (typeof DeliveryViewScalarFieldEnum)[keyof typeof DeliveryViewScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1737,6 +1885,34 @@ export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'DeliveryChannelType'
+ */
+export type EnumDeliveryChannelTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryChannelType'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryChannelType[]'
+ */
+export type ListEnumDeliveryChannelTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryChannelType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryStatus'
+ */
+export type EnumDeliveryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryStatus[]'
+ */
+export type ListEnumDeliveryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1854,10 +2030,12 @@ export type GlobalOmitConfig = {
   digest?: Prisma.DigestOmit
   digestPost?: Prisma.DigestPostOmit
   llmCall?: Prisma.LlmCallOmit
+  delivery?: Prisma.DeliveryOmit
   digestView?: Prisma.DigestViewOmit
   postView?: Prisma.PostViewOmit
   runView?: Prisma.RunViewOmit
   subredditView?: Prisma.SubredditViewOmit
+  deliveryView?: Prisma.DeliveryViewOmit
 }
 
 /* Types for Logging */

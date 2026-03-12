@@ -92,6 +92,11 @@ export type DigestPost = Prisma.DigestPostModel
  */
 export type LlmCall = Prisma.LlmCallModel
 /**
+ * Model Delivery
+ * 
+ */
+export type Delivery = Prisma.DeliveryModel
+/**
  * Model DigestView
  * 
  */
@@ -111,3 +116,8 @@ export type RunView = Prisma.RunViewModel
  * 
  */
 export type SubredditView = Prisma.SubredditViewModel
+/**
+ * Model DeliveryView
+ * 
+ */
+export type DeliveryView = Prisma.DeliveryViewModel

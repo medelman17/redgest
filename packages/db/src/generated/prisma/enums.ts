@@ -29,3 +29,20 @@ export const DeliveryChannel = {
 } as const
 
 export type DeliveryChannel = (typeof DeliveryChannel)[keyof typeof DeliveryChannel]
+
+
+export const DeliveryChannelType = {
+  EMAIL: 'EMAIL',
+  SLACK: 'SLACK'
+} as const
+
+export type DeliveryChannelType = (typeof DeliveryChannelType)[keyof typeof DeliveryChannelType]
+
+
+export const DeliveryStatus = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED'
+} as const
+
+export type DeliveryStatus = (typeof DeliveryStatus)[keyof typeof DeliveryStatus]

@@ -34,6 +34,21 @@ enum DeliveryChannel {
   @@map("delivery_channel")
 }
 
+enum DeliveryChannelType {
+  EMAIL
+  SLACK
+
+  @@map("delivery_channel_type")
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+
+  @@map("delivery_status")
+}
+
 // ─── Subreddit (config table for tracked subs) ───────────
 
 model Subreddit {
@@ -83,6 +98,7 @@ model Job {
   postSummaries PostSummary[]
   digest        Digest?
   llmCalls      LlmCall[]
+  deliveries    Delivery[]
 
   @@index([status])
   @@index([createdAt])
@@ -191,6 +207,7 @@ model Digest {
 
   job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
   digestPosts DigestPost[]
+  deliveries  Delivery[]
 
   @@map("digests")
 }
@@ -232,6 +249,28 @@ model LlmCall {
   @@index([jobId])
   @@index([task, createdAt])
   @@map("llm_calls")
+}
+
+// ─── Delivery (per-channel delivery outcome tracking) ─────
+
+model Delivery {
+  id         String              @id @default(uuid(7))
+  digestId   String              @map("digest_id")
+  jobId      String              @map("job_id")
+  channel    DeliveryChannelType
+  status     DeliveryStatus      @default(PENDING)
+  error      String?             @db.Text
+  externalId String?             @map("external_id")
+  sentAt     DateTime?           @map("sent_at")
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  digest Digest @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([digestId, channel])
+  @@index([jobId])
+  @@map("deliveries")
 }
 
 // ─── Views (read-only, created via SQL migration) ────────
@@ -309,4 +348,21 @@ view SubredditView {
   totalDigestsAppearedIn Int       @map("total_digests_appeared_in")
 
   @@map("subreddit_view")
+}
+
+view DeliveryView {
+  deliveryId      String    @unique @map("delivery_id")
+  digestId        String    @map("digest_id")
+  jobId           String    @map("job_id")
+  channel         String
+  status          String
+  error           String?
+  externalId      String?   @map("external_id")
+  sentAt          DateTime? @map("sent_at")
+  createdAt       DateTime  @map("created_at")
+  updatedAt       DateTime  @map("updated_at")
+  digestCreatedAt DateTime  @map("digest_created_at")
+  jobStatus       String    @map("job_status")
+
+  @@map("delivery_view")
 }
