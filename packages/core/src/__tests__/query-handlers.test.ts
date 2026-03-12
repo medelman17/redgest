@@ -985,7 +985,7 @@ describe("handleGetDeliveryStatus", () => {
         digestId: "d-1",
         jobId: "j-1",
         channel: "EMAIL",
-        status: "DELIVERED",
+        status: "SENT",
         error: null,
         externalId: "ext-1",
         sentAt: new Date("2026-03-10T00:05:00Z"),
@@ -1029,7 +1029,7 @@ describe("handleGetDeliveryStatus", () => {
     expect(result.digests[0]?.channels).toHaveLength(2);
     expect(result.digests[0]?.channels[0]).toEqual({
       channel: "EMAIL",
-      status: "DELIVERED",
+      status: "SENT",
       error: null,
       externalId: "ext-1",
       sentAt: "2026-03-10T00:05:00.000Z",
@@ -1054,7 +1054,7 @@ describe("handleGetDeliveryStatus", () => {
         digestId: "d-2",
         jobId: "j-2",
         channel: "EMAIL",
-        status: "DELIVERED",
+        status: "SENT",
         error: null,
         externalId: "ext-3",
         sentAt: new Date("2026-03-11T00:05:00Z"),

@@ -1052,7 +1052,7 @@ describe("get_delivery_status", () => {
           digestCreatedAt: "2026-03-10T00:00:00.000Z",
           jobId: "j-1",
           channels: [
-            { channel: "EMAIL", status: "DELIVERED", error: null, externalId: "ext-1", sentAt: "2026-03-10T00:05:00.000Z" },
+            { channel: "EMAIL", status: "SENT", error: null, externalId: "ext-1", sentAt: "2026-03-10T00:05:00.000Z" },
           ],
         },
       ],

@@ -18,7 +18,12 @@ export interface DeliveryClient {
         channel: string;
         status: string;
       };
-      update: Record<string, never>;
+      update: {
+        status: string;
+        error: null;
+        externalId: null;
+        sentAt: null;
+      };
     }) => Promise<unknown>;
   };
 }
@@ -74,7 +79,12 @@ export async function recordDeliveryPending(
         channel,
         status: "PENDING",
       },
-      update: {},
+      update: {
+        status: "PENDING",
+        error: null,
+        externalId: null,
+        sentAt: null,
+      },
     });
   }
 }
@@ -123,7 +133,7 @@ export async function recordDeliveryResult(
       type: "DeliverySucceeded",
       payload,
       aggregateId: digestId,
-      aggregateType: "delivery",
+      aggregateType: "Delivery",
       version: 1,
       correlationId: jobId,
       causationId: null,
@@ -148,16 +158,17 @@ export async function recordDeliveryResult(
       },
     });
 
+    const failedAt = new Date();
     const event: DomainEvent = {
       type: "DeliveryFailed",
       payload: { jobId, digestId, channel, error: result.error },
       aggregateId: digestId,
-      aggregateType: "delivery",
+      aggregateType: "Delivery",
       version: 1,
       correlationId: jobId,
       causationId: null,
       metadata: {},
-      occurredAt: new Date(),
+      occurredAt: failedAt,
     };
 
     await persistEvent(tx, event);

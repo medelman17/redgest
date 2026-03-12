@@ -36,7 +36,12 @@ describe("recordDeliveryPending", () => {
       channel: "EMAIL",
       status: "PENDING",
     });
-    expect(arg.update).toEqual({});
+    expect(arg.update).toEqual({
+      status: "PENDING",
+      error: null,
+      externalId: null,
+      sentAt: null,
+    });
   });
 
   it("upserts PENDING rows for multiple channels", async () => {
@@ -110,7 +115,7 @@ describe("recordDeliveryResult", () => {
       externalId: "resend-abc",
     });
     expect(eventData.aggregateId).toBe("digest-1");
-    expect(eventData.aggregateType).toBe("delivery");
+    expect(eventData.aggregateType).toBe("Delivery");
   });
 
   it("upserts FAILED status and persists DeliveryFailed event", async () => {

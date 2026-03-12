@@ -43,7 +43,7 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
     const limit = Math.min(params.limit ?? 5, 20);
     const raw = await ctx.db.digest.findMany({
       take: limit,
-      orderBy: { createdAt: "desc" as const },
+      orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, jobId: true },
     });
     digests = raw as DigestRow[];
@@ -57,7 +57,7 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
   const digestIds = digests.map((d) => d.id);
   const rawDeliveries = await ctx.db.deliveryView.findMany({
     where: { digestId: { in: digestIds } },
-    orderBy: { createdAt: "asc" as const },
+    orderBy: { createdAt: "asc" },
   });
   const deliveries = rawDeliveries as DeliveryViewRow[];
 
