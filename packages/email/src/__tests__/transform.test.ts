@@ -134,6 +134,78 @@ describe("buildDeliveryData", () => {
     expect(result.subreddits).toHaveLength(0);
   });
 
+  it("handles already-parsed JSON fields (Prisma/pg runtime behavior)", () => {
+    const input = makeDigestWithRelations({
+      digestPosts: [
+        {
+          rank: 1,
+          subreddit: "typescript",
+          post: {
+            title: "Parsed JSON",
+            permalink: "/r/typescript/comments/abc/parsed",
+            score: 200,
+            summaries: [
+              {
+                summary: "Already parsed.",
+                keyTakeaways: ["takeaway1", "takeaway2"],
+                insightNotes: "notes",
+                commentHighlights: [
+                  { author: "dev1", insight: "Great", score: 10 },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+    });
+    const result = buildDeliveryData(input);
+
+    const ts = result.subreddits.find((s) => s.name === "typescript");
+    expect(ts).toBeDefined();
+    if (!ts) return;
+    const post = ts.posts[0];
+    expect(post).toBeDefined();
+    if (!post) return;
+    expect(post.keyTakeaways).toEqual(["takeaway1", "takeaway2"]);
+    expect(post.commentHighlights).toEqual([
+      { author: "dev1", insight: "Great", score: 10 },
+    ]);
+  });
+
+  it("defaults null JSON fields to empty arrays", () => {
+    const input = makeDigestWithRelations({
+      digestPosts: [
+        {
+          rank: 1,
+          subreddit: "typescript",
+          post: {
+            title: "Null JSON",
+            permalink: "/r/typescript/comments/abc/null",
+            score: 50,
+            summaries: [
+              {
+                summary: "Null fields.",
+                keyTakeaways: null,
+                insightNotes: "notes",
+                commentHighlights: null,
+              },
+            ],
+          },
+        },
+      ],
+    });
+    const result = buildDeliveryData(input);
+
+    const ts = result.subreddits.find((s) => s.name === "typescript");
+    expect(ts).toBeDefined();
+    if (!ts) return;
+    const post = ts.posts[0];
+    expect(post).toBeDefined();
+    if (!post) return;
+    expect(post.keyTakeaways).toEqual([]);
+    expect(post.commentHighlights).toEqual([]);
+  });
+
   it("maps post fields correctly", () => {
     const input = makeDigestWithRelations();
     const result = buildDeliveryData(input);

@@ -48,23 +48,31 @@ export function buildDeliveryData(
       subredditMap.set(dp.subreddit, sub);
     }
 
-    const keyTakeaways =
-      typeof summary.keyTakeaways === "string"
-        ? (JSON.parse(summary.keyTakeaways) as string[])
-        : (summary.keyTakeaways as string[]);
+    const keyTakeaways: string[] =
+      summary.keyTakeaways == null
+        ? []
+        : typeof summary.keyTakeaways === "string"
+          ? (JSON.parse(summary.keyTakeaways) as string[])
+          : (summary.keyTakeaways as string[]);
 
-    const commentHighlights =
-      typeof summary.commentHighlights === "string"
-        ? (JSON.parse(summary.commentHighlights) as Array<{
-            author: string;
-            insight: string;
-            score: number;
-          }>)
-        : (summary.commentHighlights as Array<{
-            author: string;
-            insight: string;
-            score: number;
-          }>);
+    const commentHighlights: Array<{
+      author: string;
+      insight: string;
+      score: number;
+    }> =
+      summary.commentHighlights == null
+        ? []
+        : typeof summary.commentHighlights === "string"
+          ? (JSON.parse(summary.commentHighlights) as Array<{
+              author: string;
+              insight: string;
+              score: number;
+            }>)
+          : (summary.commentHighlights as Array<{
+              author: string;
+              insight: string;
+              score: number;
+            }>);
 
     sub.posts.push({
       title: dp.post.title,
