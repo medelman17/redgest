@@ -5,6 +5,24 @@ import type { BootstrapResult } from "../bootstrap.js";
 import type { ToolResult } from "../envelope.js";
 import { createToolHandlers, createToolServer, type ToolHandler } from "../tools.js";
 
+// Mock email rendering (preview_digest uses renderDigestHtml)
+vi.mock("@redgest/email", () => ({
+  buildDeliveryData: vi.fn().mockReturnValue({
+    digestId: "d1",
+    createdAt: new Date("2026-03-10"),
+    subreddits: [{ name: "test", posts: [{ title: "Post", permalink: "/r/test/1", score: 10, summary: "Sum", keyTakeaways: [], insightNotes: "", commentHighlights: [] }] }],
+  }),
+  renderDigestHtml: vi.fn().mockResolvedValue("<html>preview</html>"),
+}));
+
+// Mock slack formatting (preview_digest uses formatDigestBlocks)
+vi.mock("@redgest/slack", () => ({
+  formatDigestBlocks: vi.fn().mockReturnValue([
+    { type: "header", text: { type: "plain_text", text: "Digest", emoji: true } },
+    { type: "section", text: { type: "mrkdwn", text: "Post content" } },
+  ]),
+}));
+
 // ── Test helpers ──────────────────────────────────────────────────────
 
 function parseEnvelope(result: ToolResult): {
@@ -98,6 +116,7 @@ describe("use_redgest", () => {
     expect(guide).toContain("get_digest");
     expect(guide).toContain("add_subreddit");
     expect(guide).toContain("list_subreddits");
+    expect(guide).toContain("preview_digest");
   });
 });
 
@@ -821,5 +840,195 @@ describe("check_reddit_connectivity", () => {
     const env = parseEnvelope(result);
     expect(env.ok).toBe(false);
     expect(env.error?.code).toBe("INTERNAL_ERROR");
+  });
+});
+
+describe("preview_digest", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("returns NOT_FOUND when digest does not exist", async () => {
+    Object.assign(deps.result.db, { digestView: { findUnique: vi.fn().mockResolvedValue(null) } });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "nonexistent",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("NOT_FOUND");
+  });
+
+  it("returns CONFLICT when digest job is still running", async () => {
+    Object.assign(deps.result.db, {
+      digestView: {
+        findUnique: vi.fn().mockResolvedValue({
+          digestId: "d1",
+          jobStatus: "RUNNING",
+          contentMarkdown: "",
+        }),
+      },
+    });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "d1",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("CONFLICT");
+  });
+
+  it("returns markdown content by default", async () => {
+    Object.assign(deps.result.db, {
+      digestView: {
+        findUnique: vi.fn().mockResolvedValue({
+          digestId: "d1",
+          jobStatus: "COMPLETED",
+          contentMarkdown: "# Digest\n\nSome content",
+        }),
+      },
+    });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "d1",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    const data = env.data as {
+      channel: string;
+      content: string;
+      metadata: { sizeBytes: number };
+    };
+    expect(data.channel).toBe("markdown");
+    expect(data.content).toBe("# Digest\n\nSome content");
+    expect(data.metadata.sizeBytes).toBeGreaterThan(0);
+  });
+
+  it("returns email HTML when channel is email", async () => {
+    Object.assign(deps.result.db, {
+      digestView: {
+        findUnique: vi.fn().mockResolvedValue({
+          digestId: "d1",
+          jobStatus: "COMPLETED",
+        }),
+      },
+      digest: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "d1",
+          createdAt: new Date("2026-03-10"),
+          digestPosts: [
+            {
+              rank: 1,
+              subreddit: "test",
+              post: {
+                title: "Post",
+                permalink: "/r/test/1",
+                score: 10,
+                summaries: [
+                  {
+                    summary: "Sum",
+                    keyTakeaways: JSON.stringify([]),
+                    insightNotes: "",
+                    commentHighlights: JSON.stringify([]),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      },
+    });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "d1",
+      channel: "email",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    const data = env.data as { channel: string; content: string };
+    expect(data.channel).toBe("email");
+    expect(typeof data.content).toBe("string");
+  });
+
+  it("returns VALIDATION_ERROR for invalid channel", async () => {
+    Object.assign(deps.result.db, {
+      digestView: {
+        findUnique: vi.fn().mockResolvedValue({
+          digestId: "d1",
+          jobStatus: "COMPLETED",
+          contentMarkdown: "content",
+        }),
+      },
+    });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "d1",
+      channel: "sms",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(false);
+    expect(env.error?.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("returns slack blocks when channel is slack", async () => {
+    Object.assign(deps.result.db, {
+      digestView: {
+        findUnique: vi.fn().mockResolvedValue({
+          digestId: "d1",
+          jobStatus: "COMPLETED",
+        }),
+      },
+      digest: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "d1",
+          createdAt: new Date("2026-03-10"),
+          digestPosts: [
+            {
+              rank: 1,
+              subreddit: "test",
+              post: {
+                title: "Post",
+                permalink: "/r/test/1",
+                score: 10,
+                summaries: [
+                  {
+                    summary: "Sum",
+                    keyTakeaways: JSON.stringify([]),
+                    insightNotes: "",
+                    commentHighlights: JSON.stringify([]),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      },
+    });
+
+    const result = await invoke(handlers, "preview_digest", {
+      digestId: "d1",
+      channel: "slack",
+    });
+
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    const data = env.data as {
+      channel: string;
+      content: unknown[];
+      metadata: { blockCount: number; truncationWarnings: string[] };
+    };
+    expect(data.channel).toBe("slack");
+    expect(Array.isArray(data.content)).toBe(true);
+    expect(data.metadata.blockCount).toBeGreaterThan(0);
+    expect(Array.isArray(data.metadata.truncationWarnings)).toBe(true);
   });
 });

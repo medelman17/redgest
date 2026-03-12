@@ -1,8 +1,6 @@
-import { createElement } from "react";
-import { render } from "@react-email/components";
 import { Resend } from "resend";
-import { DigestEmail } from "./template.js";
 import type { DigestDeliveryData } from "./types.js";
+import { renderDigestHtml } from "./render.js";
 
 export async function sendDigestEmail(
   digest: DigestDeliveryData,
@@ -10,7 +8,7 @@ export async function sendDigestEmail(
   apiKey: string,
 ): Promise<{ id: string }> {
   const resend = new Resend(apiKey);
-  const html = await render(createElement(DigestEmail, { digest }));
+  const html = await renderDigestHtml(digest);
   const dateStr = digest.createdAt.toISOString().split("T")[0] ?? "";
 
   const result = await resend.emails.send({
