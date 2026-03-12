@@ -19,6 +19,7 @@ const STATUS_STYLES: Record<string, string> = {
   [JobStatus.QUEUED]: "bg-slate-600/20 text-slate-400 border-slate-600/30",
   [JobStatus.FAILED]: "bg-red-600/20 text-red-400 border-red-600/30",
   [JobStatus.PARTIAL]: "bg-orange-600/20 text-orange-400 border-orange-600/30",
+  [JobStatus.CANCELED]: "bg-slate-600/20 text-slate-300 border-slate-500/30",
 };
 
 function StatusBadge({ status }: { status: string }) {

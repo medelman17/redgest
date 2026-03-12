@@ -208,7 +208,8 @@ function JobStatusCard({
       if (
         data.status === JobStatus.COMPLETED ||
         data.status === JobStatus.FAILED ||
-        data.status === JobStatus.PARTIAL
+        data.status === JobStatus.PARTIAL ||
+        data.status === JobStatus.CANCELED
       ) {
         return false;
       }
@@ -219,7 +220,8 @@ function JobStatusCard({
   const isTerminal =
     status?.status === JobStatus.COMPLETED ||
     status?.status === JobStatus.FAILED ||
-    status?.status === JobStatus.PARTIAL;
+    status?.status === JobStatus.PARTIAL ||
+    status?.status === JobStatus.CANCELED;
 
   return (
     <Card>
@@ -274,6 +276,13 @@ function JobStatusCard({
           <div className="flex items-center gap-2 text-sm text-destructive">
             <XCircle className="size-4" />
             Digest generation failed
+          </div>
+        )}
+
+        {status?.status === JobStatus.CANCELED && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <XCircle className="size-4" />
+            Digest generation was canceled
           </div>
         )}
 

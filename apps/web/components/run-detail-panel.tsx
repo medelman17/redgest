@@ -13,7 +13,7 @@ interface RunDetailPanelProps {
 }
 
 export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
-  const isTerminal = status === JobStatus.COMPLETED || status === JobStatus.PARTIAL || status === JobStatus.FAILED;
+  const isTerminal = status === JobStatus.COMPLETED || status === JobStatus.PARTIAL || status === JobStatus.FAILED || status === JobStatus.CANCELED;
   const { data: digest, isLoading } = useQuery({
     queryKey: ["digest", jobId],
     queryFn: () => fetchDigestForJob(jobId),
@@ -25,6 +25,17 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
     return (
       <div className="py-6 text-center text-sm text-muted-foreground">
         Job is queued — digest not yet available.
+      </div>
+    );
+  }
+
+  if (status === JobStatus.CANCELED && !digest) {
+    return (
+      <div className="py-6 text-center">
+        <p className="text-sm font-medium text-slate-400">Run canceled</p>
+        {error && (
+          <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+        )}
       </div>
     );
   }
