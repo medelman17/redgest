@@ -48,6 +48,18 @@ export const eventPayloadSchemas = {
   ConfigUpdated: z.object({
     changes: z.record(z.string(), z.unknown()),
   }),
+  DeliverySucceeded: z.object({
+    jobId: z.string(),
+    digestId: z.string(),
+    channel: z.enum(["EMAIL", "SLACK"]),
+    externalId: z.string().optional(),
+  }),
+  DeliveryFailed: z.object({
+    jobId: z.string(),
+    digestId: z.string(),
+    channel: z.enum(["EMAIL", "SLACK"]),
+    error: z.string(),
+  }),
 } as const satisfies Record<DomainEventType, z.ZodType>;
 
 /**
