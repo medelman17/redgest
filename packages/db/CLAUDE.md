@@ -49,6 +49,7 @@ const prisma = new PrismaClient({ adapter });
 | 2 | `20260309164602_add_views` | SQL views + 3 raw indexes + singleton constraint |
 | 3 | `20260310162203_add_llm_calls_table` | llm_calls table (**accidentally dropped raw indexes**) |
 | 4 | `20260310170000_restore_dropped_indexes` | Re-creates the 3 dropped indexes |
+| 5 | `20260312040236_add_canceled_status` | Adds `CANCELED` to `job_status` enum + restores raw indexes |
 
 ## Raw SQL Indexes (Not in Prisma Schema)
 

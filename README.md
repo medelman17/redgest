@@ -149,7 +149,7 @@ apps/
 
 - **subreddits** -- monitored subreddits with insight prompts
 - **config** -- singleton global settings
-- **jobs** -- immutable run records (QUEUED -> RUNNING -> COMPLETED/PARTIAL/FAILED)
+- **jobs** -- immutable run records (QUEUED -> RUNNING -> COMPLETED/PARTIAL/FAILED/CANCELED)
 - **events** -- append-only domain event log
 - **posts**, **post_comments** -- fetched Reddit content
 - **post_summaries** -- LLM-generated structured summaries
@@ -174,7 +174,7 @@ Features:
 ## Development
 
 ```bash
-# Run all tests (319 unit tests)
+# Run all tests (438 unit tests)
 pnpm test
 
 # Run E2E and integration tests (requires Postgres)

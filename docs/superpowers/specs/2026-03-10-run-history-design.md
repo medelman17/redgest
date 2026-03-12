@@ -21,7 +21,7 @@ A Run History page showing all digest generation runs in a sortable, paginated D
 | Field | Type | Notes |
 |-------|------|-------|
 | jobId | UUID | Row identifier |
-| status | string | Cast from JobStatus enum: "QUEUED", "RUNNING", "COMPLETED", "FAILED", "PARTIAL" |
+| status | string | Cast from JobStatus enum: "QUEUED", "RUNNING", "COMPLETED", "FAILED", "PARTIAL", "CANCELED" |
 | progress | JsonValue | Step-level progress (nullable) |
 | subreddits | JsonValue | **Array of subreddit UUID strings** (NOT names — needs ID→name resolution) |
 | eventCount | number | Domain events emitted |
@@ -57,7 +57,7 @@ A Run History page showing all digest generation runs in a sortable, paginated D
 
 | Column | Source | Display |
 |--------|--------|---------|
-| Status | `status` | Color-coded badge (green=COMPLETED, yellow=RUNNING, red=FAILED, gray=QUEUED, orange=PARTIAL) |
+| Status | `status` | Color-coded badge (green=COMPLETED, yellow=RUNNING, red=FAILED, gray=QUEUED, orange=PARTIAL, slate=CANCELED) |
 | Subreddits | `subreddits` JSON + lookup | Comma-separated "r/name, r/name" |
 | Started | `startedAt` | Relative time with full timestamp tooltip |
 | Duration | `durationSeconds` | Formatted "1m 23s", spinner + "running..." for active, "—" for NULL |
@@ -138,7 +138,7 @@ app/history/page.tsx                    (async RSC — fetch runs + subreddits, 
 
 - React Query `refetchInterval` dynamically set based on current query data
 - When any run in current data has status "QUEUED" or "RUNNING": poll every 5 seconds
-- When all runs are terminal ("COMPLETED"/"FAILED"/"PARTIAL"): polling disabled
+- When all runs are terminal ("COMPLETED"/"FAILED"/"PARTIAL"/"CANCELED"): polling disabled
 - Initial data from RSC avoids loading state on first render
 
 ## Pagination
