@@ -39,8 +39,13 @@ compare_digests MCP tool
 - **A is "before", B is "after"** — `added` = posts in B but not A; `removed` = posts in A but not B.
 - **ID resolution in MCP layer** — Query handler receives concrete UUIDs only, stays pure and reusable.
 - **Minimal post metadata** — Title, subreddit, score, redditId. No summaries. Agent can `get_post` for details.
+- **Post ordering** — `added` and `overlap` posts ordered by rank within digest B; `removed` posts ordered by rank within digest A.
+- **Overlap percentage** — `overlapCount / digestA.postCount * 100` (what fraction of A's posts survived into B). Returns 0 when A is empty.
+- **`createdAt` serialization** — Handler converts Prisma `Date` to ISO string via `.toISOString()`.
 
 ## Result Type
+
+All custom types defined in `packages/core/src/queries/types.ts` alongside existing custom types (`LlmMetrics`, `RunStatusDetail`, etc.).
 
 ```typescript
 type DigestComparisonResult = {
@@ -84,7 +89,7 @@ server.tool(
   {
     digestIdA: z.string().describe("UUID of the earlier digest, or 'latest'"),
     digestIdB: z.string().describe("UUID of the later digest, or 'previous'"),
-    subreddit: z.string().optional().describe("Filter comparison to a specific subreddit"),
+    subreddit: z.string().optional().describe("Filter comparison to a specific subreddit name (e.g. 'rust', not UUID)"),
   },
   handleCompareDigests
 );
@@ -105,8 +110,10 @@ server.tool(
 | Condition | Response |
 |-----------|----------|
 | Digest not found | `envelopeError("NOT_FOUND", "Digest <id> not found")` |
-| Fewer than 2 digests when using shorthand | `envelopeError("NOT_FOUND", "Need at least 2 digests to compare")` |
-| Both IDs resolve to same digest | `envelopeError("INVALID_INPUT", "Cannot compare a digest with itself")` |
+| Both shorthand, fewer than 2 digests exist | `envelopeError("NOT_FOUND", "Need at least 2 digests to compare")` |
+| Single shorthand resolves to nothing | `envelopeError("NOT_FOUND", "No previous digest found")` |
+| Both IDs resolve to same digest | `envelopeError("VALIDATION_ERROR", "Cannot compare a digest with itself")` |
+| Empty digest (zero posts) | Not an error — returns valid comparison with empty sets |
 
 ## Files Changed
 
@@ -115,7 +122,7 @@ server.tool(
 | `packages/core/src/queries/types.ts` | Add `CompareDigests` to `QueryMap` and `QueryResultMap` |
 | `packages/core/src/queries/handlers/compare-digests.ts` | New query handler |
 | `packages/core/src/queries/handlers/index.ts` | Register handler in registry |
-| `packages/mcp-server/src/tools.ts` | Add `handleCompareDigests` + `server.tool()` registration |
+| `packages/mcp-server/src/tools.ts` | Add `handleCompareDigests` (wrapped in `safe()`) + `server.tool()` registration |
 
 ## Testing
 
