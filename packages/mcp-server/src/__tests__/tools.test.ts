@@ -665,6 +665,53 @@ describe("pass-through tools", () => {
   });
 });
 
+describe("cancel_run", () => {
+  it("calls CancelRun command and returns envelope", async () => {
+    const { result, execute } = createMockDeps();
+    execute.mockResolvedValue({ jobId: "job-1", status: "CANCELED" });
+    const handlers = createToolHandlers(result);
+
+    const response = await invoke(handlers, "cancel_run", { jobId: "job-1" });
+    const parsed = parseEnvelope(response);
+
+    expect(parsed.ok).toBe(true);
+    expect(parsed.data).toEqual({ jobId: "job-1", status: "CANCELED" });
+    expect(execute).toHaveBeenCalledWith(
+      "CancelRun",
+      { jobId: "job-1" },
+      expect.any(Object),
+    );
+  });
+
+  it("returns NOT_FOUND error for unknown job", async () => {
+    const { result, execute } = createMockDeps();
+    execute.mockRejectedValue(
+      new RedgestError("NOT_FOUND", "Job not found"),
+    );
+    const handlers = createToolHandlers(result);
+
+    const response = await invoke(handlers, "cancel_run", { jobId: "bad-id" });
+    const parsed = parseEnvelope(response);
+
+    expect(parsed.ok).toBe(false);
+    expect(parsed.error?.code).toBe("NOT_FOUND");
+  });
+
+  it("returns CONFLICT error for terminal job", async () => {
+    const { result, execute } = createMockDeps();
+    execute.mockRejectedValue(
+      new RedgestError("CONFLICT", "Cannot cancel a job with status COMPLETED"),
+    );
+    const handlers = createToolHandlers(result);
+
+    const response = await invoke(handlers, "cancel_run", { jobId: "done-job" });
+    const parsed = parseEnvelope(response);
+
+    expect(parsed.ok).toBe(false);
+    expect(parsed.error?.code).toBe("CONFLICT");
+  });
+});
+
 describe("check_reddit_connectivity", () => {
   let deps: MockDeps;
   let handlers: Record<string, ToolHandler>;

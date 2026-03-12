@@ -108,6 +108,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **generate_digest** — Start a new digest run for configured subreddits
 - **get_run_status** — Check the status of a digest run by job ID
 - **list_runs** — List recent digest runs
+- **cancel_run** — Cancel an in-progress or queued digest run
 
 ### Digest Retrieval
 - **get_digest** — Get a specific digest by ID, or the latest
@@ -160,6 +161,7 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | list_runs, list_digests, list_subreddits | INTERNAL_ERROR |
 | search_posts, search_digests | INTERNAL_ERROR |
 | add_subreddit, update_config | INTERNAL_ERROR |
+| cancel_run | NOT_FOUND, CONFLICT, INTERNAL_ERROR |
 | get_llm_metrics | INTERNAL_ERROR |
 | check_reddit_connectivity | INTERNAL_ERROR |`;
 
@@ -417,6 +419,18 @@ export function createToolHandlers(
       });
     },
 
+    cancel_run: async (args) => {
+      return safe(async () => {
+        const jobId = args.jobId as string;
+        const result = await deps.execute(
+          "CancelRun",
+          { jobId },
+          eCtx,
+        );
+        return envelope(result);
+      });
+    },
+
     check_reddit_connectivity: async () => {
       return safe(async () => {
         if (!deps.checkConnectivity) {
@@ -527,6 +541,13 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
     },
     async (args) => call("search_digests", args),
+  );
+
+  server.tool(
+    "cancel_run",
+    "Cancel an in-progress or queued digest run. Stops the pipeline at the next step boundary and preserves any partial results.",
+    { jobId: z.string().describe("The job ID to cancel") },
+    async (args) => call("cancel_run", args),
   );
 
   server.tool(
