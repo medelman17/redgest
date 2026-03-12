@@ -50,6 +50,7 @@ export {
   handleRemoveSubreddit,
   handleUpdateSubreddit,
   handleUpdateConfig,
+  handleCancelRun,
 } from "./commands/handlers/index.js";
 
 // Query handlers

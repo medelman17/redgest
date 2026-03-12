@@ -4,6 +4,7 @@ import { handleAddSubreddit } from "./add-subreddit.js";
 import { handleRemoveSubreddit } from "./remove-subreddit.js";
 import { handleUpdateSubreddit } from "./update-subreddit.js";
 import { handleUpdateConfig } from "./update-config.js";
+import { handleCancelRun } from "./cancel-run.js";
 
 type HandlerRegistry = {
   [K in CommandType]?: CommandHandler<K>;
@@ -15,6 +16,7 @@ export const commandHandlers: HandlerRegistry = {
   RemoveSubreddit: handleRemoveSubreddit,
   UpdateSubreddit: handleUpdateSubreddit,
   UpdateConfig: handleUpdateConfig,
+  CancelRun: handleCancelRun,
 };
 
 export {
@@ -23,4 +25,5 @@ export {
   handleRemoveSubreddit,
   handleUpdateSubreddit,
   handleUpdateConfig,
+  handleCancelRun,
 };

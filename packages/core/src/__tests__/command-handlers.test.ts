@@ -7,6 +7,7 @@ import { handleAddSubreddit } from "../commands/handlers/add-subreddit.js";
 import { handleRemoveSubreddit } from "../commands/handlers/remove-subreddit.js";
 import { handleUpdateSubreddit } from "../commands/handlers/update-subreddit.js";
 import { handleUpdateConfig } from "../commands/handlers/update-config.js";
+import { handleCancelRun } from "../commands/handlers/cancel-run.js";
 import { commandHandlers } from "../commands/handlers/index.js";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
@@ -337,12 +338,122 @@ describe("handleUpdateConfig", () => {
   });
 });
 
+describe("handleCancelRun", () => {
+  it("cancels a QUEUED job", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-1",
+      status: "QUEUED",
+      triggerRunId: null,
+    });
+    const mockUpdate = vi.fn().mockResolvedValue({ id: "job-1" });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique, update: mockUpdate } });
+
+    const result = await handleCancelRun({ jobId: "job-1" }, ctx);
+
+    expect(result.data).toEqual({ jobId: "job-1", status: "CANCELED" });
+    expect(result.event).toEqual({ jobId: "job-1" });
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "job-1" },
+      data: {
+        status: "CANCELED",
+        completedAt: expect.any(Date),
+        error: "Canceled by user",
+      },
+    });
+  });
+
+  it("cancels a RUNNING job", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-2",
+      status: "RUNNING",
+      triggerRunId: null,
+    });
+    const mockUpdate = vi.fn().mockResolvedValue({ id: "job-2" });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique, update: mockUpdate } });
+
+    const result = await handleCancelRun({ jobId: "job-2" }, ctx);
+
+    expect(result.data).toEqual({ jobId: "job-2", status: "CANCELED" });
+    expect(result.event).toEqual({ jobId: "job-2" });
+  });
+
+  it("throws NOT_FOUND when job does not exist", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCancelRun({ jobId: "nonexistent" }, ctx),
+    ).rejects.toThrow(RedgestError);
+
+    await expect(
+      handleCancelRun({ jobId: "nonexistent" }, ctx),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("throws CONFLICT when job is already COMPLETED", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-3",
+      status: "COMPLETED",
+      triggerRunId: null,
+    });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCancelRun({ jobId: "job-3" }, ctx),
+    ).rejects.toThrow(RedgestError);
+
+    await expect(
+      handleCancelRun({ jobId: "job-3" }, ctx),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("throws CONFLICT when job is already CANCELED", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-4",
+      status: "CANCELED",
+      triggerRunId: null,
+    });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCancelRun({ jobId: "job-4" }, ctx),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("throws CONFLICT when job is FAILED", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-5",
+      status: "FAILED",
+      triggerRunId: null,
+    });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCancelRun({ jobId: "job-5" }, ctx),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("throws CONFLICT when job is PARTIAL", async () => {
+    const mockFindUnique = vi.fn().mockResolvedValue({
+      id: "job-6",
+      status: "PARTIAL",
+      triggerRunId: null,
+    });
+    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+
+    await expect(
+      handleCancelRun({ jobId: "job-6" }, ctx),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+});
+
 describe("commandHandlers registry", () => {
-  it("registers all 5 handlers", () => {
+  it("registers all 6 handlers", () => {
     expect(commandHandlers.GenerateDigest).toBe(handleGenerateDigest);
     expect(commandHandlers.AddSubreddit).toBe(handleAddSubreddit);
     expect(commandHandlers.RemoveSubreddit).toBe(handleRemoveSubreddit);
     expect(commandHandlers.UpdateSubreddit).toBe(handleUpdateSubreddit);
     expect(commandHandlers.UpdateConfig).toBe(handleUpdateConfig);
+    expect(commandHandlers.CancelRun).toBe(handleCancelRun);
   });
 });
