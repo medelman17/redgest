@@ -118,6 +118,7 @@ describe("use_redgest", () => {
     expect(guide).toContain("list_subreddits");
     expect(guide).toContain("preview_digest");
     expect(guide).toContain("compare_digests");
+    expect(guide).toContain("get_delivery_status");
   });
 });
 
@@ -1031,6 +1032,78 @@ describe("preview_digest", () => {
     expect(Array.isArray(data.content)).toBe(true);
     expect(data.metadata.blockCount).toBeGreaterThan(0);
     expect(Array.isArray(data.metadata.truncationWarnings)).toBe(true);
+  });
+});
+
+describe("get_delivery_status", () => {
+  let deps: MockDeps;
+  let handlers: Record<string, ToolHandler>;
+
+  beforeEach(() => {
+    deps = createMockDeps();
+    handlers = createToolHandlers(deps.result);
+  });
+
+  it("queries GetDeliveryStatus with specific digestId", async () => {
+    const statusResult = {
+      digests: [
+        {
+          digestId: "d-1",
+          digestCreatedAt: "2026-03-10T00:00:00.000Z",
+          jobId: "j-1",
+          channels: [
+            { channel: "EMAIL", status: "SENT", error: null, externalId: "ext-1", sentAt: "2026-03-10T00:05:00.000Z" },
+          ],
+        },
+      ],
+    };
+    deps.query.mockResolvedValue(statusResult);
+
+    const result = await invoke(handlers, "get_delivery_status", { digestId: "d-1" });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "GetDeliveryStatus",
+      { digestId: "d-1" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual(statusResult);
+  });
+
+  it("queries GetDeliveryStatus without digestId for recent digests", async () => {
+    const statusResult = {
+      digests: [
+        { digestId: "d-2", digestCreatedAt: "2026-03-11T00:00:00.000Z", jobId: "j-2", channels: [] },
+        { digestId: "d-1", digestCreatedAt: "2026-03-10T00:00:00.000Z", jobId: "j-1", channels: [] },
+      ],
+    };
+    deps.query.mockResolvedValue(statusResult);
+
+    const result = await invoke(handlers, "get_delivery_status", { limit: 2 });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "GetDeliveryStatus",
+      { limit: 2 },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual(statusResult);
+  });
+
+  it("passes default params when none provided", async () => {
+    deps.query.mockResolvedValue({ digests: [] });
+
+    const result = await invoke(handlers, "get_delivery_status");
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "GetDeliveryStatus",
+      {},
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
   });
 });
 

@@ -61,10 +61,12 @@ export const ModelName = {
   Digest: 'Digest',
   DigestPost: 'DigestPost',
   LlmCall: 'LlmCall',
+  Delivery: 'Delivery',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
-  SubredditView: 'SubredditView'
+  SubredditView: 'SubredditView',
+  DeliveryView: 'DeliveryView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -233,6 +235,22 @@ export const LlmCallScalarFieldEnum = {
 export type LlmCallScalarFieldEnum = (typeof LlmCallScalarFieldEnum)[keyof typeof LlmCallScalarFieldEnum]
 
 
+export const DeliveryScalarFieldEnum = {
+  id: 'id',
+  digestId: 'digestId',
+  jobId: 'jobId',
+  channel: 'channel',
+  status: 'status',
+  error: 'error',
+  externalId: 'externalId',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeliveryScalarFieldEnum = (typeof DeliveryScalarFieldEnum)[keyof typeof DeliveryScalarFieldEnum]
+
+
 export const DigestViewScalarFieldEnum = {
   digestId: 'digestId',
   jobId: 'jobId',
@@ -310,6 +328,24 @@ export const SubredditViewScalarFieldEnum = {
 } as const
 
 export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
+
+
+export const DeliveryViewScalarFieldEnum = {
+  deliveryId: 'deliveryId',
+  digestId: 'digestId',
+  jobId: 'jobId',
+  channel: 'channel',
+  status: 'status',
+  error: 'error',
+  externalId: 'externalId',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  digestCreatedAt: 'digestCreatedAt',
+  jobStatus: 'jobStatus'
+} as const
+
+export type DeliveryViewScalarFieldEnum = (typeof DeliveryViewScalarFieldEnum)[keyof typeof DeliveryViewScalarFieldEnum]
 
 
 export const SortOrder = {

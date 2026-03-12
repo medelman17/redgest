@@ -118,6 +118,7 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **search_digests** — Full-text search across digests
 - **preview_digest** — Preview a digest rendered for a specific delivery channel (markdown, email HTML, Slack blocks)
 - **compare_digests** — Compare two digests: new/dropped posts, overlap, subreddit trends
+- **get_delivery_status** — Check delivery status (email/Slack) for one or more digests
 
 ### Post Access
 - **get_post** — Get a specific post summary by ID
@@ -171,7 +172,8 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | check_reddit_connectivity | INTERNAL_ERROR |
 | get_subreddit_stats | INTERNAL_ERROR |
 | preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |
-| compare_digests | NOT_FOUND, VALIDATION_ERROR, INTERNAL_ERROR |`;
+| compare_digests | NOT_FOUND, VALIDATION_ERROR, INTERNAL_ERROR |
+| get_delivery_status | NOT_FOUND, INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -463,6 +465,16 @@ export function createToolHandlers(
         return envelope(result);
       });
     },
+
+    get_delivery_status: async (args) =>
+      safe(async () => {
+        const params: { digestId?: string; limit?: number } = {};
+        if (typeof args.digestId === "string") params.digestId = args.digestId;
+        if (typeof args.limit === "number") params.limit = args.limit;
+
+        const result = await deps.query("GetDeliveryStatus", params, deps.ctx);
+        return envelope(result);
+      }),
 
     compare_digests: async (args) => {
       return safe(async () => {
@@ -810,6 +822,16 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null to disable"),
     },
     async (args) => call("update_config", args),
+  );
+
+  server.tool(
+    "get_delivery_status",
+    "Check delivery status for digests across email and Slack channels",
+    {
+      digestId: z.string().optional().describe("Specific digest ID. If omitted, returns recent digests."),
+      limit: z.number().optional().describe("Number of recent digests to check (default 5, max 20). Ignored when digestId is provided."),
+    },
+    async (args) => call("get_delivery_status", args),
   );
 
   server.tool(

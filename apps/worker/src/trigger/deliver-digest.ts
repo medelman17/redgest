@@ -1,5 +1,11 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { loadConfig } from "@redgest/config";
+import {
+  recordDeliveryPending,
+  recordDeliveryResult,
+  type DeliveryClient,
+  type DeliveryTransactionClient,
+} from "@redgest/core";
 import { prisma } from "@redgest/db";
 import { sendDigestEmail, buildDeliveryData } from "@redgest/email";
 import { sendDigestSlack } from "@redgest/slack";
@@ -32,6 +38,7 @@ export const deliverDigest = task({
     // Dispatch to configured channels
     const channels: Array<{
       name: string;
+      type: "EMAIL" | "SLACK";
       send: () => Promise<unknown>;
     }> = [];
 
@@ -39,6 +46,7 @@ export const deliverDigest = task({
       const { DELIVERY_EMAIL, RESEND_API_KEY } = config;
       channels.push({
         name: "email",
+        type: "EMAIL",
         send: () =>
           sendDigestEmail(deliveryData, DELIVERY_EMAIL, RESEND_API_KEY),
       });
@@ -48,6 +56,7 @@ export const deliverDigest = task({
       const webhookUrl = config.SLACK_WEBHOOK_URL;
       channels.push({
         name: "slack",
+        type: "SLACK",
         send: () => sendDigestSlack(deliveryData, webhookUrl),
       });
     }
@@ -57,20 +66,50 @@ export const deliverDigest = task({
       return { delivered: [] };
     }
 
+    // Record pending delivery rows before dispatching
+    // PrismaClient satisfies DeliveryClient at runtime; Prisma's generated types are stricter
+    await recordDeliveryPending(
+      prisma as unknown as DeliveryClient,
+      payload.digestId,
+      digest.jobId,
+      channels.map((ch) => ch.type),
+    );
+
     const results = await Promise.allSettled(
       channels.map((ch) => ch.send()),
     );
 
     const delivered: string[] = [];
     for (const [i, r] of results.entries()) {
-      const channel = channels[i];
-      if (!channel) continue;
+      const ch = channels[i];
+      if (!ch) continue;
+
       if (r.status === "fulfilled") {
-        delivered.push(channel.name);
+        delivered.push(ch.name);
+        const externalId =
+          r.value && typeof r.value === "object" && "id" in r.value
+            ? String(r.value.id)
+            : undefined;
+        // PrismaClient satisfies DeliveryTransactionClient at runtime
+        await recordDeliveryResult(
+          prisma as unknown as DeliveryTransactionClient,
+          payload.digestId,
+          digest.jobId,
+          ch.type,
+          { ok: true, externalId },
+        );
       } else {
-        logger.error(`Delivery failed for ${channel.name}`, {
-          error: String(r.reason),
-        });
+        const errorMsg =
+          r.reason instanceof Error ? r.reason.message : String(r.reason);
+        logger.error(`Delivery to ${ch.name} failed: ${errorMsg}`);
+        // PrismaClient satisfies DeliveryTransactionClient at runtime
+        await recordDeliveryResult(
+          prisma as unknown as DeliveryTransactionClient,
+          payload.digestId,
+          digest.jobId,
+          ch.type,
+          { ok: false, error: errorMsg },
+        );
       }
     }
 

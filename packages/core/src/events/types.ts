@@ -14,6 +14,18 @@ export interface DomainEventMap {
   SubredditAdded: { subredditId: string; name: string };
   SubredditRemoved: { subredditId: string; name: string };
   ConfigUpdated: { changes: Record<string, unknown> };
+  DeliverySucceeded: {
+    jobId: string;
+    digestId: string;
+    channel: "EMAIL" | "SLACK";
+    externalId?: string;
+  };
+  DeliveryFailed: {
+    jobId: string;
+    digestId: string;
+    channel: "EMAIL" | "SLACK";
+    error: string;
+  };
 }
 
 export type DomainEventType = keyof DomainEventMap;

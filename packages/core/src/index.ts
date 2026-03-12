@@ -45,6 +45,9 @@ export type {
   DigestSummaryInfo,
   ComparisonPost,
   SubredditDelta,
+  DeliveryStatusResult,
+  DeliveryStatusDigest,
+  DeliveryStatusChannel,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -76,10 +79,15 @@ export {
   handleGetLlmMetrics,
   handleGetSubredditStats,
   handleCompareDigests,
+  handleGetDeliveryStatus,
 } from "./queries/handlers/index.js";
 
 // Context
 export type { HandlerContext, DbClient } from "./context.js";
+
+// Delivery recording
+export { recordDeliveryPending, recordDeliveryResult } from "./delivery/record.js";
+export type { DeliveryClient, DeliveryTransactionClient } from "./delivery/record.js";
 
 // Digest dispatch
 export {

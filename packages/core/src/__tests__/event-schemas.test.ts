@@ -15,6 +15,8 @@ describe("eventPayloadSchemas", () => {
       "SubredditAdded",
       "SubredditRemoved",
       "ConfigUpdated",
+      "DeliverySucceeded",
+      "DeliveryFailed",
     ];
     for (const type of expectedTypes) {
       expect(eventPayloadSchemas[type]).toBeDefined();
@@ -124,6 +126,97 @@ describe("eventPayloadSchemas", () => {
       jobId: "job-1",
       subreddit: "typescript",
       count: "not-a-number",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("validates DeliverySucceeded payload", () => {
+    const result = parseEventPayload("DeliverySucceeded", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "EMAIL",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("validates DeliverySucceeded with optional externalId", () => {
+    const result = parseEventPayload("DeliverySucceeded", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "SLACK",
+      externalId: "msg-abc123",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("validates DeliverySucceeded without externalId", () => {
+    const result = parseEventPayload("DeliverySucceeded", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "EMAIL",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        jobId: "job-1",
+        digestId: "digest-1",
+        channel: "EMAIL",
+      });
+    }
+  });
+
+  it("rejects DeliverySucceeded with invalid channel", () => {
+    const result = parseEventPayload("DeliverySucceeded", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "TELEGRAM",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects DeliverySucceeded with missing digestId", () => {
+    const result = parseEventPayload("DeliverySucceeded", {
+      jobId: "job-1",
+      channel: "EMAIL",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("validates DeliveryFailed payload", () => {
+    const result = parseEventPayload("DeliveryFailed", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "SLACK",
+      error: "Webhook returned 500",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects DeliveryFailed with missing error", () => {
+    const result = parseEventPayload("DeliveryFailed", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "EMAIL",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects DeliveryFailed with invalid channel", () => {
+    const result = parseEventPayload("DeliveryFailed", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "PUSH",
+      error: "not supported",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects DeliveryFailed with non-string error", () => {
+    const result = parseEventPayload("DeliveryFailed", {
+      jobId: "job-1",
+      digestId: "digest-1",
+      channel: "EMAIL",
+      error: 500,
     });
     expect(result.success).toBe(false);
   });

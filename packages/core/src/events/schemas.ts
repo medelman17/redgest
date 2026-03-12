@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { DomainEventType } from "./types.js";
 
+const deliveryChannelEnum = z.enum(["EMAIL", "SLACK"]);
+
 /**
  * Zod schemas for each event payload — used for DB deserialization.
  * The `satisfies` ensures this map stays in sync with DomainEventMap.
@@ -47,6 +49,18 @@ export const eventPayloadSchemas = {
   }),
   ConfigUpdated: z.object({
     changes: z.record(z.string(), z.unknown()),
+  }),
+  DeliverySucceeded: z.object({
+    jobId: z.string(),
+    digestId: z.string(),
+    channel: deliveryChannelEnum,
+    externalId: z.string().optional(),
+  }),
+  DeliveryFailed: z.object({
+    jobId: z.string(),
+    digestId: z.string(),
+    channel: deliveryChannelEnum,
+    error: z.string(),
   }),
 } as const satisfies Record<DomainEventType, z.ZodType>;
 
