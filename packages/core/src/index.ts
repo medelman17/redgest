@@ -123,3 +123,7 @@ export type {
   SummarizeStepResult,
   AssembleStepResult,
 } from "./pipeline/index.js";
+
+// Search
+export { createSearchService } from "./search/index.js";
+export type { SearchService, SearchResult, SearchOptions } from "./search/index.js";
