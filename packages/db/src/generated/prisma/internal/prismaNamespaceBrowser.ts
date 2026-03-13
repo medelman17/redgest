@@ -62,6 +62,8 @@ export const ModelName = {
   DigestPost: 'DigestPost',
   LlmCall: 'LlmCall',
   Delivery: 'Delivery',
+  Topic: 'Topic',
+  PostTopic: 'PostTopic',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
@@ -93,7 +95,8 @@ export const SubredditScalarFieldEnum = {
   includeNsfw: 'includeNsfw',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastFetchedAt: 'lastFetchedAt'
 } as const
 
 export type SubredditScalarFieldEnum = (typeof SubredditScalarFieldEnum)[keyof typeof SubredditScalarFieldEnum]
@@ -187,6 +190,8 @@ export const PostSummaryScalarFieldEnum = {
   keyTakeaways: 'keyTakeaways',
   insightNotes: 'insightNotes',
   commentHighlights: 'commentHighlights',
+  communityConsensus: 'communityConsensus',
+  sentiment: 'sentiment',
   selectionRationale: 'selectionRationale',
   llmProvider: 'llmProvider',
   llmModel: 'llmModel',
@@ -249,6 +254,26 @@ export const DeliveryScalarFieldEnum = {
 } as const
 
 export type DeliveryScalarFieldEnum = (typeof DeliveryScalarFieldEnum)[keyof typeof DeliveryScalarFieldEnum]
+
+
+export const TopicScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  firstSeen: 'firstSeen',
+  lastSeen: 'lastSeen',
+  frequency: 'frequency'
+} as const
+
+export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
+
+
+export const PostTopicScalarFieldEnum = {
+  postId: 'postId',
+  topicId: 'topicId',
+  relevance: 'relevance'
+} as const
+
+export type PostTopicScalarFieldEnum = (typeof PostTopicScalarFieldEnum)[keyof typeof PostTopicScalarFieldEnum]
 
 
 export const DigestViewScalarFieldEnum = {

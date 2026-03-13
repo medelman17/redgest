@@ -142,12 +142,13 @@ model Post {
   flair        String?
   isNsfw       Boolean                   @map("is_nsfw")
   fetchedAt    DateTime                  @map("fetched_at")
-  textSearch   Unsupported("tsvector")?  @map("text_search")
+  searchVector Unsupported("tsvector")?  @map("search_vector")
 
   comments    PostComment[]
   summaries   PostSummary[]
   digestPosts DigestPost[]
   llmCalls    LlmCall[]
+  postTopics  PostTopic[]
 
   @@index([subreddit])
   @@index([fetchedAt])
@@ -182,6 +183,9 @@ model PostSummary {
   keyTakeaways       Json     @map("key_takeaways")
   insightNotes       String   @map("insight_notes") @db.Text
   commentHighlights  Json     @map("comment_highlights")
+  communityConsensus String?  @map("community_consensus")
+  sentiment          String?
+  embedding          Unsupported("vector(1536)")?
   selectionRationale String   @map("selection_rationale") @db.Text
   llmProvider        String   @map("llm_provider")
   llmModel           String   @map("llm_model")
@@ -272,6 +276,33 @@ model Delivery {
   @@unique([digestId, channel])
   @@index([jobId])
   @@map("deliveries")
+}
+
+// ─── Topic (extracted topic for trend tracking) ─────────────
+
+model Topic {
+  id        String       @id @default(uuid(7))
+  name      String       @unique
+  firstSeen DateTime     @default(now()) @map("first_seen")
+  lastSeen  DateTime     @default(now()) @map("last_seen")
+  frequency Int          @default(1)
+  posts     PostTopic[]
+
+  @@map("topics")
+}
+
+// ─── PostTopic (many-to-many join: posts ↔ topics) ──────────
+
+model PostTopic {
+  postId    String  @map("post_id")
+  topicId   String  @map("topic_id")
+  relevance Float   @default(1.0)
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([postId, topicId])
+  @@index([topicId])
+  @@map("post_topics")
 }
 
 // ─── Views (read-only, created via SQL migration) ────────

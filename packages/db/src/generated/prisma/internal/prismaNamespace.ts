@@ -395,6 +395,8 @@ export const ModelName = {
   DigestPost: 'DigestPost',
   LlmCall: 'LlmCall',
   Delivery: 'Delivery',
+  Topic: 'Topic',
+  PostTopic: 'PostTopic',
   DigestView: 'DigestView',
   PostView: 'PostView',
   RunView: 'RunView',
@@ -415,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "delivery" | "digestView" | "postView" | "runView" | "subredditView" | "deliveryView"
+    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "delivery" | "topic" | "postTopic" | "digestView" | "postView" | "runView" | "subredditView" | "deliveryView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1233,6 +1235,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Topic: {
+      payload: Prisma.$TopicPayload<ExtArgs>
+      fields: Prisma.TopicFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TopicFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TopicFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        findFirst: {
+          args: Prisma.TopicFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TopicFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        findMany: {
+          args: Prisma.TopicFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+        }
+        create: {
+          args: Prisma.TopicCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        createMany: {
+          args: Prisma.TopicCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TopicCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+        }
+        delete: {
+          args: Prisma.TopicDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        update: {
+          args: Prisma.TopicUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        deleteMany: {
+          args: Prisma.TopicDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TopicUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TopicUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+        }
+        upsert: {
+          args: Prisma.TopicUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+        }
+        aggregate: {
+          args: Prisma.TopicAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTopic>
+        }
+        groupBy: {
+          args: Prisma.TopicGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TopicGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TopicCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TopicCountAggregateOutputType> | number
+        }
+      }
+    }
+    PostTopic: {
+      payload: Prisma.$PostTopicPayload<ExtArgs>
+      fields: Prisma.PostTopicFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PostTopicFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PostTopicFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        findFirst: {
+          args: Prisma.PostTopicFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PostTopicFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        findMany: {
+          args: Prisma.PostTopicFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>[]
+        }
+        create: {
+          args: Prisma.PostTopicCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        createMany: {
+          args: Prisma.PostTopicCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PostTopicCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>[]
+        }
+        delete: {
+          args: Prisma.PostTopicDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        update: {
+          args: Prisma.PostTopicUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        deleteMany: {
+          args: Prisma.PostTopicDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PostTopicUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PostTopicUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>[]
+        }
+        upsert: {
+          args: Prisma.PostTopicUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostTopicPayload>
+        }
+        aggregate: {
+          args: Prisma.PostTopicAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePostTopic>
+        }
+        groupBy: {
+          args: Prisma.PostTopicGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostTopicGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PostTopicCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostTopicCountAggregateOutputType> | number
+        }
+      }
+    }
     DigestView: {
       payload: Prisma.$DigestViewPayload<ExtArgs>
       fields: Prisma.DigestViewFieldRefs
@@ -1470,7 +1620,8 @@ export const SubredditScalarFieldEnum = {
   includeNsfw: 'includeNsfw',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastFetchedAt: 'lastFetchedAt'
 } as const
 
 export type SubredditScalarFieldEnum = (typeof SubredditScalarFieldEnum)[keyof typeof SubredditScalarFieldEnum]
@@ -1564,6 +1715,8 @@ export const PostSummaryScalarFieldEnum = {
   keyTakeaways: 'keyTakeaways',
   insightNotes: 'insightNotes',
   commentHighlights: 'commentHighlights',
+  communityConsensus: 'communityConsensus',
+  sentiment: 'sentiment',
   selectionRationale: 'selectionRationale',
   llmProvider: 'llmProvider',
   llmModel: 'llmModel',
@@ -1626,6 +1779,26 @@ export const DeliveryScalarFieldEnum = {
 } as const
 
 export type DeliveryScalarFieldEnum = (typeof DeliveryScalarFieldEnum)[keyof typeof DeliveryScalarFieldEnum]
+
+
+export const TopicScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  firstSeen: 'firstSeen',
+  lastSeen: 'lastSeen',
+  frequency: 'frequency'
+} as const
+
+export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
+
+
+export const PostTopicScalarFieldEnum = {
+  postId: 'postId',
+  topicId: 'topicId',
+  relevance: 'relevance'
+} as const
+
+export type PostTopicScalarFieldEnum = (typeof PostTopicScalarFieldEnum)[keyof typeof PostTopicScalarFieldEnum]
 
 
 export const DigestViewScalarFieldEnum = {
@@ -2031,6 +2204,8 @@ export type GlobalOmitConfig = {
   digestPost?: Prisma.DigestPostOmit
   llmCall?: Prisma.LlmCallOmit
   delivery?: Prisma.DeliveryOmit
+  topic?: Prisma.TopicOmit
+  postTopic?: Prisma.PostTopicOmit
   digestView?: Prisma.DigestViewOmit
   postView?: Prisma.PostViewOmit
   runView?: Prisma.RunViewOmit
