@@ -701,6 +701,153 @@ describe("error recovery - unhandled exceptions (issue #3)", () => {
   });
 });
 
+describe("concurrent summarization", () => {
+  it("summarizes multiple posts concurrently and preserves order", async () => {
+    const fetchResult = makeFetchResult("typescript");
+    const basePost = fetchResult.posts[0];
+    expect(basePost).toBeDefined();
+
+    // Add 4 more posts (5 total — exceeds default concurrency of 3)
+    for (let i = 2; i <= 5; i++) {
+      fetchResult.posts.push({
+        postId: `post-${i}`,
+        redditId: `reddit-${i}`,
+        post: {
+          ...basePost?.post,
+          id: `reddit-${i}`,
+          name: `t3_reddit${i}`,
+          subreddit: "typescript",
+          title: `Test Post ${i}`,
+          selftext: `Body ${i}`,
+          author: "testuser",
+          score: 100 - i,
+          num_comments: 10,
+          url: `https://reddit.com/r/test/${i}`,
+          permalink: `/r/test/${i}`,
+          link_flair_text: null,
+          over_18: false,
+          created_utc: 1700000000 + i,
+          is_self: true,
+        },
+        comments: [],
+      });
+    }
+    mockFetchStep.mockResolvedValue(fetchResult);
+
+    mockTriageStep.mockResolvedValue({
+      selected: [
+        { index: 0, relevanceScore: 9, rationale: "R1" },
+        { index: 1, relevanceScore: 8, rationale: "R2" },
+        { index: 2, relevanceScore: 7, rationale: "R3" },
+        { index: 3, relevanceScore: 6, rationale: "R4" },
+        { index: 4, relevanceScore: 5, rationale: "R5" },
+      ],
+    });
+
+    // Each call returns a distinct summary
+    for (let i = 0; i < 5; i++) {
+      mockSummarizeStep.mockResolvedValueOnce({
+        postSummaryId: `ps-${i + 1}`,
+        summary: makeSummary({ summary: `Summary ${i + 1}` }),
+      });
+    }
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("COMPLETED");
+    const posts = result.subredditResults[0]?.posts;
+    expect(posts).toBeDefined();
+    expect(posts).toHaveLength(5);
+
+    // Verify order is preserved (results appear in original triage order)
+    expect(posts?.[0]?.redditId).toBe("reddit-1");
+    expect(posts?.[1]?.redditId).toBe("reddit-2");
+    expect(posts?.[2]?.redditId).toBe("reddit-3");
+    expect(posts?.[3]?.redditId).toBe("reddit-4");
+    expect(posts?.[4]?.redditId).toBe("reddit-5");
+
+    // All 5 summarizations were called
+    expect(mockSummarizeStep).toHaveBeenCalledTimes(5);
+  });
+
+  it("handles mixed successes and failures across concurrent posts", async () => {
+    const fetchResult = makeFetchResult("typescript");
+    const basePost = fetchResult.posts[0];
+    expect(basePost).toBeDefined();
+
+    fetchResult.posts.push({
+      postId: "post-2",
+      redditId: "reddit-2",
+      post: {
+        ...basePost?.post,
+        id: "reddit-2",
+        name: "t3_reddit2",
+        subreddit: "typescript",
+        title: "Test Post 2",
+        selftext: "Body 2",
+        author: "testuser",
+        score: 90,
+        num_comments: 10,
+        url: "https://reddit.com/r/test/2",
+        permalink: "/r/test/2",
+        link_flair_text: null,
+        over_18: false,
+        created_utc: 1700000002,
+        is_self: true,
+      },
+      comments: [],
+    });
+    fetchResult.posts.push({
+      postId: "post-3",
+      redditId: "reddit-3",
+      post: {
+        ...basePost?.post,
+        id: "reddit-3",
+        name: "t3_reddit3",
+        subreddit: "typescript",
+        title: "Test Post 3",
+        selftext: "Body 3",
+        author: "testuser",
+        score: 80,
+        num_comments: 5,
+        url: "https://reddit.com/r/test/3",
+        permalink: "/r/test/3",
+        link_flair_text: null,
+        over_18: false,
+        created_utc: 1700000003,
+        is_self: true,
+      },
+      comments: [],
+    });
+    mockFetchStep.mockResolvedValue(fetchResult);
+
+    mockTriageStep.mockResolvedValue({
+      selected: [
+        { index: 0, relevanceScore: 9, rationale: "R1" },
+        { index: 1, relevanceScore: 8, rationale: "R2" },
+        { index: 2, relevanceScore: 7, rationale: "R3" },
+      ],
+    });
+
+    // Post 1 fails, Post 2 succeeds, Post 3 fails
+    mockSummarizeStep
+      .mockRejectedValueOnce(new Error("Timeout"))
+      .mockResolvedValueOnce(makeSummarizeResult())
+      .mockRejectedValueOnce(new Error("Rate limited"));
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("PARTIAL");
+    expect(result.subredditResults[0]?.posts).toHaveLength(1);
+    expect(result.subredditResults[0]?.posts[0]?.redditId).toBe("reddit-2");
+    expect(result.errors).toHaveLength(2);
+    expect(result.errors[0]).toContain("reddit-1");
+    expect(result.errors[0]).toContain("Timeout");
+    expect(result.errors[1]).toContain("reddit-3");
+    expect(result.errors[1]).toContain("Rate limited");
+  });
+});
+
 describe("cancellation checkpoints", () => {
   it("stops before fetch when job is CANCELED", async () => {
     mockDb.job.findUnique.mockResolvedValue({ status: "CANCELED" });
