@@ -55,6 +55,40 @@ async function checkCancellation(
   return job?.status === "CANCELED";
 }
 
+/** Default concurrency for parallel post summarization. */
+const SUMMARIZE_CONCURRENCY = 3;
+
+/**
+ * Process items concurrently with a bounded pool size.
+ * Like Promise.allSettled but with a maximum number of in-flight promises.
+ * Safe in single-threaded JS: nextIndex increment is atomic between awaits.
+ */
+async function mapSettled<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number,
+): Promise<Array<PromiseSettledResult<R>>> {
+  const results = new Array<PromiseSettledResult<R>>(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const i = nextIndex++;
+      const item = items[i];
+      if (item === undefined) continue;
+      try {
+        results[i] = { status: "fulfilled", value: await fn(item) };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
+
 /**
  * Run the complete digest pipeline.
  *
@@ -275,8 +309,7 @@ async function runPipelineBody(
         jobId,
       );
 
-      // --- Summarize each selected post (per-post error recovery) ---
-      const postResults: SubredditPipelineResult["posts"] = [];
+      // --- Summarize selected posts concurrently (per-post error recovery) ---
 
       // Pre-load embedding module once per subreddit (not per post)
       let generateEmbeddingFn: ((text: string) => Promise<import("@redgest/llm").GenerateResult<number[]>>) | undefined;
@@ -289,16 +322,29 @@ async function runPipelineBody(
         }
       }
 
-      for (const sel of triageResult.selected) {
+      // Build work items (filter out invalid indices)
+      const workItems = triageResult.selected.flatMap((sel) => {
         const postData = newPosts[sel.index];
-        if (!postData) continue;
+        return postData ? [{ sel, postData }] : [];
+      });
 
-        // Checkpoint: before each summarization
-        if (await checkCancellation(jobId, db)) {
-          break;
-        }
+      // Shared cancellation flag — once set, remaining workers skip
+      let canceled = false;
+      const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
 
-        try {
+      type PostResult = SubredditPipelineResult["posts"][number];
+      const settled = await mapSettled(
+        workItems,
+        async ({ sel, postData }): Promise<PostResult | null> => {
+          // Skip if cancellation was detected by another concurrent worker
+          if (canceled) return null;
+
+          // Checkpoint: check cancellation before starting this post
+          if (await checkCancellation(jobId, db)) {
+            canceled = true;
+            return null;
+          }
+
           const sumComments: SummarizationComment[] =
             postData.comments.map((c) => ({
               author: c.author,
@@ -306,7 +352,6 @@ async function runPipelineBody(
               body: c.body,
             }));
 
-          const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
           const sumResult = await summarizeStep(
             {
               title: postData.post.title,
@@ -364,17 +409,29 @@ async function runPipelineBody(
             );
           }
 
-          postResults.push({
+          return {
             postId: postData.postId,
             redditId: postData.redditId,
             title: postData.post.title,
             summary: sumResult.summary,
             selectionRationale: sel.rationale,
-          });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          };
+        },
+        SUMMARIZE_CONCURRENCY,
+      );
+
+      // Collect results and errors from settled promises
+      const postResults: SubredditPipelineResult["posts"] = [];
+      for (let i = 0; i < settled.length; i++) {
+        const s = settled[i];
+        if (!s) continue;
+        if (s.status === "fulfilled" && s.value !== null) {
+          postResults.push(s.value);
+        } else if (s.status === "rejected") {
+          const workItem = workItems[i];
+          const msg = s.reason instanceof Error ? s.reason.message : String(s.reason);
           errors.push(
-            `Failed to summarize post ${postData.redditId}: ${msg}`,
+            `Failed to summarize post ${workItem?.postData.redditId}: ${msg}`,
           );
         }
       }
