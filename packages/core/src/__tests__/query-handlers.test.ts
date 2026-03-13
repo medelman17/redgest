@@ -1182,7 +1182,7 @@ describe("handleGetDeliveryStatus", () => {
 });
 
 describe("queryHandlers registry", () => {
-  it("registers all 16 handlers", () => {
+  it("registers all 18 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -1199,10 +1199,12 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.GetDeliveryStatus).toBeDefined();
     expect(queryHandlers.FindSimilar).toBeDefined();
     expect(queryHandlers.AskHistory).toBeDefined();
+    expect(queryHandlers.GetTrendingTopics).toBeDefined();
+    expect(queryHandlers.ComparePeriods).toBeDefined();
   });
 
-  it("has exactly 16 entries", () => {
+  it("has exactly 18 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(16);
+    expect(handlerCount).toBe(18);
   });
 });

@@ -141,6 +141,10 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
 - **check_reddit_connectivity** — Test Reddit API health: status, auth type, latency, rate limiter state
 
+### Trends & History
+- **get_trending_topics** — View trending topics with frequency and recency (filter by subreddit or time window)
+- **compare_periods** — Compare two time periods: volume changes, new/dropped topics, subreddit activity shifts
+
 ### Help
 - **use_redgest** — Show this usage guide
 
@@ -176,7 +180,9 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | get_subreddit_stats | INTERNAL_ERROR |
 | preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |
 | compare_digests | NOT_FOUND, VALIDATION_ERROR, INTERNAL_ERROR |
-| get_delivery_status | NOT_FOUND, INTERNAL_ERROR |`;
+| get_delivery_status | NOT_FOUND, INTERNAL_ERROR |
+| get_trending_topics | INTERNAL_ERROR |
+| compare_periods | VALIDATION_ERROR, INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -562,6 +568,34 @@ export function createToolHandlers(
       });
     },
 
+    get_trending_topics: async (args) => {
+      return safe(async () => {
+        const limit = args.limit as number | undefined;
+        const since = args.since as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "GetTrendingTopics",
+          { limit, since, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    compare_periods: async (args) => {
+      return safe(async () => {
+        const periodA = args.periodA as string;
+        const periodB = args.periodB as string;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "ComparePeriods",
+          { periodA, periodB, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
     preview_digest: async (args) => {
       return safe(async () => {
         const digestId = args.digestId as string;
@@ -921,6 +955,28 @@ export function createToolServer(deps: BootstrapResult): McpServer {
         .describe('Delivery channel format to preview (default: "markdown")'),
     },
     async (args) => call("preview_digest", args),
+  );
+
+  server.tool(
+    "get_trending_topics",
+    "View trending topics extracted from digest history. Shows topic frequency and recency.",
+    {
+      limit: z.number().optional().describe("Max topics to return (default: 10)"),
+      since: z.string().optional().describe("Duration filter e.g. '7d', '30d'"),
+      subreddit: z.string().optional().describe("Filter to a specific subreddit"),
+    },
+    async (args) => call("get_trending_topics", args),
+  );
+
+  server.tool(
+    "compare_periods",
+    "Compare two time periods to see volume changes, new/dropped topics, and subreddit activity shifts. periodA is the recent window, periodB is the comparison window.",
+    {
+      periodA: z.string().describe("Recent period duration, e.g. '7d' for last 7 days"),
+      periodB: z.string().describe("Comparison period duration, e.g. '7d' for the 7 days before periodA"),
+      subreddit: z.string().optional().describe("Filter to a specific subreddit"),
+    },
+    async (args) => call("compare_periods", args),
   );
 
   return server;

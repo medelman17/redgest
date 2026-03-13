@@ -153,6 +153,41 @@ export interface DeliveryStatusResult {
 }
 
 /**
+ * TrendingTopic — a topic with frequency and recency data.
+ */
+export interface TrendingTopic {
+  name: string;
+  frequency: number;
+  firstSeen: string;
+  lastSeen: string;
+  recentPostCount: number;
+}
+
+/**
+ * PeriodSummary — aggregated stats for a time period.
+ */
+export interface PeriodSummary {
+  startDate: string;
+  endDate: string;
+  postCount: number;
+  topSubreddits: Array<{ name: string; count: number }>;
+  topTopics: Array<{ name: string; count: number }>;
+  avgScore: number;
+}
+
+/**
+ * PeriodComparisonResult — comparison between two time periods.
+ */
+export interface PeriodComparisonResult {
+  periodA: PeriodSummary;
+  periodB: PeriodSummary;
+  newTopics: string[];
+  droppedTopics: string[];
+  /** Percentage change in post volume (positive = more recent period has more posts). */
+  volumeChange: number;
+}
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -173,6 +208,8 @@ export interface QueryMap {
   GetSubredditStats: { name?: string };
   CompareDigests: { digestIdA: string; digestIdB: string; subreddit?: string };
   GetDeliveryStatus: { digestId?: string; limit?: number };
+  GetTrendingTopics: { limit?: number; since?: string; subreddit?: string };
+  ComparePeriods: { periodA: string; periodB: string; subreddit?: string };
 }
 
 /**
@@ -196,6 +233,8 @@ export interface QueryResultMap {
   GetSubredditStats: SubredditView[];
   CompareDigests: DigestComparisonResult;
   GetDeliveryStatus: DeliveryStatusResult;
+  GetTrendingTopics: TrendingTopic[];
+  ComparePeriods: PeriodComparisonResult;
 }
 
 // Derived types

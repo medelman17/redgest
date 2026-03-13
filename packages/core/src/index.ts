@@ -48,6 +48,9 @@ export type {
   DeliveryStatusResult,
   DeliveryStatusDigest,
   DeliveryStatusChannel,
+  TrendingTopic,
+  PeriodSummary,
+  PeriodComparisonResult,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -82,6 +85,8 @@ export {
   handleGetDeliveryStatus,
   handleFindSimilar,
   handleAskHistory,
+  handleGetTrendingTopics,
+  handleComparePeriods,
 } from "./queries/handlers/index.js";
 
 // Context
