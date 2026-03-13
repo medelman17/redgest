@@ -200,6 +200,7 @@ export function createToolHandlers(
           {
             subredditIds,
             lookbackHours: parseLookback(lookback),
+            forceRefresh: args.force_refresh as boolean | undefined,
           },
           eCtx,
         );
@@ -665,6 +666,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     {
       subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (omit for all active)"),
       lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (default: 24h)'),
+      force_refresh: z.boolean().optional().describe("Bypass fetch cache and always hit Reddit API"),
     },
     async (args) => call("generate_digest", args),
   );

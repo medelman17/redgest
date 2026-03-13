@@ -23,9 +23,11 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
   async function runInProcess(
     jobId: string,
     subredditIds: string[],
+    forceRefresh?: boolean,
   ): Promise<void> {
     try {
-      await runDigestPipeline(jobId, subredditIds, pipelineDeps);
+      const deps = forceRefresh ? { ...pipelineDeps, forceRefresh } : pipelineDeps;
+      await runDigestPipeline(jobId, subredditIds, deps);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(
@@ -45,21 +47,24 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
   }
 
   eventBus.on("DigestRequested", async (event) => {
-    const { jobId, subredditIds } = event.payload;
+    const { jobId, subredditIds, forceRefresh } = event.payload;
 
     if (triggerSecretKey) {
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
+        // Note: Trigger.dev path does NOT propagate forceRefresh.
+        // The worker task would need to accept it as a payload field.
+        // Deferred to when worker tests are added (TD-005).
         await tasks.trigger("generate-digest", { jobId, subredditIds });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error(
           `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
         );
-        await runInProcess(jobId, subredditIds);
+        await runInProcess(jobId, subredditIds, forceRefresh);
       }
     } else {
-      await runInProcess(jobId, subredditIds);
+      await runInProcess(jobId, subredditIds, forceRefresh);
     }
   });
 }

@@ -12,6 +12,7 @@ export const eventPayloadSchemas = {
   DigestRequested: z.object({
     jobId: z.string(),
     subredditIds: z.array(z.string()),
+    forceRefresh: z.boolean().optional(),
   }),
   DigestCompleted: z.object({
     jobId: z.string(),

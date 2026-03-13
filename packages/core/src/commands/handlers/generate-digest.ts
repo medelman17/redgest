@@ -32,6 +32,6 @@ export const handleGenerateDigest: CommandHandler<"GenerateDigest"> = async (
 
   return {
     data: { jobId: job.id, status: job.status },
-    event: { jobId: job.id, subredditIds },
+    event: { jobId: job.id, subredditIds, forceRefresh: params.forceRefresh },
   };
 };
