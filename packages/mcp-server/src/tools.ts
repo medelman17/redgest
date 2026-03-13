@@ -115,14 +115,16 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 ### Digest Retrieval
 - **get_digest** — Get a specific digest by ID, or the latest
 - **list_digests** — List recent digests
-- **search_digests** — Full-text search across digests
+- **search_digests** — Full-text search across digests (filter by subreddit, since)
 - **preview_digest** — Preview a digest rendered for a specific delivery channel (markdown, email HTML, Slack blocks)
 - **compare_digests** — Compare two digests: new/dropped posts, overlap, subreddit trends
 - **get_delivery_status** — Check delivery status (email/Slack) for one or more digests
 
 ### Post Access
 - **get_post** — Get a specific post summary by ID
-- **search_posts** — Full-text search across post summaries
+- **search_posts** — Full-text search across post summaries (filter by subreddit, since, sentiment, min_score)
+- **find_similar** — Find posts similar to a given post based on semantic similarity
+- **ask_history** — Search digest history using natural language
 
 ### Subreddit Management
 - **add_subreddit** — Add a subreddit to monitor
@@ -166,6 +168,7 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | get_config | NOT_FOUND, INTERNAL_ERROR |
 | list_runs, list_digests, list_subreddits | INTERNAL_ERROR |
 | search_posts, search_digests | INTERNAL_ERROR |
+| find_similar, ask_history | INTERNAL_ERROR |
 | add_subreddit, update_config | INTERNAL_ERROR |
 | cancel_run | NOT_FOUND, CONFLICT, INTERNAL_ERROR |
 | get_llm_metrics | INTERNAL_ERROR |
@@ -305,10 +308,13 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
-        const cursor = args.cursor as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
+        const sentiment = args.sentiment as string | undefined;
+        const minScore = args.min_score as number | undefined;
         const result = await deps.query(
           "SearchPosts",
-          { query, limit, cursor },
+          { query, limit, subreddit, since, sentiment, minScore },
           deps.ctx,
         );
         return envelope(result);
@@ -319,10 +325,40 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
-        const cursor = args.cursor as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
         const result = await deps.query(
           "SearchDigests",
-          { query, limit, cursor },
+          { query, limit, subreddit, since },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    find_similar: async (args) => {
+      return safe(async () => {
+        const postId = args.postId as string;
+        const limit = args.limit as number | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "FindSimilar",
+          { postId, limit, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    ask_history: async (args) => {
+      return safe(async () => {
+        const question = args.question as string;
+        const limit = args.limit as number | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
+        const result = await deps.query(
+          "AskHistory",
+          { question, limit, subreddit, since },
           deps.ctx,
         );
         return envelope(result);
@@ -714,24 +750,51 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "search_posts",
-    "Full-text search across post summaries. Supports cursor-based pagination.",
+    "Full-text search across post summaries using tsvector search. Returns ranked results with match highlights.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
-      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Only return posts from the last duration, e.g. '7d', '48h', '30m'"),
+      sentiment: z.string().optional().describe("Filter by sentiment (e.g. 'positive', 'negative', 'neutral')"),
+      min_score: z.number().optional().describe("Minimum Reddit score filter"),
     },
     async (args) => call("search_posts", args),
   );
 
   server.tool(
     "search_digests",
-    "Full-text search across digests. Supports cursor-based pagination.",
+    "Full-text search across digests using tsvector search. Returns ranked results with match highlights.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
-      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Only return posts from the last duration, e.g. '7d', '48h', '30m'"),
     },
     async (args) => call("search_digests", args),
+  );
+
+  server.tool(
+    "find_similar",
+    "Find posts similar to a given post based on semantic similarity. Requires embeddings to be populated.",
+    {
+      postId: z.string().describe("Post ID to find similar posts for"),
+      limit: z.number().optional().describe("Max results (default: 5)"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+    },
+    async (args) => call("find_similar", args),
+  );
+
+  server.tool(
+    "ask_history",
+    "Search your digest history using natural language. Ask questions about topics, trends, or past discussions.",
+    {
+      question: z.string().describe("Natural language question or search query about your digest history"),
+      limit: z.number().optional().describe("Max results (default: 10)"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Duration filter e.g. '7d', '48h'"),
+    },
+    async (args) => call("ask_history", args),
   );
 
   server.tool(

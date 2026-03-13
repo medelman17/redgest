@@ -4,6 +4,7 @@ import {
   DomainEventBus,
   createExecute,
   createQuery,
+  createSearchService,
   commandHandlers,
   queryHandlers,
   wireDigestDispatch,
@@ -38,7 +39,8 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const config = loadConfig();
   const db = prisma;
   const eventBus = new DomainEventBus();
-  const ctx: HandlerContext = { db, eventBus, config };
+  const searchService = createSearchService(db);
+  const ctx: HandlerContext = { db, eventBus, config, searchService };
 
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);

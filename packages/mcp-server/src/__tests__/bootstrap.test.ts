@@ -15,6 +15,8 @@ const {
   mockQueryHandlers,
   mockContentSourceInstance,
   mockCreateContentSource,
+  mockSearchServiceInstance,
+  mockCreateSearchService,
 } = vi.hoisted(() => {
   const mockLoadConfig = vi.fn();
 
@@ -47,6 +49,14 @@ const {
   const mockContentSourceInstance = { fetchContent: vi.fn() };
   const mockCreateContentSource = vi.fn().mockReturnValue(mockContentSourceInstance);
 
+  const mockSearchServiceInstance = {
+    searchByKeyword: vi.fn(),
+    searchBySimilarity: vi.fn(),
+    findSimilar: vi.fn(),
+    searchHybrid: vi.fn(),
+  };
+  const mockCreateSearchService = vi.fn().mockReturnValue(mockSearchServiceInstance);
+
   return {
     mockLoadConfig,
     mockPrismaClient,
@@ -61,6 +71,8 @@ const {
     mockQueryHandlers,
     mockContentSourceInstance,
     mockCreateContentSource,
+    mockSearchServiceInstance,
+    mockCreateSearchService,
   };
 });
 
@@ -76,6 +88,7 @@ vi.mock("@redgest/db", () => ({
 vi.mock("@redgest/core", () => ({
   createExecute: mockCreateExecute,
   createQuery: mockCreateQuery,
+  createSearchService: mockCreateSearchService,
   DomainEventBus: MockDomainEventBus,
   wireDigestDispatch: mockWireDigestDispatch,
   recordDeliveryPending: vi.fn(),
@@ -163,7 +176,13 @@ describe("bootstrap()", () => {
       db: mockPrismaClient,
       eventBus: mockEventBusInstance,
       config: fakeConfig,
+      searchService: mockSearchServiceInstance,
     });
+  });
+
+  it("creates SearchService from db", async () => {
+    await bootstrap();
+    expect(mockCreateSearchService).toHaveBeenCalledWith(mockPrismaClient);
   });
 
   describe("without TRIGGER_SECRET_KEY", () => {

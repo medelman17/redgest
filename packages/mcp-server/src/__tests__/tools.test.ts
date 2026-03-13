@@ -585,34 +585,36 @@ describe("pass-through tools", () => {
     expect(env.data).toEqual({ id: "p1", title: "Test" });
   });
 
-  it("search_posts queries SearchPosts with cursor", async () => {
-    deps.query.mockResolvedValue({ items: [], nextCursor: null, hasMore: false });
+  it("search_posts queries SearchPosts with filter params", async () => {
+    const mockResults = [{ postId: "p-1", title: "Rust Systems" }];
+    deps.query.mockResolvedValue(mockResults);
 
-    const result = await invoke(handlers, "search_posts", { query: "rust", limit: 5, cursor: "p-1" });
+    const result = await invoke(handlers, "search_posts", { query: "rust", limit: 5, subreddit: "rust", since: "7d" });
 
     expect(deps.query).toHaveBeenCalledWith(
       "SearchPosts",
-      { query: "rust", limit: 5, cursor: "p-1" },
+      { query: "rust", limit: 5, subreddit: "rust", since: "7d", sentiment: undefined, minScore: undefined },
       deps.result.ctx,
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
-    expect(env.data).toEqual({ items: [], nextCursor: null, hasMore: false });
+    expect(env.data).toEqual(mockResults);
   });
 
-  it("search_digests queries SearchDigests with cursor", async () => {
-    deps.query.mockResolvedValue({ items: [], nextCursor: null, hasMore: false });
+  it("search_digests queries SearchDigests with filter params", async () => {
+    const mockResults = [{ postId: "p-1", title: "AI News" }];
+    deps.query.mockResolvedValue(mockResults);
 
-    const result = await invoke(handlers, "search_digests", { query: "AI", limit: 3, cursor: "d-1" });
+    const result = await invoke(handlers, "search_digests", { query: "AI", limit: 3, subreddit: "MachineLearning" });
 
     expect(deps.query).toHaveBeenCalledWith(
       "SearchDigests",
-      { query: "AI", limit: 3, cursor: "d-1" },
+      { query: "AI", limit: 3, subreddit: "MachineLearning", since: undefined },
       deps.result.ctx,
     );
     const env = parseEnvelope(result);
     expect(env.ok).toBe(true);
-    expect(env.data).toEqual({ items: [], nextCursor: null, hasMore: false });
+    expect(env.data).toEqual(mockResults);
   });
 
   it("list_subreddits queries ListSubreddits", async () => {
