@@ -617,6 +617,43 @@ describe("pass-through tools", () => {
     expect(env.data).toEqual(mockResults);
   });
 
+  it("find_similar queries FindSimilar with postId and options", async () => {
+    const mockResults = [{ postId: "p-2", title: "Related Post" }];
+    deps.query.mockResolvedValue(mockResults);
+
+    const result = await invoke(handlers, "find_similar", { postId: "p-1", limit: 5, subreddit: "typescript" });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "FindSimilar",
+      { postId: "p-1", limit: 5, subreddit: "typescript" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual(mockResults);
+  });
+
+  it("ask_history queries AskHistory with question and options", async () => {
+    const mockResults = [{ postId: "p-3", title: "Rust Systems Post" }];
+    deps.query.mockResolvedValue(mockResults);
+
+    const result = await invoke(handlers, "ask_history", {
+      question: "what happened in rust this week",
+      limit: 10,
+      subreddit: "rust",
+      since: "7d",
+    });
+
+    expect(deps.query).toHaveBeenCalledWith(
+      "AskHistory",
+      { question: "what happened in rust this week", limit: 10, subreddit: "rust", since: "7d" },
+      deps.result.ctx,
+    );
+    const env = parseEnvelope(result);
+    expect(env.ok).toBe(true);
+    expect(env.data).toEqual(mockResults);
+  });
+
   it("list_subreddits queries ListSubreddits", async () => {
     deps.query.mockResolvedValue([{ id: "s1", name: "test" }]);
 

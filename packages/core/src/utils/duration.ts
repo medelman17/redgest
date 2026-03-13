@@ -1,3 +1,5 @@
+import { RedgestError } from "../errors.js";
+
 /**
  * Parse a human-friendly duration string into milliseconds.
  * Supported formats: "30m", "48h", "7d"
@@ -5,7 +7,8 @@
 export function parseDuration(input: string): number {
   const match = input.match(/^(\d+)(m|h|d)$/);
   if (!match) {
-    throw new Error(
+    throw new RedgestError(
+      "VALIDATION_ERROR",
       `Invalid duration: "${input}". Use <number><m|h|d>, e.g. "48h", "7d".`,
     );
   }
