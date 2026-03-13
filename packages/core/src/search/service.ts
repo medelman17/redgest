@@ -8,6 +8,11 @@ const DEFAULT_LIMIT = 10;
 const RRF_K = 60; // Reciprocal Rank Fusion constant
 
 function toSearchResult(row: z.infer<typeof RawSearchRowSchema>): SearchResult {
+  const highlights: string[] = [];
+  if (row.headline) {
+    // ts_headline wraps matches in <b>…</b>; extract the highlighted fragments
+    highlights.push(row.headline);
+  }
   return {
     postId: row.post_id,
     redditId: row.reddit_id,
@@ -15,7 +20,7 @@ function toSearchResult(row: z.infer<typeof RawSearchRowSchema>): SearchResult {
     title: row.title,
     score: row.score,
     summarySnippet: row.summary_snippet,
-    matchHighlights: [],
+    matchHighlights: highlights,
     relevanceRank: row.rank,
     sentiment: row.sentiment,
     digestId: row.digest_id,
@@ -70,7 +75,8 @@ export function createSearchService(db: PrismaClient): SearchService {
           ts_rank_cd(p.search_vector, ${tsquery})::float8 AS rank,
           ps.sentiment,
           latest_dp.digest_id::text AS digest_id,
-          latest_dp.digest_date AS digest_date
+          latest_dp.digest_date AS digest_date,
+          ts_headline('english', COALESCE(ps.summary, p.title), ${tsquery}, 'MaxFragments=2,MaxWords=30,MinWords=10') AS headline
         FROM posts p
         LEFT JOIN LATERAL (
           SELECT ps2.summary, ps2.sentiment

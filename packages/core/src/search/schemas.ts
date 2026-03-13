@@ -12,6 +12,7 @@ export const RawSearchRowSchema = z.object({
   sentiment: z.string().nullable(),
   digest_id: z.string().nullable(),
   digest_date: z.coerce.date().nullable(),
+  headline: z.string().nullable().optional(),
 });
 
 export type RawSearchRow = z.infer<typeof RawSearchRowSchema>;
