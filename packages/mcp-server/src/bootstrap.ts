@@ -61,6 +61,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
       eventBus,
       contentSource: new contentMod.FakeContentSource() as PipelineDeps["contentSource"],
       config,
+      searchService,
       generateTriage: llmMod.fakeGenerateTriageResult as PipelineDeps["generateTriage"],
       generateSummary: llmMod.fakeGeneratePostSummary as PipelineDeps["generateSummary"],
     };

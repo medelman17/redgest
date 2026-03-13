@@ -278,6 +278,17 @@ async function runPipelineBody(
       // --- Summarize each selected post (per-post error recovery) ---
       const postResults: SubredditPipelineResult["posts"] = [];
 
+      // Pre-load embedding module once per subreddit (not per post)
+      let generateEmbeddingFn: ((text: string) => Promise<import("@redgest/llm").GenerateResult<number[]>>) | undefined;
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          const llmMod = await import("@redgest/llm");
+          generateEmbeddingFn = llmMod.generateEmbedding;
+        } catch {
+          // Embedding unavailable — proceed without it
+        }
+      }
+
       for (const sel of triageResult.selected) {
         const postData = newPosts[sel.index];
         if (!postData) continue;
@@ -315,10 +326,9 @@ async function runPipelineBody(
           );
 
           // --- Embedding (optional, best-effort) ---
-          if (process.env.OPENAI_API_KEY) {
+          if (generateEmbeddingFn) {
             try {
-              const { generateEmbedding } = await import("@redgest/llm");
-              const embResult = await generateEmbedding(sumResult.summary.summary);
+              const embResult = await generateEmbeddingFn(sumResult.summary.summary);
               const vecStr = `[${embResult.data.join(",")}]`;
               await db.$executeRaw`
                 UPDATE post_summaries SET embedding = ${vecStr}::vector WHERE id = ${sumResult.postSummaryId}
@@ -340,7 +350,7 @@ async function runPipelineBody(
               }
             } catch (err) {
               console.error(
-                `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : err}`,
+                `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
               );
             }
           }
@@ -350,7 +360,7 @@ async function runPipelineBody(
             await topicStep(postData.postId, sumResult.summary, db);
           } catch (err) {
             console.error(
-              `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : err}`,
+              `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
             );
           }
 

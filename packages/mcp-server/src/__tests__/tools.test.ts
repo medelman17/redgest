@@ -494,7 +494,7 @@ describe("edge cases", () => {
     const env = parseEnvelope(result);
     expect(env.ok).toBe(false);
     expect(env.error?.code).toBe("VALIDATION_ERROR");
-    expect(env.error?.message).toContain("Invalid lookback format");
+    expect(env.error?.message).toContain("Invalid duration");
     expect(result.isError).toBe(true);
   });
 

@@ -94,23 +94,30 @@ export async function topicStep(
 
   const now = new Date();
 
-  for (const name of topicNames) {
-    try {
-      const topic = await db.topic.upsert({
+  // Batch all upserts in a single transaction to reduce round-trips
+  await db.$transaction(
+    topicNames.map((name) =>
+      db.topic.upsert({
         where: { name },
         create: { name, firstSeen: now, lastSeen: now, frequency: 1 },
         update: { lastSeen: now, frequency: { increment: 1 } },
-      });
+      }),
+    ),
+  );
 
-      await db.postTopic.upsert({
+  // Now link topics to post (need topic IDs from above)
+  const topics = await db.topic.findMany({
+    where: { name: { in: topicNames } },
+    select: { id: true, name: true },
+  });
+
+  await db.$transaction(
+    topics.map((topic) =>
+      db.postTopic.upsert({
         where: { postId_topicId: { postId, topicId: topic.id } },
         create: { postId, topicId: topic.id, relevance: 1.0 },
         update: {},
-      });
-    } catch (err) {
-      console.error(
-        `[Pipeline] Topic upsert failed for "${name}": ${err instanceof Error ? err.message : err}`,
-      );
-    }
-  }
+      }),
+    ),
+  );
 }

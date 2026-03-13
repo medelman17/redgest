@@ -1,4 +1,5 @@
 import type { QueryHandler } from "../types.js";
+import { RedgestError } from "../../errors.js";
 import { parseDuration } from "../../utils/duration.js";
 import type { SearchOptions } from "../../search/types.js";
 
@@ -7,7 +8,7 @@ export const handleSearchPosts: QueryHandler<"SearchPosts"> = async (
   ctx,
 ) => {
   if (!ctx.searchService) {
-    throw new Error("SearchService not available");
+    throw new RedgestError("INTERNAL_ERROR", "SearchService not available");
   }
   const options: SearchOptions = {
     limit: params.limit ?? 10,

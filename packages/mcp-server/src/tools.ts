@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ErrorCode, RedgestError, type ExecuteContext } from "@redgest/core";
+import { ErrorCode, RedgestError, parseDuration, type ExecuteContext } from "@redgest/core";
 import type { DeliveryChannel } from "@redgest/db";
 import { buildDeliveryData, renderDigestHtml } from "@redgest/email";
 import { formatDigestBlocks, type SlackBlock } from "@redgest/slack";
@@ -26,18 +26,7 @@ async function safe(fn: () => Promise<ToolResult>): Promise<ToolResult> {
 
 function parseLookback(lookback?: string): number | undefined {
   if (!lookback) return undefined;
-  const match = lookback.match(/^(\d+)(m|h|d)$/);
-  if (!match) {
-    throw new RedgestError(
-      "VALIDATION_ERROR",
-      `Invalid lookback format "${lookback}". Use a number with m (minutes), h (hours), or d (days), e.g. "48h", "2d", "30m".`,
-    );
-  }
-  const value = Number(match[1]);
-  const unit = match[2];
-  if (unit === "m") return value / 60;
-  if (unit === "d") return value * 24;
-  return value; // hours
+  return parseDuration(lookback) / (3600 * 1000); // convert ms → hours
 }
 
 async function lookupSubredditId(
