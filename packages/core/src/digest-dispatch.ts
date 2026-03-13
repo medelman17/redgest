@@ -6,6 +6,8 @@ export interface DigestDispatchDeps {
   eventBus: DomainEventBus;
   pipelineDeps: PipelineDeps;
   triggerSecretKey?: string;
+  /** Injected delivery function — called on DigestCompleted when Trigger.dev is not configured. */
+  deliverDigest?: (digestId: string, jobId: string) => Promise<void>;
 }
 
 /**
@@ -17,7 +19,7 @@ export interface DigestDispatchDeps {
  * fixes (like #3) to require changes in two places.
  */
 export function wireDigestDispatch(deps: DigestDispatchDeps): void {
-  const { eventBus, pipelineDeps, triggerSecretKey } = deps;
+  const { eventBus, pipelineDeps, triggerSecretKey, deliverDigest } = deps;
   const { db } = pipelineDeps;
 
   async function runInProcess(
@@ -67,4 +69,18 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
       await runInProcess(jobId, subredditIds, forceRefresh);
     }
   });
+
+  // In-process delivery on DigestCompleted (when Trigger.dev not available)
+  if (!triggerSecretKey && deliverDigest) {
+    eventBus.on("DigestCompleted", async (event) => {
+      const { jobId, digestId } = event.payload;
+      try {
+        await deliverDigest(digestId, jobId);
+      } catch (err) {
+        console.error(
+          `[DigestCompleted] In-process delivery failed: ${err instanceof Error ? err.message : err}`,
+        );
+      }
+    });
+  }
 }

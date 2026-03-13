@@ -78,6 +78,8 @@ vi.mock("@redgest/core", () => ({
   createQuery: mockCreateQuery,
   DomainEventBus: MockDomainEventBus,
   wireDigestDispatch: mockWireDigestDispatch,
+  recordDeliveryPending: vi.fn(),
+  recordDeliveryResult: vi.fn(),
   commandHandlers: mockCommandHandlers,
   queryHandlers: mockQueryHandlers,
 }));
@@ -135,7 +137,7 @@ describe("bootstrap()", () => {
     });
   });
 
-  it("calls wireDigestDispatch with eventBus, pipelineDeps, and triggerSecretKey", async () => {
+  it("calls wireDigestDispatch with eventBus, pipelineDeps, triggerSecretKey, and deliverDigest", async () => {
     await bootstrap();
     expect(mockWireDigestDispatch).toHaveBeenCalledWith({
       eventBus: mockEventBusInstance,
@@ -146,6 +148,7 @@ describe("bootstrap()", () => {
         config: fakeConfig,
       },
       triggerSecretKey: "tr_test",
+      deliverDigest: expect.any(Function),
     });
   });
 
