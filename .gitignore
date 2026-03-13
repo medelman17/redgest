@@ -17,5 +17,6 @@ coverage/
 
 .trigger
 .superpowers/
+.worktrees/
 .mcp.json
 test-results/.last-run.json
