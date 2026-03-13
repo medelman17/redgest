@@ -67,6 +67,8 @@ export async function summarizeStep(
       keyTakeaways: summary.keyTakeaways,
       insightNotes: summary.insightNotes,
       commentHighlights: summary.commentHighlights,
+      communityConsensus: summary.communityConsensus,
+      sentiment: summary.sentiment,
       selectionRationale: selectionRationale ?? "",
       llmProvider,
       llmModel,
