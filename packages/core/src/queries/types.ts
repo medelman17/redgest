@@ -5,9 +5,8 @@ import type {
   RunView,
   SubredditView,
   Config,
-  Digest,
-  Post,
 } from "@redgest/db";
+import type { SearchResult } from "../search/index.js";
 
 /** Default page size for paginated queries. */
 export const DEFAULT_PAGE_SIZE = 10;
@@ -166,8 +165,10 @@ export interface QueryMap {
   ListRuns: { limit?: number; cursor?: string };
   ListSubreddits: Record<string, never>;
   GetConfig: Record<string, never>;
-  SearchPosts: { query: string; limit?: number; cursor?: string };
-  SearchDigests: { query: string; limit?: number; cursor?: string };
+  SearchPosts: { query: string; subreddit?: string; since?: string; sentiment?: string; minScore?: number; limit?: number };
+  SearchDigests: { query: string; subreddit?: string; since?: string; limit?: number };
+  FindSimilar: { postId: string; limit?: number; subreddit?: string };
+  AskHistory: { question: string; limit?: number; subreddit?: string; since?: string };
   GetLlmMetrics: { jobId?: string; limit?: number };
   GetSubredditStats: { name?: string };
   CompareDigests: { digestIdA: string; digestIdB: string; subreddit?: string };
@@ -187,8 +188,10 @@ export interface QueryResultMap {
   ListRuns: Paginated<RunView>;
   ListSubreddits: SubredditView[];
   GetConfig: Config | null;
-  SearchPosts: Paginated<Post>;
-  SearchDigests: Paginated<Digest>;
+  SearchPosts: SearchResult[];
+  SearchDigests: SearchResult[];
+  FindSimilar: SearchResult[];
+  AskHistory: SearchResult[];
   GetLlmMetrics: LlmMetrics;
   GetSubredditStats: SubredditView[];
   CompareDigests: DigestComparisonResult;

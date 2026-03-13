@@ -80,6 +80,8 @@ export {
   handleGetSubredditStats,
   handleCompareDigests,
   handleGetDeliveryStatus,
+  handleFindSimilar,
+  handleAskHistory,
 } from "./queries/handlers/index.js";
 
 // Context
@@ -127,3 +129,6 @@ export type {
 // Search
 export { createSearchService } from "./search/index.js";
 export type { SearchService, SearchResult, SearchOptions } from "./search/index.js";
+
+// Utils
+export { parseDuration } from "./utils/index.js";
