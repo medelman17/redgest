@@ -22,3 +22,4 @@ export { generatePostSummary } from "./generate-summary.js";
 
 export { withCache, disconnectCache, type CacheResult } from "./cache.js";
 export { generateWithLogging, type LlmCallLog, type GenerateResult } from "./middleware.js";
+export { generateEmbedding } from "./generate-embedding.js";
