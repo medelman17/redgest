@@ -12,7 +12,7 @@ export async function sendDigestEmail(
   const dateStr = digest.createdAt.toISOString().split("T")[0] ?? "";
 
   const result = await resend.emails.send({
-    from: "Redgest <onboarding@resend.dev>",
+    from: "Redgest <redgest@mail.edel.sh>",
     to: recipientEmail,
     subject: `Reddit Digest — ${dateStr}`,
     html,

@@ -1,7 +1,7 @@
 # Redgest Backlog
 
-**Last Updated**: 2026-03-10
-**Current Phase**: 2 (Scheduling + Delivery)
+**Last Updated**: 2026-03-13
+**Current Phase**: Post-Phase 3 (hardening + future)
 **Active Sprint**: None
 
 ---
@@ -23,6 +23,11 @@
 | 2 | Gap Items (Sprint 8+9) | 3 | 3 | 0 | 0 | 0 | 100% |
 | 1 | Testing & Deployment | 4 | 4 | 0 | 0 | 0 | 100% |
 | **Total P1+P2** | | **52** | **52** | **0** | **0** | **0** | **100%** |
+| 3 | WS11: Search Infrastructure | 6 | 6 | 0 | 0 | 0 | 100% |
+| 3 | WS12: Pipeline Enhancements | 4 | 4 | 0 | 0 | 0 | 100% |
+| 3 | WS13: Delivery Tracking | 3 | 3 | 0 | 0 | 0 | 100% |
+| **Total P3** | | **13** | **13** | **0** | **0** | **0** | **100%** |
+| **Grand Total** | | **65** | **65** | **0** | **0** | **0** | **100%** |
 
 ---
 
@@ -325,13 +330,87 @@
 
 ---
 
-## Phase 3+: Search + History (Deferred)
+## Phase 3: Search Infrastructure + Conversational History
 
-- [ ] Full-text search: tsvector + GIN migration
-- [ ] search_posts / search_digests with proper FTS
-- [ ] Conversational history (past digests as LLM context)
-- [ ] Advanced filtering and trending
-- [ ] User authentication (if sharing desired)
+### WS11: Search Infrastructure (10pt)
+**Deps**: WS2 (database), WS3 (CQRS) | **Unblocks**: Conversational history, advanced filtering
+**Delivered**: PR #37 (3ebbaf2) — 62 files, 5,925 lines, 30 commits
+
+- [x] pgvector + tsvector migration — search_vector (GIN), embedding vector(1536) (HNSW) (2pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: pgvector/pgvector:pg16 Docker image. search_vector tsvector + GIN on posts with trigger. embedding vector(1536) + HNSW on post_summaries.
+
+- [x] SearchService — keyword, semantic, hybrid (RRF) search modes (3pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: @redgest/core/search module. tsvector keyword search with ts_headline highlights. pgvector cosine similarity for semantic. Reciprocal Rank Fusion (RRF) for hybrid.
+
+- [x] Upgrade search_posts / search_digests query handlers to FTS (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: Replaced LIKE/contains with tsvector-backed full-text search. Sentiment + score filters.
+
+- [x] find_similar query handler + MCP tool — semantic similarity (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: Cosine similarity via pgvector embeddings. Returns SearchResult[].
+
+- [x] ask_history query handler + MCP tool — conversational search (2pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: Natural language search over digest history. Hybrid search (keyword + semantic RRF fusion).
+
+- [x] get_trending_topics query handler + MCP tool (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: Topic frequency + recency analysis with time window and subreddit filters.
+
+### WS12: Pipeline Enhancements (5pt)
+**Deps**: WS6 (pipeline), WS11 (search) | **Unblocks**: Better digest quality
+
+- [x] Embedding generation for post summaries (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: generate-embedding.ts — OpenAI text-embedding-3-small. Best-effort (doesn't fail pipeline). Logs to llm_calls.
+
+- [x] Topic extraction step — word-frequency heuristics (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: topic-step.ts — top-5 keywords per post. Upserts Topic + PostTopic. Batched $transaction. Best-effort.
+
+- [x] Fetch caching — skip Reddit API when recently fetched (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: lastFetchedAt column on subreddits. Configurable TTL (default 15min). force_refresh bypass. Cache-hit path filters NSFW.
+
+- [x] Runtime LLM config — model changes via update_config take effect immediately (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: No server restart required for model/provider changes.
+
+- [x] compare_periods query handler + MCP tool (1pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: Compare two time windows — volume, topic shifts, subreddit activity trends.
+
+### WS13: Delivery Tracking + Observability (4pt)
+**Deps**: WS8 (Trigger.dev), WS9 (delivery channels) | **Unblocks**: Delivery observability
+
+- [x] Delivery model — DeliveryChannelType enum, DeliveryStatus enum, Delivery table + view (1.5pt)
+  Done: 2026-03-12 | Ref: 81dc8d6 (PR #28)
+  Note: Per-channel delivery tracking. DeliverySucceeded + DeliveryFailed domain events. recordDeliveryPending() + recordDeliveryResult().
+
+- [x] get_delivery_status query handler + MCP tool (1pt)
+  Done: 2026-03-12 | Ref: 81dc8d6 (PR #28)
+  Note: Lookup by digestId or recent digests (limit 1-20). Returns per-channel status.
+
+- [x] compare_digests MCP tool (1pt)
+  Done: 2026-03-12 | Ref: b78070e (PR #24)
+  Note: Compare two digests by ID or shortcuts (latest/previous). Overlap %, new/dropped posts, subreddit trends.
+
+- [x] In-process delivery fallback when Trigger.dev unavailable (0.5pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: DigestCompleted event → deliverDigest callback in bootstrap. Persists delivery outcomes.
+
+### Additional — Deferred
+- [~] ~~Self-hosted Trigger.dev Docker setup (3pt)~~ — ICEBOX: Trigger.dev Cloud is sufficient; not worth the operational overhead
+- [ ] Event bus extraction — optional (2pt)
+- [ ] User authentication — if sharing desired (3pt)
+
+### Backfill Script
+- [x] backfill-search.ts — populate search_vector + embeddings for existing data (0.5pt)
+  Done: 2026-03-13 | Ref: PR #37
+  Note: scripts/backfill-search.ts. Triggers tsvector update on existing posts. Batched OpenAI embedding generation (50 at a time). Graceful skip when OPENAI_API_KEY unset.
 
 ---
 
