@@ -320,7 +320,7 @@
   Note: next-themes with dark default, ThemeToggle (Sun/Moon animation), light mode CSS variables, responsive padding.
 
 ### Additional Phase 2 — Deferred
-- [ ] Self-hosted Trigger.dev Docker setup (3pt)
+- [~] ~~Self-hosted Trigger.dev Docker setup (3pt)~~ — ICEBOX: Trigger.dev Cloud is sufficient; not worth the operational overhead
 - [ ] Event bus extraction — optional (2pt)
 
 ---

@@ -66,7 +66,7 @@ describe("sendDigestEmail", () => {
     expect(mockSend).toHaveBeenCalledOnce();
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Redgest <digest@resend.dev>",
+        from: "Redgest <onboarding@resend.dev>",
         to: "user@example.com",
         subject: "Reddit Digest — 2026-03-10",
         html: "<html>rendered</html>",

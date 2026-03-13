@@ -1,6 +1,24 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["DATABASE_URL", "NODE_ENV"],
+  "globalPassThroughEnv": [
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "REDDIT_CLIENT_ID",
+    "REDDIT_CLIENT_SECRET",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_PROJECT_ID",
+    "TRIGGER_API_URL",
+    "MCP_SERVER_API_KEY",
+    "MCP_SERVER_PORT",
+    "REDIS_URL",
+    "RESEND_API_KEY",
+    "SLACK_WEBHOOK_URL",
+    "DELIVERY_EMAIL",
+    "REDGEST_TEST_MODE",
+    "LOG_LEVEL",
+    "DIGEST_CRON"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "^db:generate"],
