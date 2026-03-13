@@ -21,7 +21,7 @@ export { fetchStep } from "./fetch-step.js";
 export { triageStep } from "./triage-step.js";
 export { summarizeStep } from "./summarize-step.js";
 export { assembleStep, renderDigestMarkdown } from "./assemble-step.js";
-export { topicStep } from "./topic-step.js";
+export { topicStep, extractTopicNames, STOP_WORDS } from "./topic-step.js";
 
 // Utilities
 export {

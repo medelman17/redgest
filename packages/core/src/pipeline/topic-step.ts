@@ -1,56 +1,38 @@
 import type { PrismaClient } from "@redgest/db";
 import type { PostSummary } from "./types.js";
 
-const STOP_WORDS = new Set([
-  "this",
-  "that",
-  "with",
-  "from",
-  "have",
-  "been",
-  "were",
-  "they",
-  "their",
-  "about",
-  "would",
-  "could",
-  "should",
-  "which",
-  "there",
-  "these",
-  "those",
-  "what",
-  "when",
-  "where",
-  "while",
-  "also",
-  "into",
-  "more",
-  "than",
-  "then",
-  "them",
-  "some",
-  "such",
-  "very",
-  "just",
-  "will",
-  "each",
-  "make",
-  "like",
-  "does",
-  "most",
-  "many",
-  "much",
-  "other",
-  "over",
-  "only",
-  "after",
-  "before",
-  "between",
-  "being",
-  "both",
-  "same",
-  "your",
+/** ~120 common English stopwords — filtered before frequency ranking. */
+export const STOP_WORDS = new Set([
+  // Articles & conjunctions
+  "the", "and", "but", "nor", "yet", "for", "not",
+  // Pronouns
+  "you", "your", "yours", "his", "her", "hers", "its",
+  "they", "them", "their", "theirs", "she", "him", "who",
+  "whom", "whose", "this", "that", "these", "those",
+  // Prepositions
+  "with", "from", "into", "about", "over", "after", "before",
+  "between", "under", "above", "below", "through", "during",
+  "without", "against", "within", "along", "among",
+  // Be-verbs & auxiliaries
+  "are", "was", "were", "been", "being", "have", "has", "had",
+  "does", "did", "will", "would", "could", "should", "shall",
+  "might", "must", "can", "may",
+  // Common adverbs & adjectives
+  "also", "more", "than", "then", "very", "just", "most",
+  "many", "much", "only", "even", "still", "already", "often",
+  "never", "always", "really", "well", "here", "there", "where",
+  "when", "what", "which", "while", "how", "why",
+  // Common verbs (generic)
+  "each", "make", "like", "some", "such", "other", "same",
+  "both", "few", "all", "any", "own", "too", "now", "new",
+  "way", "use", "get", "got", "let", "say", "two", "one",
+  "per", "via",
+  // Longer common words
+  "because", "however", "another", "every", "something",
+  "anything", "everything", "nothing", "someone", "anyone",
+  "everyone", "using", "used", "want", "need", "come",
+  "take", "know", "think", "look", "find", "give", "tell",
+  "said", "good", "back", "down",
 ]);
 
 /**
@@ -58,7 +40,7 @@ const STOP_WORDS = new Set([
  * Returns up to 5 topic names derived from summary text and key takeaways.
  * Phase 3 baseline — can be upgraded to LLM-based extraction later.
  */
-function extractTopicNames(summary: PostSummary): string[] {
+export function extractTopicNames(summary: PostSummary): string[] {
   const text = [summary.summary, ...summary.keyTakeaways, summary.insightNotes]
     .join(" ");
 
