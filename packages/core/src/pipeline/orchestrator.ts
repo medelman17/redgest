@@ -134,6 +134,19 @@ async function runPipelineBody(
   const dbConfig = await db.config.findFirst();
   const globalInsightPrompt = dbConfig?.globalInsightPrompt ?? "";
 
+  // Read LLM model config at runtime (not boot time)
+  // so config changes take effect without restart
+  const runtimeModel = (() => {
+    if (deps.model) return deps.model; // explicit override (e.g., test mode)
+    if (dbConfig?.llmProvider && dbConfig?.llmModel) {
+      return {
+        provider: dbConfig.llmProvider as "anthropic" | "openai",
+        model: dbConfig.llmModel,
+      };
+    }
+    return undefined;
+  })();
+
   // 4. Load dedup set (last 3 digests)
   const previousPostIds = await findPreviousPostIds(db);
 
@@ -217,7 +230,7 @@ async function runPipelineBody(
         selftext: p.post.selftext,
       }));
 
-      const triageModel = deps.model ? getModel("triage", deps.model) : undefined;
+      const triageModel = runtimeModel ? getModel("triage", runtimeModel) : undefined;
       const triageResult = await triageStep(
         candidates,
         insightPrompts,
@@ -260,7 +273,7 @@ async function runPipelineBody(
               body: c.body,
             }));
 
-          const sumModel = deps.model ? getModel("summarize", deps.model) : undefined;
+          const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
           const sumResult = await summarizeStep(
             {
               title: postData.post.title,
