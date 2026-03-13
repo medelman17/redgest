@@ -181,7 +181,10 @@ let mockDb: {
     update: ReturnType<typeof vi.fn>;
     findUnique: ReturnType<typeof vi.fn>;
   };
-  subreddit: { findMany: ReturnType<typeof vi.fn> };
+  subreddit: {
+    findMany: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
   config: { findFirst: ReturnType<typeof vi.fn> };
 };
 
@@ -200,6 +203,7 @@ beforeEach(() => {
     },
     subreddit: {
       findMany: vi.fn().mockResolvedValue([makeSubreddit()]),
+      update: vi.fn().mockResolvedValue({}),
     },
     config: {
       findFirst: vi

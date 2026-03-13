@@ -43,6 +43,7 @@ export type SubredditMinAggregateOutputType = {
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  lastFetchedAt: Date | null
 }
 
 export type SubredditMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type SubredditMaxAggregateOutputType = {
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  lastFetchedAt: Date | null
 }
 
 export type SubredditCountAggregateOutputType = {
@@ -65,6 +67,7 @@ export type SubredditCountAggregateOutputType = {
   isActive: number
   createdAt: number
   updatedAt: number
+  lastFetchedAt: number
   _all: number
 }
 
@@ -86,6 +89,7 @@ export type SubredditMinAggregateInputType = {
   isActive?: true
   createdAt?: true
   updatedAt?: true
+  lastFetchedAt?: true
 }
 
 export type SubredditMaxAggregateInputType = {
@@ -97,6 +101,7 @@ export type SubredditMaxAggregateInputType = {
   isActive?: true
   createdAt?: true
   updatedAt?: true
+  lastFetchedAt?: true
 }
 
 export type SubredditCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type SubredditCountAggregateInputType = {
   isActive?: true
   createdAt?: true
   updatedAt?: true
+  lastFetchedAt?: true
   _all?: true
 }
 
@@ -206,6 +212,7 @@ export type SubredditGroupByOutputType = {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  lastFetchedAt: Date | null
   _count: SubredditCountAggregateOutputType | null
   _avg: SubredditAvgAggregateOutputType | null
   _sum: SubredditSumAggregateOutputType | null
@@ -240,6 +247,7 @@ export type SubredditWhereInput = {
   isActive?: Prisma.BoolFilter<"Subreddit"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
+  lastFetchedAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
 }
 
 export type SubredditOrderByWithRelationInput = {
@@ -251,6 +259,7 @@ export type SubredditOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lastFetchedAt?: Prisma.SortOrderInput | Prisma.SortOrder
 }
 
 export type SubredditWhereUniqueInput = Prisma.AtLeast<{
@@ -265,6 +274,7 @@ export type SubredditWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"Subreddit"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
+  lastFetchedAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
 }, "id" | "name">
 
 export type SubredditOrderByWithAggregationInput = {
@@ -276,6 +286,7 @@ export type SubredditOrderByWithAggregationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lastFetchedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SubredditCountOrderByAggregateInput
   _avg?: Prisma.SubredditAvgOrderByAggregateInput
   _max?: Prisma.SubredditMaxOrderByAggregateInput
@@ -295,6 +306,7 @@ export type SubredditScalarWhereWithAggregatesInput = {
   isActive?: Prisma.BoolWithAggregatesFilter<"Subreddit"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Subreddit"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Subreddit"> | Date | string
+  lastFetchedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Subreddit"> | Date | string | null
 }
 
 export type SubredditCreateInput = {
@@ -306,6 +318,7 @@ export type SubredditCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
 }
 
 export type SubredditUncheckedCreateInput = {
@@ -317,6 +330,7 @@ export type SubredditUncheckedCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
 }
 
 export type SubredditUpdateInput = {
@@ -328,6 +342,7 @@ export type SubredditUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SubredditUncheckedUpdateInput = {
@@ -339,6 +354,7 @@ export type SubredditUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SubredditCreateManyInput = {
@@ -350,6 +366,7 @@ export type SubredditCreateManyInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
 }
 
 export type SubredditUpdateManyMutationInput = {
@@ -361,6 +378,7 @@ export type SubredditUpdateManyMutationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SubredditUncheckedUpdateManyInput = {
@@ -372,6 +390,7 @@ export type SubredditUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SubredditCountOrderByAggregateInput = {
@@ -383,6 +402,7 @@ export type SubredditCountOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lastFetchedAt?: Prisma.SortOrder
 }
 
 export type SubredditAvgOrderByAggregateInput = {
@@ -398,6 +418,7 @@ export type SubredditMaxOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lastFetchedAt?: Prisma.SortOrder
 }
 
 export type SubredditMinOrderByAggregateInput = {
@@ -409,6 +430,7 @@ export type SubredditMinOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lastFetchedAt?: Prisma.SortOrder
 }
 
 export type SubredditSumOrderByAggregateInput = {
@@ -439,6 +461,10 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 
 
 export type SubredditSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -450,6 +476,7 @@ export type SubredditSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lastFetchedAt?: boolean
 }, ExtArgs["result"]["subreddit"]>
 
 export type SubredditSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -461,6 +488,7 @@ export type SubredditSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lastFetchedAt?: boolean
 }, ExtArgs["result"]["subreddit"]>
 
 export type SubredditSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -472,6 +500,7 @@ export type SubredditSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lastFetchedAt?: boolean
 }, ExtArgs["result"]["subreddit"]>
 
 export type SubredditSelectScalar = {
@@ -483,9 +512,10 @@ export type SubredditSelectScalar = {
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lastFetchedAt?: boolean
 }
 
-export type SubredditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["subreddit"]>
+export type SubredditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "createdAt" | "updatedAt" | "lastFetchedAt", ExtArgs["result"]["subreddit"]>
 
 export type $SubredditPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Subreddit"
@@ -499,6 +529,7 @@ export type $SubredditPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     isActive: boolean
     createdAt: Date
     updatedAt: Date
+    lastFetchedAt: Date | null
   }, ExtArgs["result"]["subreddit"]>
   composites: {}
 }
@@ -930,6 +961,7 @@ export interface SubredditFieldRefs {
   readonly isActive: Prisma.FieldRef<"Subreddit", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Subreddit", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Subreddit", 'DateTime'>
+  readonly lastFetchedAt: Prisma.FieldRef<"Subreddit", 'DateTime'>
 }
     
 

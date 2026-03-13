@@ -8,6 +8,7 @@ export interface CommandMap {
   GenerateDigest: {
     subredditIds?: string[];
     lookbackHours?: number;
+    forceRefresh?: boolean;
   };
   AddSubreddit: {
     name: string;

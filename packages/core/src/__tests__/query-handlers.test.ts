@@ -13,6 +13,8 @@ import { handleListSubreddits } from "../queries/handlers/list-subreddits.js";
 import { handleGetConfig } from "../queries/handlers/get-config.js";
 import { handleGetSubredditStats } from "../queries/handlers/get-subreddit-stats.js";
 import { handleCompareDigests } from "../queries/handlers/compare-digests.js";
+import { handleFindSimilar } from "../queries/handlers/find-similar.js";
+import { handleAskHistory } from "../queries/handlers/ask-history.js";
 import { queryHandlers } from "../queries/handlers/index.js";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
@@ -141,36 +143,42 @@ describe("handleListDigests", () => {
 });
 
 describe("handleSearchDigests", () => {
-  it("searches digests by contentMarkdown case-insensitive", async () => {
-    const mockDigests = [{ id: "dig-1", contentMarkdown: "typescript tips" }];
-    const mockFindMany = vi.fn().mockResolvedValue(mockDigests);
-    const ctx = makeCtx({ digest: { findMany: mockFindMany } });
+  it("delegates to searchService.searchByKeyword", async () => {
+    const mockResults = [
+      { postId: "p-1", title: "typescript tips", subreddit: "typescript", score: 100, redditId: "t3_abc", summarySnippet: null, matchHighlights: [], relevanceRank: 1, sentiment: null, digestId: null, digestDate: null },
+    ];
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue(mockResults), searchBySimilarity: vi.fn(), findSimilar: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
 
     const result = await handleSearchDigests(
       { query: "typescript", limit: 5 },
       ctx,
     );
 
-    expect(result.items).toEqual(mockDigests);
-    expect(result.hasMore).toBe(false);
-    expect(mockFindMany).toHaveBeenCalledWith({
-      where: {
-        contentMarkdown: { contains: "typescript", mode: "insensitive" },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 6,
+    expect(result).toEqual(mockResults);
+    expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("typescript", {
+      limit: 5,
+      subreddit: undefined,
     });
   });
 
-  it("returns empty items when no matches", async () => {
-    const mockFindMany = vi.fn().mockResolvedValue([]);
-    const ctx = makeCtx({ digest: { findMany: mockFindMany } });
+  it("throws when searchService not available", async () => {
+    const ctx = makeCtx({});
+    await expect(handleSearchDigests({ query: "test" }, ctx)).rejects.toThrow(
+      "SearchService not available",
+    );
+  });
 
-    const result = await handleSearchDigests({ query: "nonexistent" }, ctx);
+  it("passes since as a Date when provided", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), searchBySimilarity: vi.fn(), findSimilar: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
 
-    expect(result.items).toEqual([]);
-    expect(result.hasMore).toBe(false);
-    expect(result.nextCursor).toBeNull();
+    await handleSearchDigests({ query: "test", since: "7d" }, ctx);
+
+    const callArgs = mockSearchService.searchByKeyword.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const options = callArgs?.[1];
+    expect(options?.since).toBeInstanceOf(Date);
   });
 });
 
@@ -199,49 +207,64 @@ describe("handleGetPost", () => {
 });
 
 describe("handleSearchPosts", () => {
-  it("searches posts by title case-insensitive with pagination", async () => {
-    const mockPosts = [{ id: "post-1", title: "TypeScript Tips" }];
-    const mockFindMany = vi.fn().mockResolvedValue(mockPosts);
-    const ctx = makeCtx({ post: { findMany: mockFindMany } });
+  it("delegates to searchService.searchByKeyword", async () => {
+    const mockResults = [
+      { postId: "p-1", title: "TypeScript Tips", subreddit: "typescript", score: 100, redditId: "t3_abc", summarySnippet: null, matchHighlights: [], relevanceRank: 1, sentiment: null, digestId: null, digestDate: null },
+    ];
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue(mockResults), searchBySimilarity: vi.fn(), findSimilar: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
 
     const result = await handleSearchPosts(
       { query: "typescript", limit: 10 },
       ctx,
     );
 
-    expect(result.items).toEqual(mockPosts);
-    expect(result.hasMore).toBe(false);
-    expect(mockFindMany).toHaveBeenCalledWith({
-      where: { title: { contains: "typescript", mode: "insensitive" } },
-      orderBy: { fetchedAt: "desc" },
-      take: 11,
+    expect(result).toEqual(mockResults);
+    expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("typescript", {
+      limit: 10,
+      subreddit: undefined,
+      sentiment: undefined,
+      minScore: undefined,
     });
   });
 
-  it("returns empty items when no matches", async () => {
-    const mockFindMany = vi.fn().mockResolvedValue([]);
-    const ctx = makeCtx({ post: { findMany: mockFindMany } });
-
-    const result = await handleSearchPosts({ query: "nothing" }, ctx);
-
-    expect(result.items).toEqual([]);
-    expect(result.hasMore).toBe(false);
-    expect(result.nextCursor).toBeNull();
+  it("throws when searchService not available", async () => {
+    const ctx = makeCtx({});
+    await expect(handleSearchPosts({ query: "test" }, ctx)).rejects.toThrow(
+      "SearchService not available",
+    );
   });
 
-  it("passes cursor to findMany when provided", async () => {
-    const mockFindMany = vi.fn().mockResolvedValue([]);
-    const ctx = makeCtx({ post: { findMany: mockFindMany } });
+  it("passes all filter options to searchService", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), searchBySimilarity: vi.fn(), findSimilar: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
 
-    await handleSearchPosts({ query: "test", limit: 5, cursor: "p-1" }, ctx);
+    await handleSearchPosts({
+      query: "test",
+      subreddit: "typescript",
+      sentiment: "positive",
+      minScore: 50,
+      limit: 5,
+    }, ctx);
 
-    expect(mockFindMany).toHaveBeenCalledWith({
-      where: { title: { contains: "test", mode: "insensitive" } },
-      orderBy: { fetchedAt: "desc" },
-      take: 6,
-      cursor: { id: "p-1" },
-      skip: 1,
+    expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("test", {
+      limit: 5,
+      subreddit: "typescript",
+      sentiment: "positive",
+      minScore: 50,
     });
+  });
+
+  it("passes since as a Date when provided", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), searchBySimilarity: vi.fn(), findSimilar: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    await handleSearchPosts({ query: "test", since: "48h" }, ctx);
+
+    const callArgs = mockSearchService.searchByKeyword.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const options = callArgs?.[1];
+    expect(options?.since).toBeInstanceOf(Date);
   });
 });
 
@@ -1160,8 +1183,139 @@ describe("handleGetDeliveryStatus", () => {
   });
 });
 
+describe("handleFindSimilar", () => {
+  it("delegates to searchService.findSimilar", async () => {
+    const mockResults = [
+      { postId: "p-2", title: "Similar Post", subreddit: "typescript", score: 80, redditId: "t3_xyz", summarySnippet: null, matchHighlights: [], relevanceRank: 1, sentiment: null, digestId: null, digestDate: null },
+    ];
+    const mockSearchService = { findSimilar: vi.fn().mockResolvedValue(mockResults), searchByKeyword: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    const result = await handleFindSimilar({ postId: "p-1", limit: 5 }, ctx);
+
+    expect(result).toEqual(mockResults);
+    expect(mockSearchService.findSimilar).toHaveBeenCalledWith("p-1", {
+      limit: 5,
+      subreddit: undefined,
+    });
+  });
+
+  it("throws when searchService not available", async () => {
+    const ctx = makeCtx({});
+    await expect(handleFindSimilar({ postId: "p-1" }, ctx)).rejects.toThrow(
+      "SearchService not available",
+    );
+  });
+
+  it("uses default limit of 5 when not provided", async () => {
+    const mockSearchService = { findSimilar: vi.fn().mockResolvedValue([]), searchByKeyword: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    await handleFindSimilar({ postId: "p-1" }, ctx);
+
+    const callArgs = mockSearchService.findSimilar.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const options = callArgs?.[1];
+    expect(options?.limit).toBe(5);
+  });
+
+  it("passes subreddit filter when provided", async () => {
+    const mockSearchService = { findSimilar: vi.fn().mockResolvedValue([]), searchByKeyword: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    await handleFindSimilar({ postId: "p-1", subreddit: "typescript", limit: 3 }, ctx);
+
+    expect(mockSearchService.findSimilar).toHaveBeenCalledWith("p-1", {
+      limit: 3,
+      subreddit: "typescript",
+    });
+  });
+});
+
+describe("handleAskHistory", () => {
+  it("delegates to searchService.searchByKeyword", async () => {
+    const mockResults = [
+      { postId: "p-3", title: "Rust News", subreddit: "rust", score: 200, redditId: "t3_rst", summarySnippet: null, matchHighlights: [], relevanceRank: 1, sentiment: null, digestId: null, digestDate: null },
+    ];
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue(mockResults), findSimilar: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    // Ensure OPENAI_API_KEY is unset so keyword path is taken
+    const origKey = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+
+    const result = await handleAskHistory({ question: "latest rust news", limit: 10 }, ctx);
+
+    process.env.OPENAI_API_KEY = origKey;
+
+    expect(result).toEqual(mockResults);
+    expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith(
+      "latest rust news",
+      expect.objectContaining({ limit: 10, subreddit: undefined }),
+    );
+  });
+
+  it("throws when searchService not available", async () => {
+    const ctx = makeCtx({});
+    await expect(handleAskHistory({ question: "test" }, ctx)).rejects.toThrow(
+      "SearchService not available",
+    );
+  });
+
+  it("uses default limit of 10 when not provided", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), findSimilar: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    const origKey = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+
+    await handleAskHistory({ question: "test" }, ctx);
+
+    process.env.OPENAI_API_KEY = origKey;
+
+    const callArgs = mockSearchService.searchByKeyword.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const options = callArgs?.[1];
+    expect(options?.limit).toBe(10);
+  });
+
+  it("converts since string to a Date via parseDuration", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), findSimilar: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    const origKey = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+
+    await handleAskHistory({ question: "test", since: "7d" }, ctx);
+
+    process.env.OPENAI_API_KEY = origKey;
+
+    const callArgs = mockSearchService.searchByKeyword.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    const options = callArgs?.[1];
+    expect(options?.since).toBeInstanceOf(Date);
+  });
+
+  it("passes subreddit filter when provided", async () => {
+    const mockSearchService = { searchByKeyword: vi.fn().mockResolvedValue([]), findSimilar: vi.fn(), searchBySimilarity: vi.fn(), searchHybrid: vi.fn() };
+    const ctx = { ...makeCtx({}), searchService: mockSearchService };
+
+    const origKey = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+
+    await handleAskHistory({ question: "test", subreddit: "rust", limit: 5 }, ctx);
+
+    process.env.OPENAI_API_KEY = origKey;
+
+    expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith(
+      "test",
+      expect.objectContaining({ subreddit: "rust", limit: 5 }),
+    );
+  });
+});
+
 describe("queryHandlers registry", () => {
-  it("registers all 14 handlers", () => {
+  it("registers all 18 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -1176,10 +1330,14 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.GetSubredditStats).toBe(handleGetSubredditStats);
     expect(queryHandlers.CompareDigests).toBe(handleCompareDigests);
     expect(queryHandlers.GetDeliveryStatus).toBeDefined();
+    expect(queryHandlers.FindSimilar).toBeDefined();
+    expect(queryHandlers.AskHistory).toBeDefined();
+    expect(queryHandlers.GetTrendingTopics).toBeDefined();
+    expect(queryHandlers.ComparePeriods).toBeDefined();
   });
 
-  it("has exactly 14 entries", () => {
+  it("has exactly 18 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(14);
+    expect(handlerCount).toBe(18);
   });
 });

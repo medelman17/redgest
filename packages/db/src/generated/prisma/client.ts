@@ -97,6 +97,16 @@ export type LlmCall = Prisma.LlmCallModel
  */
 export type Delivery = Prisma.DeliveryModel
 /**
+ * Model Topic
+ * 
+ */
+export type Topic = Prisma.TopicModel
+/**
+ * Model PostTopic
+ * 
+ */
+export type PostTopic = Prisma.PostTopicModel
+/**
  * Model DigestView
  * 
  */

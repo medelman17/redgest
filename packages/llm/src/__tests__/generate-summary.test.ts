@@ -18,6 +18,16 @@ vi.mock("../provider.js", () => ({
   getModel: vi.fn(() => ({ provider: "mock", modelId: "mock-model" })),
 }));
 
+vi.mock("../cache.js", () => ({
+  withCache: vi.fn(
+    async (
+      _taskType: string,
+      _inputs: unknown,
+      fn: () => Promise<unknown>,
+    ) => ({ data: await fn(), cached: false }),
+  ),
+}));
+
 import { generatePostSummary } from "../generate-summary.js";
 import type {
   SummarizationPost,

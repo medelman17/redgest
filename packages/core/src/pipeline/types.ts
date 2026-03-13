@@ -1,6 +1,7 @@
 import type { DomainEventBus } from "../events/bus.js";
 import type { RedgestConfig } from "@redgest/config";
 import type { PrismaClient } from "@redgest/db";
+import type { SearchService } from "../search/types.js";
 
 // Re-declared locally to avoid circular dependency (core <-> reddit).
 // Structurally identical to the types in @redgest/reddit and @redgest/llm;
@@ -92,6 +93,12 @@ export interface PipelineDeps {
   config: RedgestConfig;
   model?: ModelConfig;
 
+  /** Skip fetch cache — always fetch fresh from Reddit. */
+  forceRefresh?: boolean;
+
+  /** Optional search service for historical context injection during triage. */
+  searchService?: SearchService;
+
   /** Override triage function for testing. */
   generateTriage?: (
     posts: Array<{
@@ -139,6 +146,8 @@ export interface FetchStepResult {
     comments: RedditCommentData[];
   }>;
   fetchedAt: Date;
+  /** True when posts were loaded from DB cache instead of fetched from Reddit. */
+  fromCache?: boolean;
 }
 
 /** Result of LLM triage — which posts were selected and why. */

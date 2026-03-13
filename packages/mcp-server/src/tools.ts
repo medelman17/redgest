@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ErrorCode, RedgestError, type ExecuteContext } from "@redgest/core";
+import { ErrorCode, RedgestError, parseDuration, type ExecuteContext } from "@redgest/core";
 import type { DeliveryChannel } from "@redgest/db";
 import { buildDeliveryData, renderDigestHtml } from "@redgest/email";
 import { formatDigestBlocks, type SlackBlock } from "@redgest/slack";
@@ -26,18 +26,7 @@ async function safe(fn: () => Promise<ToolResult>): Promise<ToolResult> {
 
 function parseLookback(lookback?: string): number | undefined {
   if (!lookback) return undefined;
-  const match = lookback.match(/^(\d+)(m|h|d)$/);
-  if (!match) {
-    throw new RedgestError(
-      "VALIDATION_ERROR",
-      `Invalid lookback format "${lookback}". Use a number with m (minutes), h (hours), or d (days), e.g. "48h", "2d", "30m".`,
-    );
-  }
-  const value = Number(match[1]);
-  const unit = match[2];
-  if (unit === "m") return value / 60;
-  if (unit === "d") return value * 24;
-  return value; // hours
+  return parseDuration(lookback) / (3600 * 1000); // convert ms → hours
 }
 
 async function lookupSubredditId(
@@ -115,14 +104,16 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 ### Digest Retrieval
 - **get_digest** — Get a specific digest by ID, or the latest
 - **list_digests** — List recent digests
-- **search_digests** — Full-text search across digests
+- **search_digests** — Full-text search across digests (filter by subreddit, since)
 - **preview_digest** — Preview a digest rendered for a specific delivery channel (markdown, email HTML, Slack blocks)
 - **compare_digests** — Compare two digests: new/dropped posts, overlap, subreddit trends
 - **get_delivery_status** — Check delivery status (email/Slack) for one or more digests
 
 ### Post Access
 - **get_post** — Get a specific post summary by ID
-- **search_posts** — Full-text search across post summaries
+- **search_posts** — Full-text search across post summaries (filter by subreddit, since, sentiment, min_score)
+- **find_similar** — Find posts similar to a given post based on semantic similarity
+- **ask_history** — Search digest history using natural language
 
 ### Subreddit Management
 - **add_subreddit** — Add a subreddit to monitor
@@ -138,6 +129,10 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 ### Observability
 - **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
 - **check_reddit_connectivity** — Test Reddit API health: status, auth type, latency, rate limiter state
+
+### Trends & History
+- **get_trending_topics** — View trending topics with frequency and recency (filter by subreddit or time window)
+- **compare_periods** — Compare two time periods: volume changes, new/dropped topics, subreddit activity shifts
 
 ### Help
 - **use_redgest** — Show this usage guide
@@ -166,6 +161,7 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | get_config | NOT_FOUND, INTERNAL_ERROR |
 | list_runs, list_digests, list_subreddits | INTERNAL_ERROR |
 | search_posts, search_digests | INTERNAL_ERROR |
+| find_similar, ask_history | INTERNAL_ERROR |
 | add_subreddit, update_config | INTERNAL_ERROR |
 | cancel_run | NOT_FOUND, CONFLICT, INTERNAL_ERROR |
 | get_llm_metrics | INTERNAL_ERROR |
@@ -173,7 +169,9 @@ All tools return errors in a consistent envelope: \`{ ok: false, error: { code, 
 | get_subreddit_stats | INTERNAL_ERROR |
 | preview_digest | NOT_FOUND, CONFLICT, VALIDATION_ERROR, INTERNAL_ERROR |
 | compare_digests | NOT_FOUND, VALIDATION_ERROR, INTERNAL_ERROR |
-| get_delivery_status | NOT_FOUND, INTERNAL_ERROR |`;
+| get_delivery_status | NOT_FOUND, INTERNAL_ERROR |
+| get_trending_topics | INTERNAL_ERROR |
+| compare_periods | VALIDATION_ERROR, INTERNAL_ERROR |`;
 
 // ── Handler factory ───────────────────────────────────────────────────
 
@@ -200,6 +198,7 @@ export function createToolHandlers(
           {
             subredditIds,
             lookbackHours: parseLookback(lookback),
+            forceRefresh: args.force_refresh as boolean | undefined,
           },
           eCtx,
         );
@@ -304,10 +303,13 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
-        const cursor = args.cursor as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
+        const sentiment = args.sentiment as string | undefined;
+        const minScore = args.min_score as number | undefined;
         const result = await deps.query(
           "SearchPosts",
-          { query, limit, cursor },
+          { query, limit, subreddit, since, sentiment, minScore },
           deps.ctx,
         );
         return envelope(result);
@@ -318,10 +320,40 @@ export function createToolHandlers(
       return safe(async () => {
         const query = args.query as string;
         const limit = args.limit as number | undefined;
-        const cursor = args.cursor as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
         const result = await deps.query(
           "SearchDigests",
-          { query, limit, cursor },
+          { query, limit, subreddit, since },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    find_similar: async (args) => {
+      return safe(async () => {
+        const postId = args.postId as string;
+        const limit = args.limit as number | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "FindSimilar",
+          { postId, limit, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    ask_history: async (args) => {
+      return safe(async () => {
+        const question = args.question as string;
+        const limit = args.limit as number | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const since = args.since as string | undefined;
+        const result = await deps.query(
+          "AskHistory",
+          { question, limit, subreddit, since },
           deps.ctx,
         );
         return envelope(result);
@@ -525,6 +557,34 @@ export function createToolHandlers(
       });
     },
 
+    get_trending_topics: async (args) => {
+      return safe(async () => {
+        const limit = args.limit as number | undefined;
+        const since = args.since as string | undefined;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "GetTrendingTopics",
+          { limit, since, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    compare_periods: async (args) => {
+      return safe(async () => {
+        const periodA = args.periodA as string;
+        const periodB = args.periodB as string;
+        const subreddit = args.subreddit as string | undefined;
+        const result = await deps.query(
+          "ComparePeriods",
+          { periodA, periodB, subreddit },
+          deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
     preview_digest: async (args) => {
       return safe(async () => {
         const digestId = args.digestId as string;
@@ -665,6 +725,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     {
       subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (omit for all active)"),
       lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (default: 24h)'),
+      force_refresh: z.boolean().optional().describe("Bypass fetch cache and always hit Reddit API"),
     },
     async (args) => call("generate_digest", args),
   );
@@ -712,24 +773,51 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "search_posts",
-    "Full-text search across post summaries. Supports cursor-based pagination.",
+    "Full-text search across post summaries using tsvector search. Returns ranked results with match highlights.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
-      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Only return posts from the last duration, e.g. '7d', '48h', '30m'"),
+      sentiment: z.string().optional().describe("Filter by sentiment (e.g. 'positive', 'negative', 'neutral')"),
+      min_score: z.number().optional().describe("Minimum Reddit score filter"),
     },
     async (args) => call("search_posts", args),
   );
 
   server.tool(
     "search_digests",
-    "Full-text search across digests. Supports cursor-based pagination.",
+    "Full-text search across digests using tsvector search. Returns ranked results with match highlights.",
     {
       query: z.string().describe("Search query"),
       limit: z.number().optional().describe("Max results (default: 10)"),
-      cursor: z.string().optional().describe("Cursor from a previous response's nextCursor to fetch the next page"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Only return posts from the last duration, e.g. '7d', '48h', '30m'"),
     },
     async (args) => call("search_digests", args),
+  );
+
+  server.tool(
+    "find_similar",
+    "Find posts similar to a given post based on semantic similarity. Requires embeddings to be populated.",
+    {
+      postId: z.string().describe("Post ID to find similar posts for"),
+      limit: z.number().optional().describe("Max results (default: 5)"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+    },
+    async (args) => call("find_similar", args),
+  );
+
+  server.tool(
+    "ask_history",
+    "Search your digest history using natural language. Ask questions about topics, trends, or past discussions.",
+    {
+      question: z.string().describe("Natural language question or search query about your digest history"),
+      limit: z.number().optional().describe("Max results (default: 10)"),
+      subreddit: z.string().optional().describe("Filter results to a specific subreddit"),
+      since: z.string().optional().describe("Duration filter e.g. '7d', '48h'"),
+    },
+    async (args) => call("ask_history", args),
   );
 
   server.tool(
@@ -856,6 +944,28 @@ export function createToolServer(deps: BootstrapResult): McpServer {
         .describe('Delivery channel format to preview (default: "markdown")'),
     },
     async (args) => call("preview_digest", args),
+  );
+
+  server.tool(
+    "get_trending_topics",
+    "View trending topics extracted from digest history. Shows topic frequency and recency.",
+    {
+      limit: z.number().optional().describe("Max topics to return (default: 10)"),
+      since: z.string().optional().describe("Duration filter e.g. '7d', '30d'"),
+      subreddit: z.string().optional().describe("Filter to a specific subreddit"),
+    },
+    async (args) => call("get_trending_topics", args),
+  );
+
+  server.tool(
+    "compare_periods",
+    "Compare two time periods to see volume changes, new/dropped topics, and subreddit activity shifts. periodA is the recent window, periodB is the comparison window.",
+    {
+      periodA: z.string().describe("Recent period duration, e.g. '7d' for last 7 days"),
+      periodB: z.string().describe("Comparison period duration, e.g. '7d' for the 7 days before periodA"),
+      subreddit: z.string().optional().describe("Filter to a specific subreddit"),
+    },
+    async (args) => call("compare_periods", args),
   );
 
   return server;

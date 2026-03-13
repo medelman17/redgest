@@ -5,9 +5,8 @@ import type {
   RunView,
   SubredditView,
   Config,
-  Digest,
-  Post,
 } from "@redgest/db";
+import type { SearchResult } from "../search/index.js";
 
 /** Default page size for paginated queries. */
 export const DEFAULT_PAGE_SIZE = 10;
@@ -154,6 +153,41 @@ export interface DeliveryStatusResult {
 }
 
 /**
+ * TrendingTopic — a topic with frequency and recency data.
+ */
+export interface TrendingTopic {
+  name: string;
+  frequency: number;
+  firstSeen: string;
+  lastSeen: string;
+  recentPostCount: number;
+}
+
+/**
+ * PeriodSummary — aggregated stats for a time period.
+ */
+export interface PeriodSummary {
+  startDate: string;
+  endDate: string;
+  postCount: number;
+  topSubreddits: Array<{ name: string; count: number }>;
+  topTopics: Array<{ name: string; count: number }>;
+  avgScore: number;
+}
+
+/**
+ * PeriodComparisonResult — comparison between two time periods.
+ */
+export interface PeriodComparisonResult {
+  periodA: PeriodSummary;
+  periodB: PeriodSummary;
+  newTopics: string[];
+  droppedTopics: string[];
+  /** Percentage change in post volume (positive = more recent period has more posts). */
+  volumeChange: number;
+}
+
+/**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
  */
@@ -166,12 +200,16 @@ export interface QueryMap {
   ListRuns: { limit?: number; cursor?: string };
   ListSubreddits: Record<string, never>;
   GetConfig: Record<string, never>;
-  SearchPosts: { query: string; limit?: number; cursor?: string };
-  SearchDigests: { query: string; limit?: number; cursor?: string };
+  SearchPosts: { query: string; subreddit?: string; since?: string; sentiment?: string; minScore?: number; limit?: number };
+  SearchDigests: { query: string; subreddit?: string; since?: string; limit?: number };
+  FindSimilar: { postId: string; limit?: number; subreddit?: string };
+  AskHistory: { question: string; limit?: number; subreddit?: string; since?: string };
   GetLlmMetrics: { jobId?: string; limit?: number };
   GetSubredditStats: { name?: string };
   CompareDigests: { digestIdA: string; digestIdB: string; subreddit?: string };
   GetDeliveryStatus: { digestId?: string; limit?: number };
+  GetTrendingTopics: { limit?: number; since?: string; subreddit?: string };
+  ComparePeriods: { periodA: string; periodB: string; subreddit?: string };
 }
 
 /**
@@ -187,12 +225,16 @@ export interface QueryResultMap {
   ListRuns: Paginated<RunView>;
   ListSubreddits: SubredditView[];
   GetConfig: Config | null;
-  SearchPosts: Paginated<Post>;
-  SearchDigests: Paginated<Digest>;
+  SearchPosts: SearchResult[];
+  SearchDigests: SearchResult[];
+  FindSimilar: SearchResult[];
+  AskHistory: SearchResult[];
   GetLlmMetrics: LlmMetrics;
   GetSubredditStats: SubredditView[];
   CompareDigests: DigestComparisonResult;
   GetDeliveryStatus: DeliveryStatusResult;
+  GetTrendingTopics: TrendingTopic[];
+  ComparePeriods: PeriodComparisonResult;
 }
 
 // Derived types

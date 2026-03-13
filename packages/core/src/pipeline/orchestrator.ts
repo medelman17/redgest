@@ -13,6 +13,7 @@ import { fetchStep } from "./fetch-step.js";
 import { triageStep } from "./triage-step.js";
 import { summarizeStep } from "./summarize-step.js";
 import { assembleStep } from "./assemble-step.js";
+import { topicStep } from "./topic-step.js";
 import type {
   PipelineDeps,
   PipelineResult,
@@ -134,6 +135,19 @@ async function runPipelineBody(
   const dbConfig = await db.config.findFirst();
   const globalInsightPrompt = dbConfig?.globalInsightPrompt ?? "";
 
+  // Read LLM model config at runtime (not boot time)
+  // so config changes take effect without restart
+  const runtimeModel = (() => {
+    if (deps.model) return deps.model; // explicit override (e.g., test mode)
+    if (dbConfig?.llmProvider && dbConfig?.llmModel) {
+      return {
+        provider: dbConfig.llmProvider as "anthropic" | "openai",
+        model: dbConfig.llmModel,
+      };
+    }
+    return undefined;
+  })();
+
   // 4. Load dedup set (last 3 digests)
   const previousPostIds = await findPreviousPostIds(db);
 
@@ -154,15 +168,25 @@ async function runPipelineBody(
       }
 
       // --- Fetch ---
+      const forceRefresh = deps.forceRefresh ?? false;
       const fetchResult = await fetchStep(
         {
           name: sub.name,
           maxPosts: sub.maxPosts,
           includeNsfw: sub.includeNsfw,
+          lastFetchedAt: forceRefresh ? null : sub.lastFetchedAt,
         },
         contentSource,
         db,
       );
+
+      // Update lastFetchedAt on the subreddit after a fresh fetch (skip on cache hit)
+      if (!fetchResult.fromCache) {
+        await db.subreddit.update({
+          where: { id: sub.id },
+          data: { lastFetchedAt: fetchResult.fetchedAt },
+        });
+      }
 
       await emitEvent(
         db,
@@ -196,6 +220,27 @@ async function runPipelineBody(
         (p): p is string => p != null && p.length > 0,
       );
 
+      // --- Historical context for triage (best-effort) ---
+      const enrichedPrompts = [...insightPrompts];
+      if (deps.searchService) {
+        try {
+          const recentHistory = await deps.searchService.searchByKeyword(
+            sub.name,
+            { subreddit: sub.name, limit: 5 },
+          );
+          if (recentHistory.length > 0) {
+            const context = recentHistory
+              .map((r) => `"${r.title}" (score: ${r.score})`)
+              .join("; ");
+            enrichedPrompts.push(
+              `Previously discussed topics in r/${sub.name}: ${context}. Prefer posts with NEW information or different perspectives.`,
+            );
+          }
+        } catch {
+          // Best-effort: don't fail pipeline for context injection
+        }
+      }
+
       // --- Triage ---
       const candidates: TriagePostCandidate[] = newPosts.map((p, i) => ({
         index: i,
@@ -207,10 +252,10 @@ async function runPipelineBody(
         selftext: p.post.selftext,
       }));
 
-      const triageModel = deps.model ? getModel("triage", deps.model) : undefined;
+      const triageModel = runtimeModel ? getModel("triage", runtimeModel) : undefined;
       const triageResult = await triageStep(
         candidates,
-        insightPrompts,
+        enrichedPrompts,
         sub.maxPosts,
         db,
         jobId,
@@ -233,6 +278,17 @@ async function runPipelineBody(
       // --- Summarize each selected post (per-post error recovery) ---
       const postResults: SubredditPipelineResult["posts"] = [];
 
+      // Pre-load embedding module once per subreddit (not per post)
+      let generateEmbeddingFn: ((text: string) => Promise<import("@redgest/llm").GenerateResult<number[]>>) | undefined;
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          const llmMod = await import("@redgest/llm");
+          generateEmbeddingFn = llmMod.generateEmbedding;
+        } catch {
+          // Embedding unavailable — proceed without it
+        }
+      }
+
       for (const sel of triageResult.selected) {
         const postData = newPosts[sel.index];
         if (!postData) continue;
@@ -250,7 +306,7 @@ async function runPipelineBody(
               body: c.body,
             }));
 
-          const sumModel = deps.model ? getModel("summarize", deps.model) : undefined;
+          const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
           const sumResult = await summarizeStep(
             {
               title: postData.post.title,
@@ -260,7 +316,7 @@ async function runPipelineBody(
               selftext: postData.post.selftext,
             },
             sumComments,
-            insightPrompts,
+            enrichedPrompts,
             jobId,
             postData.postId,
             db,
@@ -268,6 +324,45 @@ async function runPipelineBody(
             sel.rationale,
             deps.generateSummary as Parameters<typeof summarizeStep>[8],
           );
+
+          // --- Embedding (optional, best-effort) ---
+          if (generateEmbeddingFn) {
+            try {
+              const embResult = await generateEmbeddingFn(sumResult.summary.summary);
+              const vecStr = `[${embResult.data.join(",")}]`;
+              await db.$executeRaw`
+                UPDATE post_summaries SET embedding = ${vecStr}::vector WHERE id = ${sumResult.postSummaryId}
+              `;
+              if (embResult.log) {
+                await db.llmCall.create({
+                  data: {
+                    jobId,
+                    postId: postData.postId,
+                    task: "embed",
+                    model: embResult.log.model,
+                    inputTokens: embResult.log.inputTokens,
+                    outputTokens: embResult.log.outputTokens,
+                    durationMs: embResult.log.durationMs,
+                    cached: embResult.log.cached,
+                    finishReason: embResult.log.finishReason,
+                  },
+                });
+              }
+            } catch (err) {
+              console.error(
+                `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          }
+
+          // --- Topic extraction (best-effort) ---
+          try {
+            await topicStep(postData.postId, sumResult.summary, db);
+          } catch (err) {
+            console.error(
+              `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
 
           postResults.push({
             postId: postData.postId,

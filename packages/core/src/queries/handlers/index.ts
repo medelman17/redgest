@@ -13,6 +13,10 @@ import { handleGetLlmMetrics } from "./get-llm-metrics.js";
 import { handleGetSubredditStats } from "./get-subreddit-stats.js";
 import { handleCompareDigests } from "./compare-digests.js";
 import { handleGetDeliveryStatus } from "./get-delivery-status.js";
+import { handleFindSimilar } from "./find-similar.js";
+import { handleAskHistory } from "./ask-history.js";
+import { handleGetTrendingTopics } from "./get-trending-topics.js";
+import { handleComparePeriods } from "./compare-periods.js";
 
 type QueryHandlerRegistry = {
   [K in QueryType]?: QueryHandler<K>;
@@ -33,6 +37,10 @@ export const queryHandlers: QueryHandlerRegistry = {
   GetSubredditStats: handleGetSubredditStats,
   CompareDigests: handleCompareDigests,
   GetDeliveryStatus: handleGetDeliveryStatus,
+  FindSimilar: handleFindSimilar,
+  AskHistory: handleAskHistory,
+  GetTrendingTopics: handleGetTrendingTopics,
+  ComparePeriods: handleComparePeriods,
 };
 
 export {
@@ -50,4 +58,8 @@ export {
   handleGetSubredditStats,
   handleCompareDigests,
   handleGetDeliveryStatus,
+  handleFindSimilar,
+  handleAskHistory,
+  handleGetTrendingTopics,
+  handleComparePeriods,
 };

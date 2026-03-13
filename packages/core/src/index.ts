@@ -48,6 +48,9 @@ export type {
   DeliveryStatusResult,
   DeliveryStatusDigest,
   DeliveryStatusChannel,
+  TrendingTopic,
+  PeriodSummary,
+  PeriodComparisonResult,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -80,6 +83,10 @@ export {
   handleGetSubredditStats,
   handleCompareDigests,
   handleGetDeliveryStatus,
+  handleFindSimilar,
+  handleAskHistory,
+  handleGetTrendingTopics,
+  handleComparePeriods,
 } from "./queries/handlers/index.js";
 
 // Context
@@ -123,3 +130,10 @@ export type {
   SummarizeStepResult,
   AssembleStepResult,
 } from "./pipeline/index.js";
+
+// Search
+export { createSearchService } from "./search/index.js";
+export type { SearchService, SearchResult, SearchOptions } from "./search/index.js";
+
+// Utils
+export { parseDuration } from "./utils/index.js";

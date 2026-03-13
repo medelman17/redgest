@@ -30,6 +30,8 @@ export type PostSummaryMinAggregateOutputType = {
   jobId: string | null
   summary: string | null
   insightNotes: string | null
+  communityConsensus: string | null
+  sentiment: string | null
   selectionRationale: string | null
   llmProvider: string | null
   llmModel: string | null
@@ -42,6 +44,8 @@ export type PostSummaryMaxAggregateOutputType = {
   jobId: string | null
   summary: string | null
   insightNotes: string | null
+  communityConsensus: string | null
+  sentiment: string | null
   selectionRationale: string | null
   llmProvider: string | null
   llmModel: string | null
@@ -56,6 +60,8 @@ export type PostSummaryCountAggregateOutputType = {
   keyTakeaways: number
   insightNotes: number
   commentHighlights: number
+  communityConsensus: number
+  sentiment: number
   selectionRationale: number
   llmProvider: number
   llmModel: number
@@ -70,6 +76,8 @@ export type PostSummaryMinAggregateInputType = {
   jobId?: true
   summary?: true
   insightNotes?: true
+  communityConsensus?: true
+  sentiment?: true
   selectionRationale?: true
   llmProvider?: true
   llmModel?: true
@@ -82,6 +90,8 @@ export type PostSummaryMaxAggregateInputType = {
   jobId?: true
   summary?: true
   insightNotes?: true
+  communityConsensus?: true
+  sentiment?: true
   selectionRationale?: true
   llmProvider?: true
   llmModel?: true
@@ -96,6 +106,8 @@ export type PostSummaryCountAggregateInputType = {
   keyTakeaways?: true
   insightNotes?: true
   commentHighlights?: true
+  communityConsensus?: true
+  sentiment?: true
   selectionRationale?: true
   llmProvider?: true
   llmModel?: true
@@ -183,6 +195,8 @@ export type PostSummaryGroupByOutputType = {
   keyTakeaways: runtime.JsonValue
   insightNotes: string
   commentHighlights: runtime.JsonValue
+  communityConsensus: string | null
+  sentiment: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -218,6 +232,8 @@ export type PostSummaryWhereInput = {
   keyTakeaways?: Prisma.JsonFilter<"PostSummary">
   insightNotes?: Prisma.StringFilter<"PostSummary"> | string
   commentHighlights?: Prisma.JsonFilter<"PostSummary">
+  communityConsensus?: Prisma.StringNullableFilter<"PostSummary"> | string | null
+  sentiment?: Prisma.StringNullableFilter<"PostSummary"> | string | null
   selectionRationale?: Prisma.StringFilter<"PostSummary"> | string
   llmProvider?: Prisma.StringFilter<"PostSummary"> | string
   llmModel?: Prisma.StringFilter<"PostSummary"> | string
@@ -234,6 +250,8 @@ export type PostSummaryOrderByWithRelationInput = {
   keyTakeaways?: Prisma.SortOrder
   insightNotes?: Prisma.SortOrder
   commentHighlights?: Prisma.SortOrder
+  communityConsensus?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentiment?: Prisma.SortOrderInput | Prisma.SortOrder
   selectionRationale?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
@@ -253,6 +271,8 @@ export type PostSummaryWhereUniqueInput = Prisma.AtLeast<{
   keyTakeaways?: Prisma.JsonFilter<"PostSummary">
   insightNotes?: Prisma.StringFilter<"PostSummary"> | string
   commentHighlights?: Prisma.JsonFilter<"PostSummary">
+  communityConsensus?: Prisma.StringNullableFilter<"PostSummary"> | string | null
+  sentiment?: Prisma.StringNullableFilter<"PostSummary"> | string | null
   selectionRationale?: Prisma.StringFilter<"PostSummary"> | string
   llmProvider?: Prisma.StringFilter<"PostSummary"> | string
   llmModel?: Prisma.StringFilter<"PostSummary"> | string
@@ -269,6 +289,8 @@ export type PostSummaryOrderByWithAggregationInput = {
   keyTakeaways?: Prisma.SortOrder
   insightNotes?: Prisma.SortOrder
   commentHighlights?: Prisma.SortOrder
+  communityConsensus?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentiment?: Prisma.SortOrderInput | Prisma.SortOrder
   selectionRationale?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
@@ -289,6 +311,8 @@ export type PostSummaryScalarWhereWithAggregatesInput = {
   keyTakeaways?: Prisma.JsonWithAggregatesFilter<"PostSummary">
   insightNotes?: Prisma.StringWithAggregatesFilter<"PostSummary"> | string
   commentHighlights?: Prisma.JsonWithAggregatesFilter<"PostSummary">
+  communityConsensus?: Prisma.StringNullableWithAggregatesFilter<"PostSummary"> | string | null
+  sentiment?: Prisma.StringNullableWithAggregatesFilter<"PostSummary"> | string | null
   selectionRationale?: Prisma.StringWithAggregatesFilter<"PostSummary"> | string
   llmProvider?: Prisma.StringWithAggregatesFilter<"PostSummary"> | string
   llmModel?: Prisma.StringWithAggregatesFilter<"PostSummary"> | string
@@ -301,6 +325,8 @@ export type PostSummaryCreateInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -317,6 +343,8 @@ export type PostSummaryUncheckedCreateInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -329,6 +357,8 @@ export type PostSummaryUpdateInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -345,6 +375,8 @@ export type PostSummaryUncheckedUpdateInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -359,6 +391,8 @@ export type PostSummaryCreateManyInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -371,6 +405,8 @@ export type PostSummaryUpdateManyMutationInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -385,6 +421,8 @@ export type PostSummaryUncheckedUpdateManyInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -409,6 +447,8 @@ export type PostSummaryCountOrderByAggregateInput = {
   keyTakeaways?: Prisma.SortOrder
   insightNotes?: Prisma.SortOrder
   commentHighlights?: Prisma.SortOrder
+  communityConsensus?: Prisma.SortOrder
+  sentiment?: Prisma.SortOrder
   selectionRationale?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
@@ -421,6 +461,8 @@ export type PostSummaryMaxOrderByAggregateInput = {
   jobId?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   insightNotes?: Prisma.SortOrder
+  communityConsensus?: Prisma.SortOrder
+  sentiment?: Prisma.SortOrder
   selectionRationale?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
@@ -433,6 +475,8 @@ export type PostSummaryMinOrderByAggregateInput = {
   jobId?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   insightNotes?: Prisma.SortOrder
+  communityConsensus?: Prisma.SortOrder
+  sentiment?: Prisma.SortOrder
   selectionRationale?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
@@ -529,6 +573,8 @@ export type PostSummaryCreateWithoutJobInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -543,6 +589,8 @@ export type PostSummaryUncheckedCreateWithoutJobInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -586,6 +634,8 @@ export type PostSummaryScalarWhereInput = {
   keyTakeaways?: Prisma.JsonFilter<"PostSummary">
   insightNotes?: Prisma.StringFilter<"PostSummary"> | string
   commentHighlights?: Prisma.JsonFilter<"PostSummary">
+  communityConsensus?: Prisma.StringNullableFilter<"PostSummary"> | string | null
+  sentiment?: Prisma.StringNullableFilter<"PostSummary"> | string | null
   selectionRationale?: Prisma.StringFilter<"PostSummary"> | string
   llmProvider?: Prisma.StringFilter<"PostSummary"> | string
   llmModel?: Prisma.StringFilter<"PostSummary"> | string
@@ -598,6 +648,8 @@ export type PostSummaryCreateWithoutPostInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -612,6 +664,8 @@ export type PostSummaryUncheckedCreateWithoutPostInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -651,6 +705,8 @@ export type PostSummaryCreateManyJobInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -663,6 +719,8 @@ export type PostSummaryUpdateWithoutJobInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -677,6 +735,8 @@ export type PostSummaryUncheckedUpdateWithoutJobInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -690,6 +750,8 @@ export type PostSummaryUncheckedUpdateManyWithoutJobInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -703,6 +765,8 @@ export type PostSummaryCreateManyPostInput = {
   keyTakeaways: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes: string
   commentHighlights: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: string | null
+  sentiment?: string | null
   selectionRationale: string
   llmProvider: string
   llmModel: string
@@ -715,6 +779,8 @@ export type PostSummaryUpdateWithoutPostInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -729,6 +795,8 @@ export type PostSummaryUncheckedUpdateWithoutPostInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -742,6 +810,8 @@ export type PostSummaryUncheckedUpdateManyWithoutPostInput = {
   keyTakeaways?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   insightNotes?: Prisma.StringFieldUpdateOperationsInput | string
   commentHighlights?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  communityConsensus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentiment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selectionRationale?: Prisma.StringFieldUpdateOperationsInput | string
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -758,6 +828,8 @@ export type PostSummarySelect<ExtArgs extends runtime.Types.Extensions.InternalA
   keyTakeaways?: boolean
   insightNotes?: boolean
   commentHighlights?: boolean
+  communityConsensus?: boolean
+  sentiment?: boolean
   selectionRationale?: boolean
   llmProvider?: boolean
   llmModel?: boolean
@@ -774,6 +846,8 @@ export type PostSummarySelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   keyTakeaways?: boolean
   insightNotes?: boolean
   commentHighlights?: boolean
+  communityConsensus?: boolean
+  sentiment?: boolean
   selectionRationale?: boolean
   llmProvider?: boolean
   llmModel?: boolean
@@ -790,6 +864,8 @@ export type PostSummarySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   keyTakeaways?: boolean
   insightNotes?: boolean
   commentHighlights?: boolean
+  communityConsensus?: boolean
+  sentiment?: boolean
   selectionRationale?: boolean
   llmProvider?: boolean
   llmModel?: boolean
@@ -806,13 +882,15 @@ export type PostSummarySelectScalar = {
   keyTakeaways?: boolean
   insightNotes?: boolean
   commentHighlights?: boolean
+  communityConsensus?: boolean
+  sentiment?: boolean
   selectionRationale?: boolean
   llmProvider?: boolean
   llmModel?: boolean
   createdAt?: boolean
 }
 
-export type PostSummaryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "postId" | "jobId" | "summary" | "keyTakeaways" | "insightNotes" | "commentHighlights" | "selectionRationale" | "llmProvider" | "llmModel" | "createdAt", ExtArgs["result"]["postSummary"]>
+export type PostSummaryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "postId" | "jobId" | "summary" | "keyTakeaways" | "insightNotes" | "commentHighlights" | "communityConsensus" | "sentiment" | "selectionRationale" | "llmProvider" | "llmModel" | "createdAt", ExtArgs["result"]["postSummary"]>
 export type PostSummaryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
   job?: boolean | Prisma.JobDefaultArgs<ExtArgs>
@@ -840,6 +918,8 @@ export type $PostSummaryPayload<ExtArgs extends runtime.Types.Extensions.Interna
     keyTakeaways: runtime.JsonValue
     insightNotes: string
     commentHighlights: runtime.JsonValue
+    communityConsensus: string | null
+    sentiment: string | null
     selectionRationale: string
     llmProvider: string
     llmModel: string
@@ -1276,6 +1356,8 @@ export interface PostSummaryFieldRefs {
   readonly keyTakeaways: Prisma.FieldRef<"PostSummary", 'Json'>
   readonly insightNotes: Prisma.FieldRef<"PostSummary", 'String'>
   readonly commentHighlights: Prisma.FieldRef<"PostSummary", 'Json'>
+  readonly communityConsensus: Prisma.FieldRef<"PostSummary", 'String'>
+  readonly sentiment: Prisma.FieldRef<"PostSummary", 'String'>
   readonly selectionRationale: Prisma.FieldRef<"PostSummary", 'String'>
   readonly llmProvider: Prisma.FieldRef<"PostSummary", 'String'>
   readonly llmModel: Prisma.FieldRef<"PostSummary", 'String'>

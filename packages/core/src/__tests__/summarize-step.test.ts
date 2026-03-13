@@ -167,6 +167,8 @@ describe("summarizeStep", () => {
         keyTakeaways: summary.keyTakeaways,
         insightNotes: summary.insightNotes,
         commentHighlights: summary.commentHighlights,
+        communityConsensus: summary.communityConsensus,
+        sentiment: summary.sentiment,
         selectionRationale: "",
         llmProvider: "anthropic",
         llmModel: "claude-sonnet-4-20250514",

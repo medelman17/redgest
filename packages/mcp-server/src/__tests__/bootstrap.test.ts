@@ -15,6 +15,8 @@ const {
   mockQueryHandlers,
   mockContentSourceInstance,
   mockCreateContentSource,
+  mockSearchServiceInstance,
+  mockCreateSearchService,
 } = vi.hoisted(() => {
   const mockLoadConfig = vi.fn();
 
@@ -47,6 +49,14 @@ const {
   const mockContentSourceInstance = { fetchContent: vi.fn() };
   const mockCreateContentSource = vi.fn().mockReturnValue(mockContentSourceInstance);
 
+  const mockSearchServiceInstance = {
+    searchByKeyword: vi.fn(),
+    searchBySimilarity: vi.fn(),
+    findSimilar: vi.fn(),
+    searchHybrid: vi.fn(),
+  };
+  const mockCreateSearchService = vi.fn().mockReturnValue(mockSearchServiceInstance);
+
   return {
     mockLoadConfig,
     mockPrismaClient,
@@ -61,6 +71,8 @@ const {
     mockQueryHandlers,
     mockContentSourceInstance,
     mockCreateContentSource,
+    mockSearchServiceInstance,
+    mockCreateSearchService,
   };
 });
 
@@ -76,8 +88,11 @@ vi.mock("@redgest/db", () => ({
 vi.mock("@redgest/core", () => ({
   createExecute: mockCreateExecute,
   createQuery: mockCreateQuery,
+  createSearchService: mockCreateSearchService,
   DomainEventBus: MockDomainEventBus,
   wireDigestDispatch: mockWireDigestDispatch,
+  recordDeliveryPending: vi.fn(),
+  recordDeliveryResult: vi.fn(),
   commandHandlers: mockCommandHandlers,
   queryHandlers: mockQueryHandlers,
 }));
@@ -135,7 +150,7 @@ describe("bootstrap()", () => {
     });
   });
 
-  it("calls wireDigestDispatch with eventBus, pipelineDeps, and triggerSecretKey", async () => {
+  it("calls wireDigestDispatch with eventBus, pipelineDeps, triggerSecretKey, and deliverDigest", async () => {
     await bootstrap();
     expect(mockWireDigestDispatch).toHaveBeenCalledWith({
       eventBus: mockEventBusInstance,
@@ -144,8 +159,10 @@ describe("bootstrap()", () => {
         eventBus: mockEventBusInstance,
         contentSource: mockContentSourceInstance,
         config: fakeConfig,
+        searchService: mockSearchServiceInstance,
       },
       triggerSecretKey: "tr_test",
+      deliverDigest: expect.any(Function),
     });
   });
 
@@ -160,7 +177,13 @@ describe("bootstrap()", () => {
       db: mockPrismaClient,
       eventBus: mockEventBusInstance,
       config: fakeConfig,
+      searchService: mockSearchServiceInstance,
     });
+  });
+
+  it("creates SearchService from db", async () => {
+    await bootstrap();
+    expect(mockCreateSearchService).toHaveBeenCalledWith(mockPrismaClient);
   });
 
   describe("without TRIGGER_SECRET_KEY", () => {
