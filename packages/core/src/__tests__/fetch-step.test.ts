@@ -272,6 +272,7 @@ describe("fetchStep", () => {
         },
       ],
       fetchedAt,
+      fromCache: false,
     });
   });
 

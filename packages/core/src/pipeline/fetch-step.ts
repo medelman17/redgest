@@ -2,15 +2,84 @@ import type { PrismaClient } from "@redgest/db";
 import { sanitizeContent } from "@redgest/reddit";
 import type { ContentSource, FetchStepResult } from "./types.js";
 
+const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+export interface FetchStepOptions {
+  cacheTtlMs?: number;
+}
+
 /**
  * Fetch posts from a content source, filter NSFW if needed,
  * and upsert posts + comments to the database.
+ *
+ * When `lastFetchedAt` is recent (within cacheTtlMs), returns posts
+ * from the database instead of hitting the Reddit API.
  */
 export async function fetchStep(
-  subreddit: { name: string; maxPosts: number; includeNsfw: boolean },
+  subreddit: {
+    name: string;
+    maxPosts: number;
+    includeNsfw: boolean;
+    lastFetchedAt?: Date | null;
+  },
   source: ContentSource,
   db: PrismaClient,
+  options?: FetchStepOptions,
 ): Promise<FetchStepResult> {
+  const cacheTtl = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+  const cacheAge = subreddit.lastFetchedAt
+    ? Date.now() - subreddit.lastFetchedAt.getTime()
+    : Infinity;
+
+  // Cache hit — load from DB instead of Reddit API
+  if (cacheAge < cacheTtl) {
+    const dbPosts = await db.post.findMany({
+      where: {
+        subreddit: subreddit.name,
+        ...(subreddit.includeNsfw ? {} : { isNsfw: false }),
+      },
+      orderBy: { fetchedAt: "desc" },
+      take: subreddit.maxPosts * 3, // fetch more to account for sort dedup
+      include: { comments: { orderBy: { score: "desc" }, take: 10 } },
+    });
+
+    return {
+      subreddit: subreddit.name,
+      posts: dbPosts.map((p) => ({
+        postId: p.id,
+        redditId: p.redditId,
+        post: {
+          id: p.redditId,
+          name: `t3_${p.redditId}`,
+          subreddit: p.subreddit,
+          title: p.title,
+          selftext: p.body ?? "",
+          author: p.author,
+          score: p.score,
+          num_comments: p.commentCount,
+          url: p.url,
+          permalink: p.permalink,
+          link_flair_text: p.flair,
+          over_18: p.isNsfw,
+          created_utc: p.fetchedAt.getTime() / 1000,
+          is_self: true,
+        },
+        comments: p.comments.map((c) => ({
+          id: c.redditId,
+          name: `t1_${c.redditId}`,
+          author: c.author,
+          body: c.body,
+          score: c.score,
+          depth: c.depth,
+          created_utc: c.fetchedAt.getTime() / 1000,
+        })),
+      })),
+      fetchedAt: subreddit.lastFetchedAt ?? new Date(),
+      fromCache: true,
+    };
+  }
+
+  // Cache miss — fetch from source
   const content = await source.fetchContent(subreddit.name, {
     sorts: ["hot", "top", "rising"],
     limit: subreddit.maxPosts,
@@ -71,5 +140,6 @@ export async function fetchStep(
     subreddit: subreddit.name,
     posts: results,
     fetchedAt: content.fetchedAt,
+    fromCache: false,
   };
 }

@@ -154,15 +154,25 @@ async function runPipelineBody(
       }
 
       // --- Fetch ---
+      const forceRefresh = deps.forceRefresh ?? false;
       const fetchResult = await fetchStep(
         {
           name: sub.name,
           maxPosts: sub.maxPosts,
           includeNsfw: sub.includeNsfw,
+          lastFetchedAt: forceRefresh ? null : sub.lastFetchedAt,
         },
         contentSource,
         db,
       );
+
+      // Update lastFetchedAt on the subreddit after a fresh fetch (skip on cache hit)
+      if (!fetchResult.fromCache) {
+        await db.subreddit.update({
+          where: { id: sub.id },
+          data: { lastFetchedAt: fetchResult.fetchedAt },
+        });
+      }
 
       await emitEvent(
         db,

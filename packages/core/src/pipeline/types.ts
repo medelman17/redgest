@@ -92,6 +92,9 @@ export interface PipelineDeps {
   config: RedgestConfig;
   model?: ModelConfig;
 
+  /** Skip fetch cache — always fetch fresh from Reddit. */
+  forceRefresh?: boolean;
+
   /** Override triage function for testing. */
   generateTriage?: (
     posts: Array<{
@@ -139,6 +142,8 @@ export interface FetchStepResult {
     comments: RedditCommentData[];
   }>;
   fetchedAt: Date;
+  /** True when posts were loaded from DB cache instead of fetched from Reddit. */
+  fromCache?: boolean;
 }
 
 /** Result of LLM triage — which posts were selected and why. */
