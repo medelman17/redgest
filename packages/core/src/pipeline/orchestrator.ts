@@ -13,6 +13,7 @@ import { fetchStep } from "./fetch-step.js";
 import { triageStep } from "./triage-step.js";
 import { summarizeStep } from "./summarize-step.js";
 import { assembleStep } from "./assemble-step.js";
+import { topicStep } from "./topic-step.js";
 import type {
   PipelineDeps,
   PipelineResult,
@@ -219,6 +220,27 @@ async function runPipelineBody(
         (p): p is string => p != null && p.length > 0,
       );
 
+      // --- Historical context for triage (best-effort) ---
+      const enrichedPrompts = [...insightPrompts];
+      if (deps.searchService) {
+        try {
+          const recentHistory = await deps.searchService.searchByKeyword(
+            sub.name,
+            { subreddit: sub.name, limit: 5 },
+          );
+          if (recentHistory.length > 0) {
+            const context = recentHistory
+              .map((r) => `"${r.title}" (score: ${r.score})`)
+              .join("; ");
+            enrichedPrompts.push(
+              `Previously discussed topics in r/${sub.name}: ${context}. Prefer posts with NEW information or different perspectives.`,
+            );
+          }
+        } catch {
+          // Best-effort: don't fail pipeline for context injection
+        }
+      }
+
       // --- Triage ---
       const candidates: TriagePostCandidate[] = newPosts.map((p, i) => ({
         index: i,
@@ -233,7 +255,7 @@ async function runPipelineBody(
       const triageModel = runtimeModel ? getModel("triage", runtimeModel) : undefined;
       const triageResult = await triageStep(
         candidates,
-        insightPrompts,
+        enrichedPrompts,
         sub.maxPosts,
         db,
         jobId,
@@ -283,7 +305,7 @@ async function runPipelineBody(
               selftext: postData.post.selftext,
             },
             sumComments,
-            insightPrompts,
+            enrichedPrompts,
             jobId,
             postData.postId,
             db,
@@ -291,6 +313,46 @@ async function runPipelineBody(
             sel.rationale,
             deps.generateSummary as Parameters<typeof summarizeStep>[8],
           );
+
+          // --- Embedding (optional, best-effort) ---
+          if (process.env.OPENAI_API_KEY) {
+            try {
+              const { generateEmbedding } = await import("@redgest/llm");
+              const embResult = await generateEmbedding(sumResult.summary.summary);
+              const vecStr = `[${embResult.data.join(",")}]`;
+              await db.$executeRaw`
+                UPDATE post_summaries SET embedding = ${vecStr}::vector WHERE id = ${sumResult.postSummaryId}
+              `;
+              if (embResult.log) {
+                await db.llmCall.create({
+                  data: {
+                    jobId,
+                    postId: postData.postId,
+                    task: "embed",
+                    model: embResult.log.model,
+                    inputTokens: embResult.log.inputTokens,
+                    outputTokens: embResult.log.outputTokens,
+                    durationMs: embResult.log.durationMs,
+                    cached: embResult.log.cached,
+                    finishReason: embResult.log.finishReason,
+                  },
+                });
+              }
+            } catch (err) {
+              console.error(
+                `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : err}`,
+              );
+            }
+          }
+
+          // --- Topic extraction (best-effort) ---
+          try {
+            await topicStep(postData.postId, sumResult.summary, db);
+          } catch (err) {
+            console.error(
+              `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : err}`,
+            );
+          }
 
           postResults.push({
             postId: postData.postId,

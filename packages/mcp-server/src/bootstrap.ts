@@ -71,7 +71,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
     });
 
     checkConnectivity = () => contentSource.checkConnectivity();
-    pipelineDeps = { db, eventBus, contentSource, config };
+    pipelineDeps = { db, eventBus, contentSource, config, searchService };
   }
 
   // Build in-process delivery callback for when Trigger.dev is not configured.

@@ -16,6 +16,17 @@ export const handleAskHistory: QueryHandler<"AskHistory"> = async (
   if (params.since) {
     options.since = new Date(Date.now() - parseDuration(params.since));
   }
-  // Phase 3 initial: keyword-only search. Task 23 upgrades to hybrid.
+
+  // Try hybrid search if OpenAI embedding is available
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const { generateEmbedding } = await import("@redgest/llm");
+      const embResult = await generateEmbedding(params.question);
+      return ctx.searchService.searchHybrid(params.question, embResult.data, options);
+    } catch {
+      // Fall back to keyword search if embedding fails
+    }
+  }
+
   return ctx.searchService.searchByKeyword(params.question, options);
 };

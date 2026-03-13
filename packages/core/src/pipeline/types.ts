@@ -1,6 +1,7 @@
 import type { DomainEventBus } from "../events/bus.js";
 import type { RedgestConfig } from "@redgest/config";
 import type { PrismaClient } from "@redgest/db";
+import type { SearchService } from "../search/types.js";
 
 // Re-declared locally to avoid circular dependency (core <-> reddit).
 // Structurally identical to the types in @redgest/reddit and @redgest/llm;
@@ -94,6 +95,9 @@ export interface PipelineDeps {
 
   /** Skip fetch cache — always fetch fresh from Reddit. */
   forceRefresh?: boolean;
+
+  /** Optional search service for historical context injection during triage. */
+  searchService?: SearchService;
 
   /** Override triage function for testing. */
   generateTriage?: (

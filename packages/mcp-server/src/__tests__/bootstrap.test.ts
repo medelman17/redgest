@@ -159,6 +159,7 @@ describe("bootstrap()", () => {
         eventBus: mockEventBusInstance,
         contentSource: mockContentSourceInstance,
         config: fakeConfig,
+        searchService: mockSearchServiceInstance,
       },
       triggerSecretKey: "tr_test",
       deliverDigest: expect.any(Function),
