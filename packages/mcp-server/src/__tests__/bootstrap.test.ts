@@ -11,6 +11,7 @@ const {
   mockEventBusInstance,
   MockDomainEventBus,
   mockWireDigestDispatch,
+  mockWireCrawlDispatch,
   mockCommandHandlers,
   mockQueryHandlers,
   mockContentSourceInstance,
@@ -43,6 +44,7 @@ const {
   });
 
   const mockWireDigestDispatch = vi.fn();
+  const mockWireCrawlDispatch = vi.fn();
   const mockCommandHandlers = { GenerateDigest: vi.fn() };
   const mockQueryHandlers = { GetDigest: vi.fn() };
 
@@ -67,6 +69,7 @@ const {
     mockEventBusInstance,
     MockDomainEventBus,
     mockWireDigestDispatch,
+    mockWireCrawlDispatch,
     mockCommandHandlers,
     mockQueryHandlers,
     mockContentSourceInstance,
@@ -91,6 +94,7 @@ vi.mock("@redgest/core", () => ({
   createSearchService: mockCreateSearchService,
   DomainEventBus: MockDomainEventBus,
   wireDigestDispatch: mockWireDigestDispatch,
+  wireCrawlDispatch: mockWireCrawlDispatch,
   recordDeliveryPending: vi.fn(),
   recordDeliveryResult: vi.fn(),
   commandHandlers: mockCommandHandlers,
@@ -163,6 +167,19 @@ describe("bootstrap()", () => {
       },
       triggerSecretKey: "tr_test",
       deliverDigest: expect.any(Function),
+    });
+  });
+
+  it("calls wireCrawlDispatch with eventBus, crawlDeps, and triggerSecretKey", async () => {
+    await bootstrap();
+    expect(mockWireCrawlDispatch).toHaveBeenCalledWith({
+      eventBus: mockEventBusInstance,
+      crawlDeps: {
+        db: mockPrismaClient,
+        eventBus: mockEventBusInstance,
+        contentSource: mockContentSourceInstance,
+      },
+      triggerSecretKey: "tr_test",
     });
   });
 

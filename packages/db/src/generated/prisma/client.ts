@@ -47,6 +47,16 @@ export { Prisma }
  */
 export type Subreddit = Prisma.SubredditModel
 /**
+ * Model DigestProfile
+ * 
+ */
+export type DigestProfile = Prisma.DigestProfileModel
+/**
+ * Model DigestProfileSubreddit
+ * 
+ */
+export type DigestProfileSubreddit = Prisma.DigestProfileSubredditModel
+/**
  * Model Config
  * 
  */
@@ -126,6 +136,11 @@ export type RunView = Prisma.RunViewModel
  * 
  */
 export type SubredditView = Prisma.SubredditViewModel
+/**
+ * Model ProfileView
+ * 
+ */
+export type ProfileView = Prisma.ProfileViewModel
 /**
  * Model DeliveryView
  * 

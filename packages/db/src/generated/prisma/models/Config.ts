@@ -28,10 +28,12 @@ export type AggregateConfig = {
 
 export type ConfigAvgAggregateOutputType = {
   id: number | null
+  maxDigestPosts: number | null
 }
 
 export type ConfigSumAggregateOutputType = {
   id: number | null
+  maxDigestPosts: number | null
 }
 
 export type ConfigMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type ConfigMinAggregateOutputType = {
   globalInsightPrompt: string | null
   defaultLookback: string | null
   defaultDelivery: $Enums.DeliveryChannel | null
+  maxDigestPosts: number | null
   llmProvider: string | null
   llmModel: string | null
   schedule: string | null
@@ -50,6 +53,7 @@ export type ConfigMaxAggregateOutputType = {
   globalInsightPrompt: string | null
   defaultLookback: string | null
   defaultDelivery: $Enums.DeliveryChannel | null
+  maxDigestPosts: number | null
   llmProvider: string | null
   llmModel: string | null
   schedule: string | null
@@ -61,6 +65,7 @@ export type ConfigCountAggregateOutputType = {
   globalInsightPrompt: number
   defaultLookback: number
   defaultDelivery: number
+  maxDigestPosts: number
   llmProvider: number
   llmModel: number
   schedule: number
@@ -71,10 +76,12 @@ export type ConfigCountAggregateOutputType = {
 
 export type ConfigAvgAggregateInputType = {
   id?: true
+  maxDigestPosts?: true
 }
 
 export type ConfigSumAggregateInputType = {
   id?: true
+  maxDigestPosts?: true
 }
 
 export type ConfigMinAggregateInputType = {
@@ -82,6 +89,7 @@ export type ConfigMinAggregateInputType = {
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
+  maxDigestPosts?: true
   llmProvider?: true
   llmModel?: true
   schedule?: true
@@ -93,6 +101,7 @@ export type ConfigMaxAggregateInputType = {
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
+  maxDigestPosts?: true
   llmProvider?: true
   llmModel?: true
   schedule?: true
@@ -104,6 +113,7 @@ export type ConfigCountAggregateInputType = {
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
+  maxDigestPosts?: true
   llmProvider?: true
   llmModel?: true
   schedule?: true
@@ -202,6 +212,7 @@ export type ConfigGroupByOutputType = {
   globalInsightPrompt: string
   defaultLookback: string
   defaultDelivery: $Enums.DeliveryChannel
+  maxDigestPosts: number
   llmProvider: string
   llmModel: string
   schedule: string | null
@@ -236,6 +247,7 @@ export type ConfigWhereInput = {
   globalInsightPrompt?: Prisma.StringFilter<"Config"> | string
   defaultLookback?: Prisma.StringFilter<"Config"> | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFilter<"Config"> | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFilter<"Config"> | number
   llmProvider?: Prisma.StringFilter<"Config"> | string
   llmModel?: Prisma.StringFilter<"Config"> | string
   schedule?: Prisma.StringNullableFilter<"Config"> | string | null
@@ -247,6 +259,7 @@ export type ConfigOrderByWithRelationInput = {
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -261,6 +274,7 @@ export type ConfigWhereUniqueInput = Prisma.AtLeast<{
   globalInsightPrompt?: Prisma.StringFilter<"Config"> | string
   defaultLookback?: Prisma.StringFilter<"Config"> | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFilter<"Config"> | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFilter<"Config"> | number
   llmProvider?: Prisma.StringFilter<"Config"> | string
   llmModel?: Prisma.StringFilter<"Config"> | string
   schedule?: Prisma.StringNullableFilter<"Config"> | string | null
@@ -272,6 +286,7 @@ export type ConfigOrderByWithAggregationInput = {
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -291,6 +306,7 @@ export type ConfigScalarWhereWithAggregatesInput = {
   globalInsightPrompt?: Prisma.StringWithAggregatesFilter<"Config"> | string
   defaultLookback?: Prisma.StringWithAggregatesFilter<"Config"> | string
   defaultDelivery?: Prisma.EnumDeliveryChannelWithAggregatesFilter<"Config"> | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntWithAggregatesFilter<"Config"> | number
   llmProvider?: Prisma.StringWithAggregatesFilter<"Config"> | string
   llmModel?: Prisma.StringWithAggregatesFilter<"Config"> | string
   schedule?: Prisma.StringNullableWithAggregatesFilter<"Config"> | string | null
@@ -302,6 +318,7 @@ export type ConfigCreateInput = {
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
   llmProvider: string
   llmModel: string
   schedule?: string | null
@@ -313,6 +330,7 @@ export type ConfigUncheckedCreateInput = {
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
   llmProvider: string
   llmModel: string
   schedule?: string | null
@@ -324,6 +342,7 @@ export type ConfigUpdateInput = {
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -335,6 +354,7 @@ export type ConfigUncheckedUpdateInput = {
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -346,6 +366,7 @@ export type ConfigCreateManyInput = {
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
   llmProvider: string
   llmModel: string
   schedule?: string | null
@@ -357,6 +378,7 @@ export type ConfigUpdateManyMutationInput = {
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -368,6 +390,7 @@ export type ConfigUncheckedUpdateManyInput = {
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
   llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -379,6 +402,7 @@ export type ConfigCountOrderByAggregateInput = {
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
@@ -387,6 +411,7 @@ export type ConfigCountOrderByAggregateInput = {
 
 export type ConfigAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
 }
 
 export type ConfigMaxOrderByAggregateInput = {
@@ -394,6 +419,7 @@ export type ConfigMaxOrderByAggregateInput = {
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
@@ -405,6 +431,7 @@ export type ConfigMinOrderByAggregateInput = {
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
+  maxDigestPosts?: Prisma.SortOrder
   llmProvider?: Prisma.SortOrder
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
@@ -413,10 +440,7 @@ export type ConfigMinOrderByAggregateInput = {
 
 export type ConfigSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
-}
-
-export type EnumDeliveryChannelFieldUpdateOperationsInput = {
-  set?: $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.SortOrder
 }
 
 
@@ -426,6 +450,7 @@ export type ConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
+  maxDigestPosts?: boolean
   llmProvider?: boolean
   llmModel?: boolean
   schedule?: boolean
@@ -437,6 +462,7 @@ export type ConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
+  maxDigestPosts?: boolean
   llmProvider?: boolean
   llmModel?: boolean
   schedule?: boolean
@@ -448,6 +474,7 @@ export type ConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
+  maxDigestPosts?: boolean
   llmProvider?: boolean
   llmModel?: boolean
   schedule?: boolean
@@ -459,13 +486,14 @@ export type ConfigSelectScalar = {
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
+  maxDigestPosts?: boolean
   llmProvider?: boolean
   llmModel?: boolean
   schedule?: boolean
   updatedAt?: boolean
 }
 
-export type ConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "globalInsightPrompt" | "defaultLookback" | "defaultDelivery" | "llmProvider" | "llmModel" | "schedule" | "updatedAt", ExtArgs["result"]["config"]>
+export type ConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "globalInsightPrompt" | "defaultLookback" | "defaultDelivery" | "maxDigestPosts" | "llmProvider" | "llmModel" | "schedule" | "updatedAt", ExtArgs["result"]["config"]>
 
 export type $ConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Config"
@@ -475,6 +503,7 @@ export type $ConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     globalInsightPrompt: string
     defaultLookback: string
     defaultDelivery: $Enums.DeliveryChannel
+    maxDigestPosts: number
     llmProvider: string
     llmModel: string
     schedule: string | null
@@ -906,6 +935,7 @@ export interface ConfigFieldRefs {
   readonly globalInsightPrompt: Prisma.FieldRef<"Config", 'String'>
   readonly defaultLookback: Prisma.FieldRef<"Config", 'String'>
   readonly defaultDelivery: Prisma.FieldRef<"Config", 'DeliveryChannel'>
+  readonly maxDigestPosts: Prisma.FieldRef<"Config", 'Int'>
   readonly llmProvider: Prisma.FieldRef<"Config", 'String'>
   readonly llmModel: Prisma.FieldRef<"Config", 'String'>
   readonly schedule: Prisma.FieldRef<"Config", 'String'>

@@ -73,6 +73,26 @@ async function resolveSubredditIds(
   return ids;
 }
 
+async function lookupProfileId(
+  nameOrId: string,
+  deps: BootstrapResult,
+): Promise<string | null> {
+  // Try UUID match first
+  if (UUID_RE.test(nameOrId)) {
+    const profile = await deps.db.digestProfile.findUnique({
+      where: { id: nameOrId },
+      select: { id: true },
+    });
+    return profile ? profile.id : null;
+  }
+  // Case-insensitive name lookup
+  const profiles = await deps.query("ListProfiles", {}, deps.ctx);
+  const match = profiles.find(
+    (p) => p.name.toLowerCase() === nameOrId.toLowerCase(),
+  );
+  return match ? match.profileId : null;
+}
+
 /** Runtime deps.db is always the full PrismaClient; cast is safe. */
 function execCtx(deps: BootstrapResult): ExecuteContext {
   return {
@@ -122,9 +142,16 @@ const USAGE_GUIDE = `# Redgest — Reddit Digest Engine
 - **list_subreddits** — List all monitored subreddits
 - **get_subreddit_stats** — View per-subreddit metrics (posts fetched, digest appearances, utilization)
 
+### Digest Profiles
+- **list_profiles** — List all digest profiles with subreddit associations
+- **get_profile** — Get a specific profile by name or ID
+- **create_profile** — Create a new digest profile (groups subreddits + schedule + delivery)
+- **update_profile** — Update profile settings (providing subreddits replaces the full list)
+- **delete_profile** — Delete a profile (cannot delete "Default")
+
 ### Configuration
-- **get_config** — View current global configuration
-- **update_config** — Update global settings (insight prompt, lookback, LLM provider/model, delivery channel, schedule)
+- **get_config** — View current global configuration (LLM provider/model). For per-digest settings, use profiles instead.
+- **update_config** — Update global settings (insight prompt, LLM provider/model)
 
 ### Observability
 - **get_llm_metrics** — View LLM usage metrics (tokens, latency, cache hits) by task type
@@ -187,18 +214,32 @@ export function createToolHandlers(
 
     generate_digest: async (args) => {
       return safe(async () => {
+        const profileName = args.profile as string | undefined;
         const subreddits = args.subreddits as string[] | undefined;
         const lookback = args.lookback as string | undefined;
-        const subredditIds =
-          subreddits && subreddits.length > 0
-            ? await resolveSubredditIds(subreddits, deps)
-            : subreddits;
+
+        let profileId: string | undefined;
+        const subredditIds = subreddits && subreddits.length > 0
+          ? await resolveSubredditIds(subreddits, deps)
+          : undefined;
+
+        // Resolve profile if specified
+        if (profileName) {
+          const resolvedId = await lookupProfileId(profileName, deps);
+          if (!resolvedId) {
+            return envelopeError(ErrorCode.NOT_FOUND, `Profile "${profileName}" not found`);
+          }
+          profileId = resolvedId;
+        }
+
         const result = await deps.execute(
           "GenerateDigest",
           {
+            profileId,
             subredditIds,
             lookbackHours: parseLookback(lookback),
             forceRefresh: args.force_refresh as boolean | undefined,
+            maxPosts: args.max_posts as number | undefined,
           },
           eCtx,
         );
@@ -427,6 +468,7 @@ export function createToolHandlers(
             insightPrompt: args.insightPrompt as string | undefined,
             maxPosts: args.maxPosts as number | undefined,
             active: args.active as boolean | undefined,
+            crawlIntervalMinutes: args.crawlIntervalMinutes as number | undefined,
           },
           eCtx,
         );
@@ -449,12 +491,25 @@ export function createToolHandlers(
           {
             globalInsightPrompt: args.globalInsightPrompt as string | undefined,
             defaultLookbackHours: args.defaultLookbackHours as number | undefined,
+            maxDigestPosts: args.maxDigestPosts as number | undefined,
             llmProvider: args.llmProvider as string | undefined,
             llmModel: args.llmModel as string | undefined,
             defaultDelivery: args.defaultDelivery as DeliveryChannel | undefined,
             schedule: args.schedule as string | null | undefined,
           },
           eCtx,
+        );
+        return envelope(result);
+      });
+    },
+
+    get_crawl_status: async (args) => {
+      return safe(async () => {
+        const name = args.name as string | undefined;
+        const result = await deps.query(
+          "GetCrawlStatus",
+          name ? { name } : {},
+          deps.ctx,
         );
         return envelope(result);
       });
@@ -580,6 +635,97 @@ export function createToolHandlers(
           "ComparePeriods",
           { periodA, periodB, subreddit },
           deps.ctx,
+        );
+        return envelope(result);
+      });
+    },
+
+    // ── Profile tools ──────────────────────────────────────────────
+
+    list_profiles: async () => {
+      return safe(async () => {
+        const result = await deps.query("ListProfiles", {}, deps.ctx);
+        return envelope(result);
+      });
+    },
+
+    get_profile: async (args) => {
+      return safe(async () => {
+        const nameOrId = args.name as string;
+        const profileId = await lookupProfileId(nameOrId, deps);
+        if (!profileId) {
+          return envelopeError(ErrorCode.NOT_FOUND, `Profile "${nameOrId}" not found`);
+        }
+        const result = await deps.query("GetProfile", { profileId }, deps.ctx);
+        if (!result) return envelopeError(ErrorCode.NOT_FOUND, `Profile "${nameOrId}" not found`);
+        return envelope(result);
+      });
+    },
+
+    create_profile: async (args) => {
+      return safe(async () => {
+        const subredditNames = args.subreddits as string[] | undefined;
+        const subredditIds = subredditNames && subredditNames.length > 0
+          ? await resolveSubredditIds(subredditNames, deps)
+          : undefined;
+        const result = await deps.execute(
+          "CreateProfile",
+          {
+            name: args.name as string,
+            insightPrompt: args.insightPrompt as string | undefined,
+            schedule: args.schedule as string | null | undefined,
+            lookbackHours: args.lookbackHours as number | undefined,
+            maxPosts: args.maxPosts as number | undefined,
+            delivery: args.delivery as DeliveryChannel | undefined,
+            subredditIds,
+          },
+          eCtx,
+        );
+        return envelope(result);
+      });
+    },
+
+    update_profile: async (args) => {
+      return safe(async () => {
+        const nameOrId = args.name as string;
+        const profileId = await lookupProfileId(nameOrId, deps);
+        if (!profileId) {
+          return envelopeError(ErrorCode.NOT_FOUND, `Profile "${nameOrId}" not found`);
+        }
+        const subredditNames = args.subreddits as string[] | undefined;
+        const subredditIds = subredditNames
+          ? await resolveSubredditIds(subredditNames, deps)
+          : undefined;
+        const result = await deps.execute(
+          "UpdateProfile",
+          {
+            profileId,
+            name: args.newName as string | undefined,
+            insightPrompt: args.insightPrompt as string | undefined,
+            schedule: args.schedule as string | null | undefined,
+            lookbackHours: args.lookbackHours as number | undefined,
+            maxPosts: args.maxPosts as number | undefined,
+            delivery: args.delivery as DeliveryChannel | undefined,
+            subredditIds,
+            active: args.active as boolean | undefined,
+          },
+          eCtx,
+        );
+        return envelope(result);
+      });
+    },
+
+    delete_profile: async (args) => {
+      return safe(async () => {
+        const nameOrId = args.name as string;
+        const profileId = await lookupProfileId(nameOrId, deps);
+        if (!profileId) {
+          return envelopeError(ErrorCode.NOT_FOUND, `Profile "${nameOrId}" not found`);
+        }
+        const result = await deps.execute(
+          "DeleteProfile",
+          { profileId },
+          eCtx,
         );
         return envelope(result);
       });
@@ -723,9 +869,11 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "generate_digest",
     "Start a new digest run. Returns a jobId — poll with get_run_status until complete, then fetch with get_digest.",
     {
-      subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (omit for all active)"),
-      lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (default: 24h)'),
+      profile: z.string().optional().describe("Digest profile name or ID. Uses profile's subreddits, lookback, maxPosts if not explicitly provided."),
+      subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (overrides profile, omit for all active)"),
+      lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (overrides profile, default: 24h)'),
       force_refresh: z.boolean().optional().describe("Bypass fetch cache and always hit Reddit API"),
+      max_posts: z.number().optional().describe("Max total posts to include in the digest (overrides profile/config, default: 5)"),
     },
     async (args) => call("generate_digest", args),
   );
@@ -866,12 +1014,13 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "update_subreddit",
-    "Update subreddit settings (insight prompt, max posts, active status).",
+    "Update subreddit settings (insight prompt, max posts, active status, crawl interval).",
     {
       name: z.string().describe("Subreddit name to update"),
       insightPrompt: z.string().optional().describe("New insight prompt"),
       maxPosts: z.number().optional().describe("New max posts per run"),
       active: z.boolean().optional().describe("Enable/disable monitoring"),
+      crawlIntervalMinutes: z.number().optional().describe("Crawl interval in minutes (default: 30)"),
     },
     async (args) => call("update_subreddit", args),
   );
@@ -880,6 +1029,15 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "get_config",
     "View current global Redgest configuration.",
     async () => call("get_config", {}),
+  );
+
+  server.tool(
+    "get_crawl_status",
+    "View crawl health for monitored subreddits. Shows last crawl time, next crawl time, post count, and error status.",
+    {
+      name: z.string().optional().describe("Specific subreddit name (omit for all)"),
+    },
+    async (args) => call("get_crawl_status", args),
   );
 
   server.tool(
@@ -904,12 +1062,67 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     {
       globalInsightPrompt: z.string().optional().describe("Global insight prompt"),
       defaultLookbackHours: z.number().optional().describe("Default lookback window in hours"),
+      maxDigestPosts: z.number().optional().describe("Max total posts per digest across all subreddits (default: 5)"),
       llmProvider: z.string().optional().describe("LLM provider (anthropic, openai)"),
       llmModel: z.string().optional().describe("LLM model name"),
       defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional().describe("Default delivery channel for digests"),
       schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null to disable"),
     },
     async (args) => call("update_config", args),
+  );
+
+  // ── Profile tools ──────────────────────────────────────────────
+
+  server.tool(
+    "list_profiles",
+    "List all digest profiles with their subreddit associations.",
+    async () => call("list_profiles", {}),
+  );
+
+  server.tool(
+    "get_profile",
+    "Get a specific digest profile by name or ID.",
+    { name: z.string().describe("Profile name or ID") },
+    async (args) => call("get_profile", args),
+  );
+
+  server.tool(
+    "create_profile",
+    "Create a new digest profile. Profiles group subreddits with their own schedule, lookback, and delivery settings.",
+    {
+      name: z.string().describe("Profile name (unique)"),
+      insightPrompt: z.string().optional().describe("What to look for in posts from this profile's subreddits"),
+      schedule: z.string().nullable().optional().describe("Cron expression for scheduled digests, or null for manual only"),
+      lookbackHours: z.number().optional().describe("Hours to look back for posts (default: 24)"),
+      maxPosts: z.number().optional().describe("Max posts per digest (default: 5)"),
+      delivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional().describe("Delivery channel"),
+      subreddits: z.array(z.string()).optional().describe("Subreddit names to include in this profile"),
+    },
+    async (args) => call("create_profile", args),
+  );
+
+  server.tool(
+    "update_profile",
+    "Update a digest profile's settings. Providing subreddits replaces the full list.",
+    {
+      name: z.string().describe("Profile name or ID to update"),
+      newName: z.string().optional().describe("Rename the profile"),
+      insightPrompt: z.string().optional().describe("New insight prompt"),
+      schedule: z.string().nullable().optional().describe("New cron schedule, or null to disable"),
+      lookbackHours: z.number().optional().describe("New lookback hours"),
+      maxPosts: z.number().optional().describe("New max posts"),
+      delivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional().describe("Delivery channel"),
+      subreddits: z.array(z.string()).optional().describe("Replace subreddit list (by name)"),
+      active: z.boolean().optional().describe("Enable/disable the profile"),
+    },
+    async (args) => call("update_profile", args),
+  );
+
+  server.tool(
+    "delete_profile",
+    'Delete a digest profile. Cannot delete the "Default" profile.',
+    { name: z.string().describe("Profile name or ID to delete") },
+    async (args) => call("delete_profile", args),
   );
 
   server.tool(

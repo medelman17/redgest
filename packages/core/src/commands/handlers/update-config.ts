@@ -12,6 +12,9 @@ export const handleUpdateConfig: CommandHandler<"UpdateConfig"> = async (
   if (params.defaultLookbackHours !== undefined) {
     changes.defaultLookback = `${params.defaultLookbackHours}h`;
   }
+  if (params.maxDigestPosts !== undefined) {
+    changes.maxDigestPosts = params.maxDigestPosts;
+  }
   if (params.llmProvider !== undefined) {
     changes.llmProvider = params.llmProvider;
   }

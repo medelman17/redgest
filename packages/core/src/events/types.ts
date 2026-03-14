@@ -4,13 +4,13 @@
  * the DomainEventBus type signatures, and the Zod schema requirements.
  */
 export interface DomainEventMap {
-  DigestRequested: { jobId: string; subredditIds: string[]; forceRefresh?: boolean };
+  DigestRequested: { jobId: string; subredditIds: string[]; forceRefresh?: boolean; maxPosts?: number; profileId?: string };
   DigestCompleted: { jobId: string; digestId: string };
   DigestFailed: { jobId: string; error: string };
   DigestCanceled: { jobId: string };
   PostsFetched: { jobId: string; subreddit: string; count: number };
-  PostsTriaged: { jobId: string; subreddit: string; selectedCount: number };
-  PostsSummarized: { jobId: string; subreddit: string; summaryCount: number };
+  PostsTriaged: { jobId: string; selectedCount: number; subreddits: string[] };
+  PostsSummarized: { jobId: string; summaryCount: number };
   SubredditAdded: { subredditId: string; name: string };
   SubredditRemoved: { subredditId: string; name: string };
   ConfigUpdated: { changes: Record<string, unknown> };
@@ -24,6 +24,20 @@ export interface DomainEventMap {
     jobId: string;
     digestId: string;
     channel: "EMAIL" | "SLACK";
+    error: string;
+  };
+  ProfileCreated: { profileId: string; name: string };
+  ProfileDeleted: { profileId: string; name: string };
+  CrawlCompleted: {
+    subredditId: string;
+    subreddit: string;
+    postCount: number;
+    newPostCount: number;
+    updatedPostCount: number;
+  };
+  CrawlFailed: {
+    subredditId: string;
+    subreddit: string;
     error: string;
   };
 }

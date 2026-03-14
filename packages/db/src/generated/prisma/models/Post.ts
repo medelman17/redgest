@@ -28,11 +28,13 @@ export type AggregatePost = {
 
 export type PostAvgAggregateOutputType = {
   score: number | null
+  scoreDelta: number | null
   commentCount: number | null
 }
 
 export type PostSumAggregateOutputType = {
   score: number | null
+  scoreDelta: number | null
   commentCount: number | null
 }
 
@@ -44,6 +46,7 @@ export type PostMinAggregateOutputType = {
   body: string | null
   author: string | null
   score: number | null
+  scoreDelta: number | null
   commentCount: number | null
   url: string | null
   permalink: string | null
@@ -60,6 +63,7 @@ export type PostMaxAggregateOutputType = {
   body: string | null
   author: string | null
   score: number | null
+  scoreDelta: number | null
   commentCount: number | null
   url: string | null
   permalink: string | null
@@ -76,6 +80,7 @@ export type PostCountAggregateOutputType = {
   body: number
   author: number
   score: number
+  scoreDelta: number
   commentCount: number
   url: number
   permalink: number
@@ -88,11 +93,13 @@ export type PostCountAggregateOutputType = {
 
 export type PostAvgAggregateInputType = {
   score?: true
+  scoreDelta?: true
   commentCount?: true
 }
 
 export type PostSumAggregateInputType = {
   score?: true
+  scoreDelta?: true
   commentCount?: true
 }
 
@@ -104,6 +111,7 @@ export type PostMinAggregateInputType = {
   body?: true
   author?: true
   score?: true
+  scoreDelta?: true
   commentCount?: true
   url?: true
   permalink?: true
@@ -120,6 +128,7 @@ export type PostMaxAggregateInputType = {
   body?: true
   author?: true
   score?: true
+  scoreDelta?: true
   commentCount?: true
   url?: true
   permalink?: true
@@ -136,6 +145,7 @@ export type PostCountAggregateInputType = {
   body?: true
   author?: true
   score?: true
+  scoreDelta?: true
   commentCount?: true
   url?: true
   permalink?: true
@@ -239,6 +249,7 @@ export type PostGroupByOutputType = {
   body: string | null
   author: string
   score: number
+  scoreDelta: number
   commentCount: number
   url: string
   permalink: string
@@ -278,6 +289,7 @@ export type PostWhereInput = {
   body?: Prisma.StringNullableFilter<"Post"> | string | null
   author?: Prisma.StringFilter<"Post"> | string
   score?: Prisma.IntFilter<"Post"> | number
+  scoreDelta?: Prisma.IntFilter<"Post"> | number
   commentCount?: Prisma.IntFilter<"Post"> | number
   url?: Prisma.StringFilter<"Post"> | string
   permalink?: Prisma.StringFilter<"Post"> | string
@@ -299,6 +311,7 @@ export type PostOrderByWithRelationInput = {
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
   url?: Prisma.SortOrder
   permalink?: Prisma.SortOrder
@@ -323,6 +336,7 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   body?: Prisma.StringNullableFilter<"Post"> | string | null
   author?: Prisma.StringFilter<"Post"> | string
   score?: Prisma.IntFilter<"Post"> | number
+  scoreDelta?: Prisma.IntFilter<"Post"> | number
   commentCount?: Prisma.IntFilter<"Post"> | number
   url?: Prisma.StringFilter<"Post"> | string
   permalink?: Prisma.StringFilter<"Post"> | string
@@ -344,6 +358,7 @@ export type PostOrderByWithAggregationInput = {
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
   url?: Prisma.SortOrder
   permalink?: Prisma.SortOrder
@@ -368,6 +383,7 @@ export type PostScalarWhereWithAggregatesInput = {
   body?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   author?: Prisma.StringWithAggregatesFilter<"Post"> | string
   score?: Prisma.IntWithAggregatesFilter<"Post"> | number
+  scoreDelta?: Prisma.IntWithAggregatesFilter<"Post"> | number
   commentCount?: Prisma.IntWithAggregatesFilter<"Post"> | number
   url?: Prisma.StringWithAggregatesFilter<"Post"> | string
   permalink?: Prisma.StringWithAggregatesFilter<"Post"> | string
@@ -384,6 +400,7 @@ export type PostCreateInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -405,6 +422,7 @@ export type PostUncheckedCreateInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -426,6 +444,7 @@ export type PostUpdateInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -447,6 +466,7 @@ export type PostUncheckedUpdateInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -468,6 +488,7 @@ export type PostCreateManyInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -484,6 +505,7 @@ export type PostUpdateManyMutationInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -500,6 +522,7 @@ export type PostUncheckedUpdateManyInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -516,6 +539,7 @@ export type PostCountOrderByAggregateInput = {
   body?: Prisma.SortOrder
   author?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
   url?: Prisma.SortOrder
   permalink?: Prisma.SortOrder
@@ -526,6 +550,7 @@ export type PostCountOrderByAggregateInput = {
 
 export type PostAvgOrderByAggregateInput = {
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
 }
 
@@ -537,6 +562,7 @@ export type PostMaxOrderByAggregateInput = {
   body?: Prisma.SortOrder
   author?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
   url?: Prisma.SortOrder
   permalink?: Prisma.SortOrder
@@ -553,6 +579,7 @@ export type PostMinOrderByAggregateInput = {
   body?: Prisma.SortOrder
   author?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
   url?: Prisma.SortOrder
   permalink?: Prisma.SortOrder
@@ -563,6 +590,7 @@ export type PostMinOrderByAggregateInput = {
 
 export type PostSumOrderByAggregateInput = {
   score?: Prisma.SortOrder
+  scoreDelta?: Prisma.SortOrder
   commentCount?: Prisma.SortOrder
 }
 
@@ -656,6 +684,7 @@ export type PostCreateWithoutCommentsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -676,6 +705,7 @@ export type PostUncheckedCreateWithoutCommentsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -712,6 +742,7 @@ export type PostUpdateWithoutCommentsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -732,6 +763,7 @@ export type PostUncheckedUpdateWithoutCommentsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -752,6 +784,7 @@ export type PostCreateWithoutSummariesInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -772,6 +805,7 @@ export type PostUncheckedCreateWithoutSummariesInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -808,6 +842,7 @@ export type PostUpdateWithoutSummariesInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -828,6 +863,7 @@ export type PostUncheckedUpdateWithoutSummariesInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -848,6 +884,7 @@ export type PostCreateWithoutDigestPostsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -868,6 +905,7 @@ export type PostUncheckedCreateWithoutDigestPostsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -904,6 +942,7 @@ export type PostUpdateWithoutDigestPostsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -924,6 +963,7 @@ export type PostUncheckedUpdateWithoutDigestPostsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -944,6 +984,7 @@ export type PostCreateWithoutLlmCallsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -964,6 +1005,7 @@ export type PostUncheckedCreateWithoutLlmCallsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -1000,6 +1042,7 @@ export type PostUpdateWithoutLlmCallsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1020,6 +1063,7 @@ export type PostUncheckedUpdateWithoutLlmCallsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1040,6 +1084,7 @@ export type PostCreateWithoutPostTopicsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -1060,6 +1105,7 @@ export type PostUncheckedCreateWithoutPostTopicsInput = {
   body?: string | null
   author: string
   score: number
+  scoreDelta?: number
   commentCount: number
   url: string
   permalink: string
@@ -1096,6 +1142,7 @@ export type PostUpdateWithoutPostTopicsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1116,6 +1163,7 @@ export type PostUncheckedUpdateWithoutPostTopicsInput = {
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.IntFieldUpdateOperationsInput | number
+  scoreDelta?: Prisma.IntFieldUpdateOperationsInput | number
   commentCount?: Prisma.IntFieldUpdateOperationsInput | number
   url?: Prisma.StringFieldUpdateOperationsInput | string
   permalink?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1203,6 +1251,7 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   body?: boolean
   author?: boolean
   score?: boolean
+  scoreDelta?: boolean
   commentCount?: boolean
   url?: boolean
   permalink?: boolean
@@ -1225,6 +1274,7 @@ export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   body?: boolean
   author?: boolean
   score?: boolean
+  scoreDelta?: boolean
   commentCount?: boolean
   url?: boolean
   permalink?: boolean
@@ -1241,6 +1291,7 @@ export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   body?: boolean
   author?: boolean
   score?: boolean
+  scoreDelta?: boolean
   commentCount?: boolean
   url?: boolean
   permalink?: boolean
@@ -1257,6 +1308,7 @@ export type PostSelectScalar = {
   body?: boolean
   author?: boolean
   score?: boolean
+  scoreDelta?: boolean
   commentCount?: boolean
   url?: boolean
   permalink?: boolean
@@ -1265,7 +1317,7 @@ export type PostSelectScalar = {
   fetchedAt?: boolean
 }
 
-export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "redditId" | "subreddit" | "title" | "body" | "author" | "score" | "commentCount" | "url" | "permalink" | "flair" | "isNsfw" | "fetchedAt", ExtArgs["result"]["post"]>
+export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "redditId" | "subreddit" | "title" | "body" | "author" | "score" | "scoreDelta" | "commentCount" | "url" | "permalink" | "flair" | "isNsfw" | "fetchedAt", ExtArgs["result"]["post"]>
 export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>
   summaries?: boolean | Prisma.Post$summariesArgs<ExtArgs>
@@ -1294,6 +1346,7 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     body: string | null
     author: string
     score: number
+    scoreDelta: number
     commentCount: number
     url: string
     permalink: string
@@ -1735,6 +1788,7 @@ export interface PostFieldRefs {
   readonly body: Prisma.FieldRef<"Post", 'String'>
   readonly author: Prisma.FieldRef<"Post", 'String'>
   readonly score: Prisma.FieldRef<"Post", 'Int'>
+  readonly scoreDelta: Prisma.FieldRef<"Post", 'Int'>
   readonly commentCount: Prisma.FieldRef<"Post", 'Int'>
   readonly url: Prisma.FieldRef<"Post", 'String'>
   readonly permalink: Prisma.FieldRef<"Post", 'String'>

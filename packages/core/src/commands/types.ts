@@ -6,9 +6,11 @@ import type { DomainEventMap, DomainEventType } from "../events/types.js";
  */
 export interface CommandMap {
   GenerateDigest: {
+    profileId?: string;
     subredditIds?: string[];
     lookbackHours?: number;
     forceRefresh?: boolean;
+    maxPosts?: number;
   };
   AddSubreddit: {
     name: string;
@@ -25,10 +27,12 @@ export interface CommandMap {
     insightPrompt?: string;
     maxPosts?: number;
     active?: boolean;
+    crawlIntervalMinutes?: number;
   };
   UpdateConfig: {
     globalInsightPrompt?: string;
     defaultLookbackHours?: number;
+    maxDigestPosts?: number;
     llmProvider?: string;
     llmModel?: string;
     defaultDelivery?: import("@redgest/db").DeliveryChannel;
@@ -36,6 +40,29 @@ export interface CommandMap {
   };
   CancelRun: {
     jobId: string;
+  };
+  CreateProfile: {
+    name: string;
+    insightPrompt?: string;
+    schedule?: string | null;
+    lookbackHours?: number;
+    maxPosts?: number;
+    delivery?: import("@redgest/db").DeliveryChannel;
+    subredditIds?: string[];
+  };
+  UpdateProfile: {
+    profileId: string;
+    name?: string;
+    insightPrompt?: string;
+    schedule?: string | null;
+    lookbackHours?: number;
+    maxPosts?: number;
+    delivery?: import("@redgest/db").DeliveryChannel;
+    subredditIds?: string[];
+    active?: boolean;
+  };
+  DeleteProfile: {
+    profileId: string;
   };
 }
 
@@ -49,6 +76,9 @@ export interface CommandResultMap {
   UpdateSubreddit: { subredditId: string };
   UpdateConfig: { success: true };
   CancelRun: { jobId: string; status: "CANCELED" };
+  CreateProfile: { profileId: string };
+  UpdateProfile: { profileId: string };
+  DeleteProfile: { profileId: string };
 }
 
 /**
@@ -62,6 +92,9 @@ export interface CommandEventMap {
   UpdateSubreddit: never;
   UpdateConfig: "ConfigUpdated";
   CancelRun: "DigestCanceled";
+  CreateProfile: "ProfileCreated";
+  UpdateProfile: never;
+  DeleteProfile: "ProfileDeleted";
 }
 
 // Derived types

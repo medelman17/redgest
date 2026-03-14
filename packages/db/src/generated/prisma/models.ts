@@ -9,6 +9,8 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Subreddit'
+export type * from './models/DigestProfile'
+export type * from './models/DigestProfileSubreddit'
 export type * from './models/Config'
 export type * from './models/Job'
 export type * from './models/Event'
@@ -25,5 +27,6 @@ export type * from './models/DigestView'
 export type * from './models/PostView'
 export type * from './models/RunView'
 export type * from './models/SubredditView'
+export type * from './models/ProfileView'
 export type * from './models/DeliveryView'
 export type * from './commonInputTypes'

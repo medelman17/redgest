@@ -53,6 +53,9 @@ const COMMAND_EVENT_TYPES: Record<CommandType, DomainEventType | undefined> = {
   UpdateSubreddit: undefined,
   UpdateConfig: "ConfigUpdated",
   CancelRun: "DigestCanceled",
+  CreateProfile: "ProfileCreated",
+  UpdateProfile: undefined,
+  DeleteProfile: "ProfileDeleted",
 };
 
 /**
@@ -65,6 +68,9 @@ const COMMAND_AGGREGATE_TYPES: Record<CommandType, string> = {
   UpdateSubreddit: "subreddit",
   UpdateConfig: "config",
   CancelRun: "job",
+  CreateProfile: "profile",
+  UpdateProfile: "profile",
+  DeleteProfile: "profile",
 };
 
 type HandlerRegistry = {
@@ -167,6 +173,9 @@ function extractAggregateId(type: CommandType, data: unknown): string {
   }
   if (typeof result.subredditId === "string") {
     return result.subredditId;
+  }
+  if (typeof result.profileId === "string") {
+    return result.profileId;
   }
   if (type === "UpdateConfig") {
     return "config-singleton";

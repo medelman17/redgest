@@ -9,6 +9,7 @@ export type {
 } from "./events/types.js";
 export { DomainEventBus } from "./events/bus.js";
 export { persistEvent, type EventCreateClient } from "./events/persist.js";
+export { emitDomainEvent } from "./events/emit.js";
 export { eventPayloadSchemas, parseEventPayload } from "./events/schemas.js";
 
 // Commands
@@ -51,6 +52,7 @@ export type {
   TrendingTopic,
   PeriodSummary,
   PeriodComparisonResult,
+  CrawlStatusItem,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -65,6 +67,9 @@ export {
   handleUpdateSubreddit,
   handleUpdateConfig,
   handleCancelRun,
+  handleCreateProfile,
+  handleUpdateProfile,
+  handleDeleteProfile,
 } from "./commands/handlers/index.js";
 
 // Query handlers
@@ -87,6 +92,9 @@ export {
   handleAskHistory,
   handleGetTrendingTopics,
   handleComparePeriods,
+  handleListProfiles,
+  handleGetProfile,
+  handleGetCrawlStatus,
 } from "./queries/handlers/index.js";
 
 // Context
@@ -101,10 +109,20 @@ export {
   wireDigestDispatch,
   type DigestDispatchDeps,
 } from "./digest-dispatch.js";
+
+// Crawl dispatch
+export {
+  wireCrawlDispatch,
+  type CrawlDispatchDeps,
+} from "./crawl-dispatch.js";
+
+// Crawl pipeline
+export { runCrawl, type CrawlResult, type CrawlDeps } from "./crawl-pipeline.js";
 // Pipeline
 export {
   runDigestPipeline,
   fetchStep,
+  selectPostsStep,
   triageStep,
   summarizeStep,
   assembleStep,

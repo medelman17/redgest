@@ -385,6 +385,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Subreddit: 'Subreddit',
+  DigestProfile: 'DigestProfile',
+  DigestProfileSubreddit: 'DigestProfileSubreddit',
   Config: 'Config',
   Job: 'Job',
   Event: 'Event',
@@ -401,6 +403,7 @@ export const ModelName = {
   PostView: 'PostView',
   RunView: 'RunView',
   SubredditView: 'SubredditView',
+  ProfileView: 'ProfileView',
   DeliveryView: 'DeliveryView'
 } as const
 
@@ -417,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "delivery" | "topic" | "postTopic" | "digestView" | "postView" | "runView" | "subredditView" | "deliveryView"
+    modelProps: "subreddit" | "digestProfile" | "digestProfileSubreddit" | "config" | "job" | "event" | "post" | "postComment" | "postSummary" | "digest" | "digestPost" | "llmCall" | "delivery" | "topic" | "postTopic" | "digestView" | "postView" | "runView" | "subredditView" | "profileView" | "deliveryView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -492,6 +495,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SubredditCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SubredditCountAggregateOutputType> | number
+        }
+      }
+    }
+    DigestProfile: {
+      payload: Prisma.$DigestProfilePayload<ExtArgs>
+      fields: Prisma.DigestProfileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DigestProfileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DigestProfileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        findFirst: {
+          args: Prisma.DigestProfileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DigestProfileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        findMany: {
+          args: Prisma.DigestProfileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>[]
+        }
+        create: {
+          args: Prisma.DigestProfileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        createMany: {
+          args: Prisma.DigestProfileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DigestProfileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>[]
+        }
+        delete: {
+          args: Prisma.DigestProfileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        update: {
+          args: Prisma.DigestProfileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        deleteMany: {
+          args: Prisma.DigestProfileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DigestProfileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DigestProfileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>[]
+        }
+        upsert: {
+          args: Prisma.DigestProfileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfilePayload>
+        }
+        aggregate: {
+          args: Prisma.DigestProfileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDigestProfile>
+        }
+        groupBy: {
+          args: Prisma.DigestProfileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestProfileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DigestProfileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    DigestProfileSubreddit: {
+      payload: Prisma.$DigestProfileSubredditPayload<ExtArgs>
+      fields: Prisma.DigestProfileSubredditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DigestProfileSubredditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DigestProfileSubredditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        findFirst: {
+          args: Prisma.DigestProfileSubredditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DigestProfileSubredditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        findMany: {
+          args: Prisma.DigestProfileSubredditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>[]
+        }
+        create: {
+          args: Prisma.DigestProfileSubredditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        createMany: {
+          args: Prisma.DigestProfileSubredditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DigestProfileSubredditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>[]
+        }
+        delete: {
+          args: Prisma.DigestProfileSubredditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        update: {
+          args: Prisma.DigestProfileSubredditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        deleteMany: {
+          args: Prisma.DigestProfileSubredditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DigestProfileSubredditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DigestProfileSubredditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>[]
+        }
+        upsert: {
+          args: Prisma.DigestProfileSubredditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DigestProfileSubredditPayload>
+        }
+        aggregate: {
+          args: Prisma.DigestProfileSubredditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDigestProfileSubreddit>
+        }
+        groupBy: {
+          args: Prisma.DigestProfileSubredditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestProfileSubredditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DigestProfileSubredditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DigestProfileSubredditCountAggregateOutputType> | number
         }
       }
     }
@@ -1535,6 +1686,44 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProfileView: {
+      payload: Prisma.$ProfileViewPayload<ExtArgs>
+      fields: Prisma.ProfileViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProfileViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProfileViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileViewPayload>
+        }
+        findFirst: {
+          args: Prisma.ProfileViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProfileViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileViewPayload>
+        }
+        findMany: {
+          args: Prisma.ProfileViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileViewPayload>[]
+        }
+        aggregate: {
+          args: Prisma.ProfileViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProfileView>
+        }
+        groupBy: {
+          args: Prisma.ProfileViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfileViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProfileViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfileViewCountAggregateOutputType> | number
+        }
+      }
+    }
     DeliveryView: {
       payload: Prisma.$DeliveryViewPayload<ExtArgs>
       fields: Prisma.DeliveryViewFieldRefs
@@ -1621,10 +1810,37 @@ export const SubredditScalarFieldEnum = {
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  lastFetchedAt: 'lastFetchedAt'
+  lastFetchedAt: 'lastFetchedAt',
+  crawlIntervalMinutes: 'crawlIntervalMinutes',
+  nextCrawlAt: 'nextCrawlAt'
 } as const
 
 export type SubredditScalarFieldEnum = (typeof SubredditScalarFieldEnum)[keyof typeof SubredditScalarFieldEnum]
+
+
+export const DigestProfileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  schedule: 'schedule',
+  lookbackHours: 'lookbackHours',
+  maxPosts: 'maxPosts',
+  delivery: 'delivery',
+  isActive: 'isActive',
+  filters: 'filters',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DigestProfileScalarFieldEnum = (typeof DigestProfileScalarFieldEnum)[keyof typeof DigestProfileScalarFieldEnum]
+
+
+export const DigestProfileSubredditScalarFieldEnum = {
+  profileId: 'profileId',
+  subredditId: 'subredditId'
+} as const
+
+export type DigestProfileSubredditScalarFieldEnum = (typeof DigestProfileSubredditScalarFieldEnum)[keyof typeof DigestProfileSubredditScalarFieldEnum]
 
 
 export const ConfigScalarFieldEnum = {
@@ -1632,6 +1848,7 @@ export const ConfigScalarFieldEnum = {
   globalInsightPrompt: 'globalInsightPrompt',
   defaultLookback: 'defaultLookback',
   defaultDelivery: 'defaultDelivery',
+  maxDigestPosts: 'maxDigestPosts',
   llmProvider: 'llmProvider',
   llmModel: 'llmModel',
   schedule: 'schedule',
@@ -1647,6 +1864,7 @@ export const JobScalarFieldEnum = {
   subreddits: 'subreddits',
   lookback: 'lookback',
   delivery: 'delivery',
+  profileId: 'profileId',
   triggerRunId: 'triggerRunId',
   progress: 'progress',
   startedAt: 'startedAt',
@@ -1682,6 +1900,7 @@ export const PostScalarFieldEnum = {
   body: 'body',
   author: 'author',
   score: 'score',
+  scoreDelta: 'scoreDelta',
   commentCount: 'commentCount',
   url: 'url',
   permalink: 'permalink',
@@ -1869,6 +2088,8 @@ export const SubredditViewScalarFieldEnum = {
   maxPosts: 'maxPosts',
   includeNsfw: 'includeNsfw',
   isActive: 'isActive',
+  crawlIntervalMinutes: 'crawlIntervalMinutes',
+  nextCrawlAt: 'nextCrawlAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastDigestDate: 'lastDigestDate',
@@ -1878,6 +2099,24 @@ export const SubredditViewScalarFieldEnum = {
 } as const
 
 export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
+
+
+export const ProfileViewScalarFieldEnum = {
+  profileId: 'profileId',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  schedule: 'schedule',
+  lookbackHours: 'lookbackHours',
+  maxPosts: 'maxPosts',
+  delivery: 'delivery',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  subredditList: 'subredditList',
+  subredditCount: 'subredditCount'
+} as const
+
+export type ProfileViewScalarFieldEnum = (typeof ProfileViewScalarFieldEnum)[keyof typeof ProfileViewScalarFieldEnum]
 
 
 export const DeliveryViewScalarFieldEnum = {
@@ -1906,19 +2145,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2016,20 +2255,6 @@ export type ListEnumDeliveryChannelFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'JobStatus'
- */
-export type EnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus'>
-    
-
-
-/**
- * Reference to a field of type 'JobStatus[]'
- */
-export type ListEnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -2040,6 +2265,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'JobStatus'
+ */
+export type EnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'JobStatus[]'
+ */
+export type ListEnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus[]'>
     
 
 
@@ -2194,6 +2433,8 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   subreddit?: Prisma.SubredditOmit
+  digestProfile?: Prisma.DigestProfileOmit
+  digestProfileSubreddit?: Prisma.DigestProfileSubredditOmit
   config?: Prisma.ConfigOmit
   job?: Prisma.JobOmit
   event?: Prisma.EventOmit
@@ -2210,6 +2451,7 @@ export type GlobalOmitConfig = {
   postView?: Prisma.PostViewOmit
   runView?: Prisma.RunViewOmit
   subredditView?: Prisma.SubredditViewOmit
+  profileView?: Prisma.ProfileViewOmit
   deliveryView?: Prisma.DeliveryViewOmit
 }
 

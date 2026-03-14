@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Redgest is a personal Reddit digest engine. It monitors configured subreddits, uses an LLM pipeline to identify and curate relevant posts based on user-defined "insight prompts," generates summaries, and delivers digests. The system is MCP-first — Claude is the primary consumer via 15 MCP tools.
+Redgest is a personal Reddit digest engine. It monitors configured subreddits, uses an LLM pipeline to identify and curate relevant posts based on user-defined "insight prompts," generates summaries, and delivers digests. The system is MCP-first — Claude is the primary consumer via 32 MCP tools.
 
-**Current state:** Phase 1 + Phase 2 complete. Core pipeline, CQRS, MCP server, Trigger.dev integration, email/Slack delivery, and Next.js config UI are all implemented (370+ tests, 75+ commits). Ready for local deployment.
+**Current state:** Phase 1 + Phase 2 + Phase 3 complete. Core pipeline, CQRS, MCP server, Trigger.dev integration, email/Slack delivery, Next.js config UI, full-text + vector search, digest profiles, and decoupled crawling are all implemented (577+ tests, 207 commits). Fully operational for local deployment.
 
 ## Architecture
 
 **CQRS without event sourcing.** Commands mutate state and emit domain events to an append-only Postgres event log. Queries read from optimized SQL views. Events trigger async jobs via Trigger.dev but are not used to rebuild state.
 
 **Two-pass LLM pipeline:**
-1. **Triage** — Post metadata + insight prompts → ranked selection of top N posts (~8K tokens/sub)
+1. **Triage** — Global cross-subreddit triage: post metadata + insight prompts → ranked selection of top N posts across all subreddits (~8K tokens total)
 2. **Summarization** — Full post content + top comments → structured summaries (~27.5K tokens/sub)
 
 **Agent-first MCP API:** Tools named as verbs (`generate_digest`, not `digest_generation`). Consistent response envelope: `{ ok, data, error? }`. Composable primitives — `generate_digest` returns a jobId, poll with `get_run_status`, fetch with `get_digest`.
@@ -48,11 +48,11 @@ redgest/
 │   ├── slack/          # Block Kit digest formatter + webhook delivery
 │   └── config/         # Zod-validated env config (shared across all packages)
 ├── apps/
-│   ├── web/            # Next.js config UI (planned — WS10)
+│   ├── web/            # Next.js config UI
 │   └── worker/         # Trigger.dev tasks (generate-digest, deliver-digest, scheduled-digest)
 ├── tests/
 │   └── fixtures/       # FakeContentSource, fake LLM for E2E/integration tests
-├── docker-compose.yml  # Postgres (port 5433) + mcp-server
+├── docker-compose.yml  # Postgres (port 5433) + Redis + mcp-server
 └── turbo.json
 ```
 
@@ -96,11 +96,11 @@ turbo lint
 pnpm --filter apps/web exec playwright test
 ```
 
-## Data Model (10 tables, 4 views)
+## Data Model (15 tables, 6 views)
 
-**Core tables:** `subreddits`, `config` (singleton), `jobs` (immutable run records), `events` (append-only log), `posts`, `post_comments`, `post_summaries`, `digests`, `digest_posts` (join table with rank), `llm_calls` (per-call LLM usage logging)
+**Core tables:** `subreddits` (with crawl interval/scheduling), `digest_profiles` (named digest configurations), `digest_profile_subreddits` (profile↔subreddit join), `config` (singleton), `jobs` (immutable run records), `events` (append-only log), `posts` (with tsvector FTS + pgvector embeddings), `post_comments`, `post_summaries`, `digests`, `digest_posts` (join table with rank), `llm_calls` (per-call LLM usage logging), `deliveries` (email/Slack delivery tracking), `topics` (extracted trending topics), `post_topics` (post↔topic join)
 
-**Read model views:** `digest_view`, `post_view`, `run_view`, `subreddit_view`
+**Read model views:** `digest_view`, `post_view`, `run_view`, `subreddit_view`, `profile_view`, `delivery_view`
 
 UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs are immutable — re-runs create new records. `llm_calls` tracks model, tokens, duration, cost for observability.
 
@@ -108,8 +108,9 @@ UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs
 
 1. **Phase 1 (MVP):** Core pipeline + MCP server + manual trigger. Trigger.dev Cloud. **COMPLETE.**
 2. **Phase 2:** Scheduling, email/Slack delivery, config UI. **COMPLETE.**
-3. **Phase 3:** Full-text search + conversational history.
-4. **Phase 4:** Self-hosted Trigger.dev, event bus extraction (optional).
+3. **Phase 3:** Full-text + vector search, conversational history, trending topics, delivery tracking, digest comparison, fetch caching. **COMPLETE.**
+4. **Phase 4 (in progress):** Digest profiles, decoupled crawling, global cross-subreddit triage. **IN PROGRESS (PR #45).**
+5. **Phase 5 (optional):** Self-hosted Trigger.dev, event bus extraction, MCP rate limiting.
 
 ## Key Design Decisions
 
@@ -122,6 +123,14 @@ UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs
 - **GenerateResult\<T\> pattern** — LLM generate functions return `{ data: T; log: LlmCallLog | null }` to surface call metadata for persistence to `llm_calls` table.
 - **Content sanitization** — `sanitizeContent()` in `@redgest/reddit` strips XML-like tags, markdown injection, and prompt override patterns from Reddit content before LLM processing.
 
+## Search & Analytics
+
+- **Full-text search** — `tsvector` columns on posts and digests, queried via raw SQL. Exposed as `search_posts` and `search_digests` MCP tools.
+- **Vector similarity** — `pgvector` embeddings on post summaries. `find_similar` tool uses cosine distance.
+- **Hybrid ranking** — Reciprocal Rank Fusion (RRF) combines text and vector results for `ask_history`.
+- **Topic extraction** — Topics extracted from summaries, stored in `topics`/`post_topics`. `get_trending_topics` and `compare_periods` tools.
+- **Fetch caching** — Reddit content cached in DB; `force_refresh` flag bypasses cache.
+
 ## CQRS Patterns
 
 - **`createExecute()`** — Transactional command dispatch. Wraps handler in `$transaction`, auto-persists events, emits AFTER commit.
@@ -131,6 +140,14 @@ UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs
 - **One file per handler** in `commands/handlers/` and `queries/handlers/`.
 - **Pipeline steps:** `fetchStep` → `triageStep` → `summarizeStep` → `assembleStep` — composed by orchestrator via `runDigestPipeline()`.
 - **`PipelineDeps`** — Injectable dependencies for pipeline: `{ db, eventBus, contentSource, config, generateTriage?, generateSummary? }`. Optional LLM overrides enable test doubles.
+
+## Digest Profiles
+
+Profiles group subreddits with their own schedule, lookback, maxPosts, and delivery settings. The Default profile is auto-created from global config during migration.
+
+- **CQRS:** `CreateProfile`, `UpdateProfile`, `DeleteProfile` commands + `ListProfiles`, `GetProfile` queries
+- **MCP tools:** `list_profiles`, `get_profile`, `create_profile`, `update_profile`, `delete_profile`
+- **Pipeline integration:** `generate_digest` accepts optional `profile` param; profile's subreddits/settings override defaults
 
 ## Trigger.dev Task Architecture
 
@@ -147,6 +164,14 @@ Three tasks in `apps/worker/src/trigger/`:
 - **Email:** `@redgest/email` — `DigestEmail` React Email component + `sendDigestEmail()` via Resend. Requires `RESEND_API_KEY` + `DELIVERY_EMAIL`.
 - **Slack:** `@redgest/slack` — `formatDigestBlocks()` Block Kit formatter + `sendDigestSlack()` via webhook. Requires `SLACK_WEBHOOK_URL`.
 - **Shared type:** `DigestDeliveryData` (defined in `@redgest/email`, reused by `@redgest/slack`).
+
+## Crawl System
+
+Subreddits have independent crawl intervals (`crawl_interval_minutes`, default 30) and `next_crawl_at` scheduling. The crawl pipeline (`runCrawl()` in `@redgest/core`) is separate from the digest pipeline — crawl populates posts, digest pipeline reads them.
+
+- **`get_crawl_status`** MCP tool — per-subreddit crawl health, last/next crawl times, post counts
+- **`score_delta`** on posts — tracks score changes between crawls for trend detection
+- **Batch optimized** — bulk `findMany` for existing scores before upsert loop (not N+1)
 
 ## TypeScript Standards
 
@@ -181,6 +206,7 @@ pnpm typecheck    # tsc --noEmit across all packages via turbo
 - Reddit API rate limit: 60 req/min, enforced via token bucket in `@redgest/reddit`
 - **Docker Compose Postgres runs on port 5433** (not 5432) — local port conflict avoidance
 - **Prisma schema drift drops raw-SQL indexes** — Prisma detects manually-created indexes (BRIN, partial, multi-column) as drift and generates DROP statements in migrations. Always check `prisma migrate diff` output and restore dropped indexes in a follow-up migration if needed.
+- **`CREATE OR REPLACE VIEW` cannot reorder columns** — Postgres requires `DROP VIEW` + `CREATE VIEW` when inserting columns into an existing view's column order. Migrations that change view column order must drop first.
 - **Worker needs `"jsx": "react-jsx"`** in tsconfig.json — transitive imports from `@redgest/email` include `.tsx` files (React Email templates)
 - **Trigger.dev task cross-package triggering** — Use string-based `tasks.trigger("generate-digest", payload)` with `import type` for type safety. Don't directly import task objects from `apps/worker` into `packages/mcp-server`.
 - **Dynamic SDK import** — `bootstrap.ts` uses `await import("@trigger.dev/sdk/v3")` to avoid loading Trigger.dev SDK when `TRIGGER_SECRET_KEY` is not configured.

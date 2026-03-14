@@ -16,15 +16,18 @@ import type {
 
 // --- Mocks ---
 vi.mock("../pipeline/fetch-step.js", () => ({ fetchStep: vi.fn() }));
+vi.mock("../pipeline/select-posts-step.js", () => ({ selectPostsStep: vi.fn() }));
 vi.mock("../pipeline/triage-step.js", () => ({ triageStep: vi.fn() }));
 vi.mock("../pipeline/summarize-step.js", () => ({ summarizeStep: vi.fn() }));
 vi.mock("../pipeline/assemble-step.js", () => ({ assembleStep: vi.fn() }));
 vi.mock("../pipeline/dedup.js", () => ({ findPreviousPostIds: vi.fn() }));
+vi.mock("../pipeline/topic-step.js", () => ({ topicStep: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("../events/persist.js", () => ({ persistEvent: vi.fn() }));
 vi.mock("@redgest/llm", () => ({ getModel: vi.fn() }));
 
 // Import mocked functions for assertions
 import { fetchStep } from "../pipeline/fetch-step.js";
+import { selectPostsStep } from "../pipeline/select-posts-step.js";
 import { triageStep } from "../pipeline/triage-step.js";
 import { summarizeStep } from "../pipeline/summarize-step.js";
 import { assembleStep } from "../pipeline/assemble-step.js";
@@ -33,6 +36,7 @@ import { persistEvent } from "../events/persist.js";
 import { getModel } from "@redgest/llm";
 
 const mockFetchStep = vi.mocked(fetchStep);
+const mockSelectPostsStep = vi.mocked(selectPostsStep);
 const mockTriageStep = vi.mocked(triageStep);
 const mockSummarizeStep = vi.mocked(summarizeStep);
 const mockAssembleStep = vi.mocked(assembleStep);
@@ -478,7 +482,7 @@ describe("error recovery - per subreddit", () => {
     expect(result.errors[0]).toContain("r/typescript");
   });
 
-  it("includes error messages in result", async () => {
+  it("fails entire pipeline when triage fails (global triage)", async () => {
     const sub1 = makeSubreddit({ id: "sub-1", name: "typescript" });
     mockDb.subreddit.findMany.mockResolvedValue([sub1]);
 
@@ -487,9 +491,9 @@ describe("error recovery - per subreddit", () => {
 
     const result = await runDigestPipeline("job-1", [], deps);
 
+    expect(result.status).toBe("FAILED");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toContain("LLM rate limited");
-    expect(result.errors[0]).toContain("r/typescript");
   });
 });
 
@@ -849,8 +853,14 @@ describe("concurrent summarization", () => {
 });
 
 describe("cancellation checkpoints", () => {
+  // New checkpoint sequence (global triage):
+  // 1. pre-loop, 2. before-fetch (per sub), 3. after-fetch-loop,
+  // 4. before-triage, 5. before-summarize, 6. per-post, 7. final
+
   it("stops before fetch when job is CANCELED", async () => {
-    mockDb.job.findUnique.mockResolvedValue({ status: "CANCELED" });
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
+      .mockResolvedValue({ status: "CANCELED" });
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -858,12 +868,13 @@ describe("cancellation checkpoints", () => {
     expect(mockFetchStep).not.toHaveBeenCalled();
   });
 
-  it("stops before triage when job is CANCELED mid-run", async () => {
+  it("stops before triage when job is CANCELED after fetch", async () => {
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
-      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
-      .mockResolvedValueOnce({ status: "CANCELED" }) // before triage → break
-      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub1
+      .mockResolvedValueOnce({ status: "CANCELED" }) // after fetch loop → CANCELED
+      .mockResolvedValue({ status: "CANCELED" });
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -872,13 +883,15 @@ describe("cancellation checkpoints", () => {
     expect(mockTriageStep).not.toHaveBeenCalled();
   });
 
-  it("stops before summarize when job is CANCELED mid-run", async () => {
+  it("stops before summarize when job is CANCELED after triage", async () => {
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
+      .mockResolvedValueOnce({ status: "RUNNING" })  // after fetch loop
       .mockResolvedValueOnce({ status: "RUNNING" })  // before triage
-      .mockResolvedValueOnce({ status: "CANCELED" }) // before summarize → break
-      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+      .mockResolvedValueOnce({ status: "CANCELED" }) // before summarize → CANCELED
+      .mockResolvedValue({ status: "CANCELED" });
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -888,39 +901,58 @@ describe("cancellation checkpoints", () => {
     expect(mockSummarizeStep).not.toHaveBeenCalled();
   });
 
-  it("preserves partial results when canceled after some summarization", async () => {
+  it("preserves partial results when canceled during summarization", async () => {
     const sub1 = makeSubreddit({ id: "sub-1", name: "typescript" });
     const sub2 = makeSubreddit({ id: "sub-2", name: "rust" });
     mockDb.subreddit.findMany.mockResolvedValue([sub1, sub2]);
 
-    mockFetchStep.mockResolvedValue(makeFetchResult("typescript"));
+    // Both subs fetch successfully
+    mockFetchStep
+      .mockResolvedValueOnce(makeFetchResult("typescript"))
+      .mockResolvedValueOnce(makeFetchResult("rust"));
+
+    // Triage selects one from each sub (indices into pooled array)
+    mockTriageStep.mockResolvedValue({
+      selected: [
+        { index: 0, relevanceScore: 9, rationale: "R1" },
+        { index: 1, relevanceScore: 7, rationale: "R2" },
+      ],
+    });
+
+    // First post succeeds, second canceled
+    mockSummarizeStep.mockResolvedValueOnce(makeSummarizeResult());
 
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub1
-      .mockResolvedValueOnce({ status: "RUNNING" })  // before triage sub1
-      .mockResolvedValueOnce({ status: "RUNNING" })  // before summarize sub1 post
-      .mockResolvedValueOnce({ status: "CANCELED" }) // before fetch sub2 → break
-      .mockResolvedValue({ status: "CANCELED" });     // final check after loop
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub2
+      .mockResolvedValueOnce({ status: "RUNNING" })  // after fetch loop
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before triage
+      .mockResolvedValueOnce({ status: "RUNNING" })  // before summarize
+      .mockResolvedValueOnce({ status: "RUNNING" })  // per-post check (post 1)
+      .mockResolvedValueOnce({ status: "CANCELED" }) // per-post check (post 2) → cancel
+      .mockResolvedValue({ status: "CANCELED" });     // final check
 
     const result = await runDigestPipeline("job-1", [], deps);
 
     expect(result.status).toBe("CANCELED");
-    // Sub1 was fully processed before cancellation
-    expect(result.subredditResults.length).toBeGreaterThanOrEqual(1);
-    const sub1Result = result.subredditResults[0];
-    expect(sub1Result).toBeDefined();
-    expect(sub1Result?.posts).toHaveLength(1);
+    // First post was summarized before cancellation
+    const allPosts = result.subredditResults.flatMap((r) => r.posts);
+    expect(allPosts.length).toBeGreaterThanOrEqual(1);
   });
 
   it("does not overwrite CANCELED status with COMPLETED", async () => {
-    // All checkpoints return RUNNING, but final check returns CANCELED
+    // All checkpoints return RUNNING except the final check
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
+      .mockResolvedValueOnce({ status: "RUNNING" })  // after fetch loop
       .mockResolvedValueOnce({ status: "RUNNING" })  // before triage
       .mockResolvedValueOnce({ status: "RUNNING" })  // before summarize
-      .mockResolvedValue({ status: "CANCELED" });     // final check (after loop)
+      .mockResolvedValueOnce({ status: "RUNNING" })  // per-post check
+      .mockResolvedValue({ status: "CANCELED" });     // final check → CANCELED
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -932,5 +964,135 @@ describe("cancellation checkpoints", () => {
       .filter((s): s is string => typeof s === "string" && s !== "RUNNING");
     expect(finalStatuses).not.toContain("COMPLETED");
     expect(finalStatuses).not.toContain("PARTIAL");
+  });
+});
+
+describe("global cross-subreddit triage", () => {
+  it("pools candidates from multiple subreddits into a single triage call", async () => {
+    const sub1 = makeSubreddit({ id: "sub-1", name: "typescript", insightPrompt: "TS prompt" });
+    const sub2 = makeSubreddit({ id: "sub-2", name: "rust", insightPrompt: "Rust prompt" });
+    mockDb.subreddit.findMany.mockResolvedValue([sub1, sub2]);
+
+    const fetchTs = makeFetchResult("typescript");
+    const fetchRust = makeFetchResult("rust");
+    const baseRustPost = fetchRust.posts[0];
+    expect(baseRustPost).toBeDefined();
+    if (!baseRustPost) throw new Error("unreachable");
+    fetchRust.posts[0] = {
+      ...baseRustPost,
+      postId: "post-2",
+      redditId: "reddit-2",
+      post: { ...baseRustPost.post, id: "reddit-2", subreddit: "rust", title: "Rust Post 1" },
+    };
+
+    mockFetchStep
+      .mockResolvedValueOnce(fetchTs)
+      .mockResolvedValueOnce(fetchRust);
+
+    // Triage selects 1 post (index 1 = the rust post)
+    mockTriageStep.mockResolvedValue({
+      selected: [{ index: 1, relevanceScore: 9, rationale: "Best overall" }],
+    });
+
+    mockSummarizeStep.mockResolvedValueOnce(makeSummarizeResult());
+
+    const result = await runDigestPipeline("job-1", [], deps);
+
+    expect(result.status).toBe("COMPLETED");
+
+    // Triage was called ONCE with candidates from both subs
+    expect(mockTriageStep).toHaveBeenCalledTimes(1);
+    const triageCandidates = mockTriageStep.mock.calls[0]?.[0];
+    expect(triageCandidates).toHaveLength(2);
+    expect(triageCandidates?.[0]?.subreddit).toBe("typescript");
+    expect(triageCandidates?.[1]?.subreddit).toBe("rust");
+
+    // Insight prompts include global + both per-sub
+    const triagePrompts = mockTriageStep.mock.calls[0]?.[1];
+    expect(triagePrompts).toContain("global test prompt");
+    expect(triagePrompts).toContain("TS prompt");
+    expect(triagePrompts).toContain("Rust prompt");
+
+    // Only the rust post was selected → typescript has 0 posts, rust has 1
+    const tsResult = result.subredditResults.find((r) => r.subreddit === "typescript");
+    const rustResult = result.subredditResults.find((r) => r.subreddit === "rust");
+    expect(tsResult?.posts).toHaveLength(0);
+    expect(rustResult?.posts).toHaveLength(1);
+  });
+
+  it("uses config.maxDigestPosts as triage target count", async () => {
+    mockDb.config.findFirst.mockResolvedValue({
+      globalInsightPrompt: "test",
+      maxDigestPosts: 3,
+    });
+
+    await runDigestPipeline("job-1", [], deps);
+
+    // targetCount passed to triageStep should be 3 (from config)
+    const targetCount = mockTriageStep.mock.calls[0]?.[2];
+    expect(targetCount).toBe(3);
+  });
+
+  it("uses deps.maxPosts override over config.maxDigestPosts", async () => {
+    mockDb.config.findFirst.mockResolvedValue({
+      globalInsightPrompt: "test",
+      maxDigestPosts: 3,
+    });
+    deps.maxPosts = 10;
+
+    await runDigestPipeline("job-1", [], deps);
+
+    const targetCount = mockTriageStep.mock.calls[0]?.[2];
+    expect(targetCount).toBe(10);
+  });
+
+  it("emits PostsTriaged with subreddits array", async () => {
+    const sub1 = makeSubreddit({ id: "sub-1", name: "typescript" });
+    const sub2 = makeSubreddit({ id: "sub-2", name: "rust" });
+    mockDb.subreddit.findMany.mockResolvedValue([sub1, sub2]);
+
+    mockFetchStep
+      .mockResolvedValueOnce(makeFetchResult("typescript"))
+      .mockResolvedValueOnce(makeFetchResult("rust"));
+
+    mockTriageStep.mockResolvedValue({
+      selected: [{ index: 0, relevanceScore: 9, rationale: "R1" }],
+    });
+    mockSummarizeStep.mockResolvedValueOnce(makeSummarizeResult());
+
+    await runDigestPipeline("job-1", [], deps);
+
+    const payload = findPersistedEvent("PostsTriaged");
+    expect(payload).toBeDefined();
+    expect(payload?.["subreddits"]).toEqual(["typescript", "rust"]);
+    expect(payload?.["selectedCount"]).toBe(1);
+  });
+
+  it("emits PostsSummarized without subreddit field", async () => {
+    await runDigestPipeline("job-1", [], deps);
+
+    const payload = findPersistedEvent("PostsSummarized");
+    expect(payload).toBeDefined();
+    expect(payload?.["summaryCount"]).toBe(1);
+    expect(payload).not.toHaveProperty("subreddit");
+  });
+
+  it("uses selectPostsStep when contentSource is undefined", async () => {
+    const noDeps = {
+      ...deps,
+      contentSource: undefined,
+      lookbackHours: 48,
+    };
+
+    mockSelectPostsStep.mockResolvedValue(makeFetchResult("typescript"));
+
+    await runDigestPipeline("job-1", [], noDeps);
+
+    expect(mockSelectPostsStep).toHaveBeenCalledWith(
+      { name: "typescript", maxPosts: 5, includeNsfw: false },
+      48,
+      expect.anything(),
+    );
+    expect(mockFetchStep).not.toHaveBeenCalled();
   });
 });

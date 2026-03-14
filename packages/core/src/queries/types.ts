@@ -4,6 +4,7 @@ import type {
   PostView,
   RunView,
   SubredditView,
+  ProfileView,
   Config,
 } from "@redgest/db";
 import type { SearchResult } from "../search/index.js";
@@ -187,6 +188,17 @@ export interface PeriodComparisonResult {
   volumeChange: number;
 }
 
+/** Crawl status for a subreddit. */
+export interface CrawlStatusItem {
+  subreddit: string;
+  lastCrawledAt: string | null;
+  nextCrawlAt: string | null;
+  crawlIntervalMinutes: number;
+  totalPosts: number;
+  lastCrawlStatus: "ok" | "failed" | "never";
+  lastError?: string;
+}
+
 /**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
@@ -210,6 +222,9 @@ export interface QueryMap {
   GetDeliveryStatus: { digestId?: string; limit?: number };
   GetTrendingTopics: { limit?: number; since?: string; subreddit?: string };
   ComparePeriods: { periodA: string; periodB: string; subreddit?: string };
+  ListProfiles: Record<string, never>;
+  GetProfile: { profileId: string };
+  GetCrawlStatus: { name?: string };
 }
 
 /**
@@ -235,6 +250,9 @@ export interface QueryResultMap {
   GetDeliveryStatus: DeliveryStatusResult;
   GetTrendingTopics: TrendingTopic[];
   ComparePeriods: PeriodComparisonResult;
+  ListProfiles: ProfileView[];
+  GetProfile: ProfileView | null;
+  GetCrawlStatus: CrawlStatusItem[];
 }
 
 // Derived types
