@@ -84,6 +84,9 @@ export function SubredditTable({ subreddits }: SubredditTableProps) {
                 <TableHead>Max Posts</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Digest</TableHead>
+                <TableHead className="text-right">Posts</TableHead>
+                <TableHead className="text-right">Digests</TableHead>
+                <TableHead>Next Crawl</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -118,6 +121,28 @@ export function SubredditTable({ subreddits }: SubredditTableProps) {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatRelativeTime(sub.lastDigestDate, "Never")}
+                  </TableCell>
+                  <TableCell className="text-right text-sm tabular-nums">
+                    {sub.totalPostsFetched}
+                  </TableCell>
+                  <TableCell className="text-right text-sm tabular-nums">
+                    {sub.totalDigestsAppearedIn}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {sub.nextCrawlAt ? (
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-default">
+                          {formatRelativeTime(sub.nextCrawlAt)}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Next crawl: {new Date(sub.nextCrawlAt).toLocaleString()}
+                          <br />
+                          Interval: {sub.crawlIntervalMinutes}min
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
