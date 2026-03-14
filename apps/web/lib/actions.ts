@@ -8,6 +8,7 @@ import {
   serializeDigest,
   serializeRun,
   serializeProfile,
+  serializeSearchResult,
   type ActionResult,
 } from "@/lib/types";
 
@@ -341,4 +342,39 @@ export async function fetchDigests(limit?: number) {
 
 export async function fetchDeliveryStatus(digestId: string) {
   return dal.getDeliveryStatus(digestId);
+}
+
+// --- Search actions (for client-side use) ---
+
+export async function fetchSearchResults(params: {
+  query: string;
+  subreddit?: string;
+  since?: string;
+  sentiment?: string;
+  minScore?: number;
+  limit?: number;
+}) {
+  const results = await dal.searchPosts(params);
+  return results.map(serializeSearchResult);
+}
+
+export async function fetchTrendingTopics(params?: {
+  limit?: number;
+  since?: string;
+  subreddit?: string;
+}) {
+  return dal.getTrendingTopics(params);
+}
+
+export async function fetchLlmMetrics(params?: {
+  jobId?: string;
+  limit?: number;
+}) {
+  return dal.getLlmMetrics(params);
+}
+
+export async function fetchCrawlStatus(params?: {
+  name?: string;
+}) {
+  return dal.getCrawlStatus(params);
 }
