@@ -18,6 +18,7 @@ export { runDigestPipeline } from "./orchestrator.js";
 
 // Step functions
 export { fetchStep } from "./fetch-step.js";
+export { selectPostsStep } from "./select-posts-step.js";
 export { triageStep } from "./triage-step.js";
 export { summarizeStep } from "./summarize-step.js";
 export { assembleStep, renderDigestMarkdown } from "./assemble-step.js";

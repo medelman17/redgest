@@ -93,6 +93,13 @@ export async function fetchStep(
     // Skip NSFW if not allowed
     if (post.over_18 && !subreddit.includeNsfw) continue;
 
+    // Compute scoreDelta before upsert
+    const existing = await db.post.findUnique({
+      where: { redditId: post.id },
+      select: { score: true },
+    });
+    const scoreDelta = existing ? post.score - existing.score : 0;
+
     // Upsert post (redditId is unique)
     const dbPost = await db.post.upsert({
       where: { redditId: post.id },
@@ -109,11 +116,13 @@ export async function fetchStep(
         flair: post.link_flair_text,
         isNsfw: post.over_18,
         fetchedAt: content.fetchedAt,
+        scoreDelta: 0,
       },
       update: {
         score: post.score,
         commentCount: post.num_comments,
         fetchedAt: content.fetchedAt,
+        scoreDelta,
       },
     });
 

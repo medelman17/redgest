@@ -8,6 +8,7 @@ import {
   commandHandlers,
   queryHandlers,
   wireDigestDispatch,
+  wireCrawlDispatch,
   recordDeliveryPending,
   recordDeliveryResult,
   type HandlerContext,
@@ -189,6 +190,18 @@ export async function bootstrap(): Promise<BootstrapResult> {
     triggerSecretKey: config.TRIGGER_SECRET_KEY,
     deliverDigest,
   });
+
+  if (pipelineDeps.contentSource) {
+    wireCrawlDispatch({
+      eventBus,
+      crawlDeps: {
+        db,
+        eventBus,
+        contentSource: pipelineDeps.contentSource,
+      },
+      triggerSecretKey: config.TRIGGER_SECRET_KEY,
+    });
+  }
 
   return { execute, query, ctx, config, db, checkConnectivity };
 }

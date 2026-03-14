@@ -51,6 +51,7 @@ export type {
   TrendingTopic,
   PeriodSummary,
   PeriodComparisonResult,
+  CrawlStatusItem,
 } from "./queries/types.js";
 export { DEFAULT_PAGE_SIZE } from "./queries/types.js";
 export { paginate } from "./queries/paginate.js";
@@ -92,6 +93,7 @@ export {
   handleComparePeriods,
   handleListProfiles,
   handleGetProfile,
+  handleGetCrawlStatus,
 } from "./queries/handlers/index.js";
 
 // Context
@@ -106,10 +108,20 @@ export {
   wireDigestDispatch,
   type DigestDispatchDeps,
 } from "./digest-dispatch.js";
+
+// Crawl dispatch
+export {
+  wireCrawlDispatch,
+  type CrawlDispatchDeps,
+} from "./crawl-dispatch.js";
+
+// Crawl pipeline
+export { runCrawl, type CrawlResult, type CrawlDeps } from "./crawl-pipeline.js";
 // Pipeline
 export {
   runDigestPipeline,
   fetchStep,
+  selectPostsStep,
   triageStep,
   summarizeStep,
   assembleStep,

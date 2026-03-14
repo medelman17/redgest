@@ -53,6 +53,7 @@ function makeDb() {
   const upsertReturn = { id: "db-uuid-1" };
   return {
     post: {
+      findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn().mockResolvedValue(upsertReturn),
       findMany: vi.fn().mockResolvedValue([]),
     },

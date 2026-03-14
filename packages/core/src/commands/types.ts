@@ -27,6 +27,7 @@ export interface CommandMap {
     insightPrompt?: string;
     maxPosts?: number;
     active?: boolean;
+    crawlIntervalMinutes?: number;
   };
   UpdateConfig: {
     globalInsightPrompt?: string;

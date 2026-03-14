@@ -10,6 +10,7 @@ import { getModel } from "@redgest/llm";
 import type { TriagePostCandidate, SummarizationComment } from "@redgest/llm";
 import { findPreviousPostIds } from "./dedup.js";
 import { fetchStep } from "./fetch-step.js";
+import { selectPostsStep } from "./select-posts-step.js";
 import { triageStep } from "./triage-step.js";
 import { summarizeStep } from "./summarize-step.js";
 import { assembleStep } from "./assemble-step.js";
@@ -236,16 +237,22 @@ async function runPipelineBody(
       }
 
       const forceRefresh = deps.forceRefresh ?? false;
-      const fetchResult = await fetchStep(
-        {
-          name: sub.name,
-          maxPosts: sub.maxPosts,
-          includeNsfw: sub.includeNsfw,
-          lastFetchedAt: forceRefresh ? null : sub.lastFetchedAt,
-        },
-        contentSource,
-        db,
-      );
+      const fetchResult = contentSource
+        ? await fetchStep(
+            {
+              name: sub.name,
+              maxPosts: sub.maxPosts,
+              includeNsfw: sub.includeNsfw,
+              lastFetchedAt: forceRefresh ? null : sub.lastFetchedAt,
+            },
+            contentSource,
+            db,
+          )
+        : await selectPostsStep(
+            { name: sub.name, maxPosts: sub.maxPosts, includeNsfw: sub.includeNsfw },
+            deps.lookbackHours ?? profile?.lookbackHours ?? 24,
+            db,
+          );
 
       // Update lastFetchedAt on the subreddit after a fresh fetch (skip on cache hit)
       if (!fetchResult.fromCache) {

@@ -16,6 +16,7 @@ import type {
 
 // --- Mocks ---
 vi.mock("../pipeline/fetch-step.js", () => ({ fetchStep: vi.fn() }));
+vi.mock("../pipeline/select-posts-step.js", () => ({ selectPostsStep: vi.fn() }));
 vi.mock("../pipeline/triage-step.js", () => ({ triageStep: vi.fn() }));
 vi.mock("../pipeline/summarize-step.js", () => ({ summarizeStep: vi.fn() }));
 vi.mock("../pipeline/assemble-step.js", () => ({ assembleStep: vi.fn() }));
@@ -26,6 +27,7 @@ vi.mock("@redgest/llm", () => ({ getModel: vi.fn() }));
 
 // Import mocked functions for assertions
 import { fetchStep } from "../pipeline/fetch-step.js";
+import { selectPostsStep } from "../pipeline/select-posts-step.js";
 import { triageStep } from "../pipeline/triage-step.js";
 import { summarizeStep } from "../pipeline/summarize-step.js";
 import { assembleStep } from "../pipeline/assemble-step.js";
@@ -34,6 +36,7 @@ import { persistEvent } from "../events/persist.js";
 import { getModel } from "@redgest/llm";
 
 const mockFetchStep = vi.mocked(fetchStep);
+const mockSelectPostsStep = vi.mocked(selectPostsStep);
 const mockTriageStep = vi.mocked(triageStep);
 const mockSummarizeStep = vi.mocked(summarizeStep);
 const mockAssembleStep = vi.mocked(assembleStep);
@@ -1072,5 +1075,24 @@ describe("global cross-subreddit triage", () => {
     expect(payload).toBeDefined();
     expect(payload?.["summaryCount"]).toBe(1);
     expect(payload).not.toHaveProperty("subreddit");
+  });
+
+  it("uses selectPostsStep when contentSource is undefined", async () => {
+    const noDeps = {
+      ...deps,
+      contentSource: undefined,
+      lookbackHours: 48,
+    };
+
+    mockSelectPostsStep.mockResolvedValue(makeFetchResult("typescript"));
+
+    await runDigestPipeline("job-1", [], noDeps);
+
+    expect(mockSelectPostsStep).toHaveBeenCalledWith(
+      { name: "typescript", maxPosts: 5, includeNsfw: false },
+      48,
+      expect.anything(),
+    );
+    expect(mockFetchStep).not.toHaveBeenCalled();
   });
 });

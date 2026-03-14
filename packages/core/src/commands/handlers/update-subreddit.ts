@@ -15,6 +15,9 @@ export const handleUpdateSubreddit: CommandHandler<"UpdateSubreddit"> = async (
   if (params.active !== undefined) {
     data.isActive = params.active;
   }
+  if (params.crawlIntervalMinutes !== undefined) {
+    data.crawlIntervalMinutes = params.crawlIntervalMinutes;
+  }
 
   await ctx.db.subreddit.update({
     where: { id: params.subredditId },

@@ -10,6 +10,7 @@ export const handleAddSubreddit: CommandHandler<"AddSubreddit"> = async (
       insightPrompt: params.insightPrompt ?? null,
       maxPosts: params.maxPosts ?? 5,
       includeNsfw: params.nsfw ?? false,
+      nextCrawlAt: new Date(),
     },
   });
 

@@ -72,6 +72,18 @@ export const eventPayloadSchemas = {
     profileId: z.string(),
     name: z.string(),
   }),
+  CrawlCompleted: z.object({
+    subredditId: z.string(),
+    subreddit: z.string(),
+    postCount: z.number(),
+    newPostCount: z.number(),
+    updatedPostCount: z.number(),
+  }),
+  CrawlFailed: z.object({
+    subredditId: z.string(),
+    subreddit: z.string(),
+    error: z.string(),
+  }),
 } as const satisfies Record<DomainEventType, z.ZodType>;
 
 /**

@@ -28,6 +28,18 @@ export interface DomainEventMap {
   };
   ProfileCreated: { profileId: string; name: string };
   ProfileDeleted: { profileId: string; name: string };
+  CrawlCompleted: {
+    subredditId: string;
+    subreddit: string;
+    postCount: number;
+    newPostCount: number;
+    updatedPostCount: number;
+  };
+  CrawlFailed: {
+    subredditId: string;
+    subreddit: string;
+    error: string;
+  };
 }
 
 export type DomainEventType = keyof DomainEventMap;

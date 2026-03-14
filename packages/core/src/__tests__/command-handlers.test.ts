@@ -124,6 +124,7 @@ describe("handleAddSubreddit", () => {
         insightPrompt: null,
         maxPosts: 5,
         includeNsfw: false,
+        nextCrawlAt: expect.any(Date),
       },
     });
   });
@@ -153,6 +154,7 @@ describe("handleAddSubreddit", () => {
         insightPrompt: "Focus on async patterns",
         maxPosts: 10,
         includeNsfw: true,
+        nextCrawlAt: expect.any(Date),
       },
     });
   });
@@ -225,6 +227,21 @@ describe("handleUpdateSubreddit", () => {
     expect(mockUpdate).toHaveBeenCalledWith({
       where: { id: "sub-upd" },
       data: {},
+    });
+  });
+
+  it("maps crawlIntervalMinutes param", async () => {
+    const mockUpdate = vi.fn().mockResolvedValue({ id: "sub-upd" });
+    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+
+    await handleUpdateSubreddit(
+      { subredditId: "sub-upd", crawlIntervalMinutes: 60 },
+      ctx,
+    );
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "sub-upd" },
+      data: { crawlIntervalMinutes: 60 },
     });
   });
 });

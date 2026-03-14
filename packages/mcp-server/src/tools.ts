@@ -468,6 +468,7 @@ export function createToolHandlers(
             insightPrompt: args.insightPrompt as string | undefined,
             maxPosts: args.maxPosts as number | undefined,
             active: args.active as boolean | undefined,
+            crawlIntervalMinutes: args.crawlIntervalMinutes as number | undefined,
           },
           eCtx,
         );
@@ -497,6 +498,18 @@ export function createToolHandlers(
             schedule: args.schedule as string | null | undefined,
           },
           eCtx,
+        );
+        return envelope(result);
+      });
+    },
+
+    get_crawl_status: async (args) => {
+      return safe(async () => {
+        const name = args.name as string | undefined;
+        const result = await deps.query(
+          "GetCrawlStatus",
+          name ? { name } : {},
+          deps.ctx,
         );
         return envelope(result);
       });
@@ -1001,12 +1014,13 @@ export function createToolServer(deps: BootstrapResult): McpServer {
 
   server.tool(
     "update_subreddit",
-    "Update subreddit settings (insight prompt, max posts, active status).",
+    "Update subreddit settings (insight prompt, max posts, active status, crawl interval).",
     {
       name: z.string().describe("Subreddit name to update"),
       insightPrompt: z.string().optional().describe("New insight prompt"),
       maxPosts: z.number().optional().describe("New max posts per run"),
       active: z.boolean().optional().describe("Enable/disable monitoring"),
+      crawlIntervalMinutes: z.number().optional().describe("Crawl interval in minutes (default: 30)"),
     },
     async (args) => call("update_subreddit", args),
   );
@@ -1015,6 +1029,15 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     "get_config",
     "View current global Redgest configuration.",
     async () => call("get_config", {}),
+  );
+
+  server.tool(
+    "get_crawl_status",
+    "View crawl health for monitored subreddits. Shows last crawl time, next crawl time, post count, and error status.",
+    {
+      name: z.string().optional().describe("Specific subreddit name (omit for all)"),
+    },
+    async (args) => call("get_crawl_status", args),
   );
 
   server.tool(

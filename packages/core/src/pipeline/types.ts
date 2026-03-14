@@ -89,7 +89,8 @@ export interface ContentSource {
 export interface PipelineDeps {
   db: PrismaClient;
   eventBus: DomainEventBus;
-  contentSource: ContentSource;
+  /** Content source for live fetching. Optional when using decoupled crawling (selectPostsStep). */
+  contentSource?: ContentSource;
   config: RedgestConfig;
   model?: ModelConfig;
 
@@ -98,6 +99,9 @@ export interface PipelineDeps {
 
   /** Override the global max posts for this pipeline run (from generate_digest max_posts param). */
   maxPosts?: number;
+
+  /** Lookback window in hours for selectPostsStep (decoupled crawling mode). Defaults to 24. */
+  lookbackHours?: number;
 
   /** Optional search service for historical context injection during triage. */
   searchService?: SearchService;

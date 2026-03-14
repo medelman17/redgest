@@ -1307,7 +1307,7 @@ describe("handleAskHistory", () => {
 });
 
 describe("queryHandlers registry", () => {
-  it("registers all 18 handlers", () => {
+  it("registers all 21 handlers", () => {
     expect(queryHandlers.GetDigest).toBe(handleGetDigest);
     expect(queryHandlers.GetDigestByJobId).toBe(handleGetDigestByJobId);
     expect(queryHandlers.ListDigests).toBe(handleListDigests);
@@ -1326,10 +1326,11 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.AskHistory).toBeDefined();
     expect(queryHandlers.GetTrendingTopics).toBeDefined();
     expect(queryHandlers.ComparePeriods).toBeDefined();
+    expect(queryHandlers.GetCrawlStatus).toBeDefined();
   });
 
-  it("has exactly 20 entries", () => {
+  it("has exactly 21 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(20);
+    expect(handlerCount).toBe(21);
   });
 });

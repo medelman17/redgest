@@ -53,6 +53,7 @@ function makeDb() {
   const upsertReturn = { id: "db-uuid-1" };
   return {
     post: {
+      findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn().mockResolvedValue(upsertReturn),
     },
     postComment: {
@@ -125,11 +126,13 @@ describe("fetchStep", () => {
         flair: null,
         isNsfw: false,
         fetchedAt,
+        scoreDelta: 0,
       },
       update: {
         score: 42,
         commentCount: 5,
         fetchedAt,
+        scoreDelta: 0,
       },
     });
   });
@@ -274,6 +277,25 @@ describe("fetchStep", () => {
       fetchedAt,
       fromCache: false,
     });
+  });
+
+  it("computes scoreDelta when an existing post is found", async () => {
+    const post = makePost({ score: 100 });
+    const content: FetchedContent = {
+      subreddit: "typescript",
+      posts: [{ post, comments: [] }],
+      fetchedAt,
+    };
+    source = makeSource(content);
+
+    // Simulate existing post with score 60
+    (db.post.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ score: 60 });
+
+    await fetchStep(subredditConfig, source, db);
+
+    const upsertCalls = (db.post.upsert as ReturnType<typeof vi.fn>).mock.calls;
+    expect(upsertCalls[0]?.[0].update.scoreDelta).toBe(40);
+    expect(upsertCalls[0]?.[0].create.scoreDelta).toBe(0);
   });
 
   it("returns empty posts array when all posts are NSFW and includeNsfw is false", async () => {

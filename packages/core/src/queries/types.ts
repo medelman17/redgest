@@ -188,6 +188,17 @@ export interface PeriodComparisonResult {
   volumeChange: number;
 }
 
+/** Crawl status for a subreddit. */
+export interface CrawlStatusItem {
+  subreddit: string;
+  lastCrawledAt: string | null;
+  nextCrawlAt: string | null;
+  crawlIntervalMinutes: number;
+  totalPosts: number;
+  lastCrawlStatus: "ok" | "failed" | "never";
+  lastError?: string;
+}
+
 /**
  * QueryMap — all queries the system accepts.
  * Each key is a query name, value is the params type.
@@ -213,6 +224,7 @@ export interface QueryMap {
   ComparePeriods: { periodA: string; periodB: string; subreddit?: string };
   ListProfiles: Record<string, never>;
   GetProfile: { profileId: string };
+  GetCrawlStatus: { name?: string };
 }
 
 /**
@@ -240,6 +252,7 @@ export interface QueryResultMap {
   ComparePeriods: PeriodComparisonResult;
   ListProfiles: ProfileView[];
   GetProfile: ProfileView | null;
+  GetCrawlStatus: CrawlStatusItem[];
 }
 
 // Derived types
