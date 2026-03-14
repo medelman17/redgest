@@ -86,7 +86,7 @@ function buildSteps(events: EventRow[]): RunStatusSteps {
       }
       case "PostsSummarized":
         summarize.push({
-          subreddit: String(payload["subreddit"] ?? ""),
+          subreddit: "all",
           count: Number(payload["summaryCount"] ?? 0),
           completedAt: timestamp,
         });

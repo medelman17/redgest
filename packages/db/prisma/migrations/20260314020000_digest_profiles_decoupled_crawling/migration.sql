@@ -33,6 +33,7 @@ CREATE TABLE "digest_profile_subreddits" (
 
 ALTER TABLE "subreddits" ADD COLUMN "crawl_interval_minutes" INTEGER NOT NULL DEFAULT 30;
 ALTER TABLE "subreddits" ADD COLUMN "next_crawl_at" TIMESTAMP(3);
+UPDATE "subreddits" SET "next_crawl_at" = CURRENT_TIMESTAMP WHERE "next_crawl_at" IS NULL;
 
 -- ─── Post score delta ────────────────────────────────────
 

@@ -26,7 +26,8 @@ async function emitCrawlEvent<K extends DomainEventType>(
   payload: DomainEventMap[K],
   aggregateId: string,
 ): Promise<void> {
-  const event: DomainEvent = {
+  // Build envelope via Record — single cast follows dispatch.ts buildEvent() pattern
+  const envelope: Record<string, unknown> = {
     type,
     payload,
     aggregateId,
@@ -36,8 +37,10 @@ async function emitCrawlEvent<K extends DomainEventType>(
     causationId: null,
     metadata: {},
     occurredAt: new Date(),
-  } as unknown as DomainEvent;
+  };
+  const event = envelope as DomainEvent;
 
+  // PrismaClient satisfies EventCreateClient at runtime; Prisma's generated types are stricter
   await persistEvent(db as unknown as EventCreateClient, event);
   eventBus.emitEvent(event);
 }

@@ -12,6 +12,7 @@ export const handleGetCrawlStatus: QueryHandler<"GetCrawlStatus"> = async (
     where,
     orderBy: { name: "asc" },
     select: {
+      id: true,
       name: true,
       lastFetchedAt: true,
       nextCrawlAt: true,
@@ -35,19 +36,17 @@ export const handleGetCrawlStatus: QueryHandler<"GetCrawlStatus"> = async (
           where: {
             type: { in: ["CrawlCompleted", "CrawlFailed"] },
             aggregateType: "subreddit",
+            aggregateId: sub.id,
           },
           orderBy: { createdAt: "desc" },
           select: { type: true, payload: true },
         });
 
         if (lastEvent) {
-          const payload = lastEvent.payload as Record<string, unknown>;
-          if (
-            payload?.subreddit === sub.name &&
-            lastEvent.type === "CrawlFailed"
-          ) {
+          if (lastEvent.type === "CrawlFailed") {
             lastCrawlStatus = "failed";
-            lastError = String(payload.error ?? "Unknown error");
+            const payload = lastEvent.payload as Record<string, unknown>;
+            lastError = String(payload?.error ?? "Unknown error");
           } else {
             lastCrawlStatus = "ok";
           }
