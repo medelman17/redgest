@@ -4,7 +4,12 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { DeliveryChannel } from "@redgest/db";
 import * as dal from "@/lib/dal";
-import { serializeDigest, serializeRun, type ActionResult } from "@/lib/types";
+import {
+  serializeDigest,
+  serializeRun,
+  serializeProfile,
+  type ActionResult,
+} from "@/lib/types";
 
 // --- Schemas ---
 
@@ -50,6 +55,47 @@ const updateConfigSchema = z.object({
 const generateDigestSchema = z.object({
   subredditIds: z.array(z.string()).optional(),
   lookbackHours: z.coerce.number().int().min(1).max(168).optional(),
+  profileId: z.string().optional(),
+});
+
+const createProfileSchema = z.object({
+  name: z.string().min(1),
+  insightPrompt: z.string().optional(),
+  schedule: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().nullable().optional(),
+  ),
+  lookbackHours: z.coerce.number().int().min(1).max(168).optional(),
+  maxPosts: z.coerce.number().int().min(1).max(100).optional(),
+  delivery: z.enum(
+    Object.values(DeliveryChannel) as [DeliveryChannel, ...DeliveryChannel[]],
+  ).optional(),
+  subredditIds: z.array(z.string()).optional(),
+});
+
+const updateProfileSchema = z.object({
+  profileId: z.string().min(1),
+  name: z.string().min(1).optional(),
+  insightPrompt: z.string().optional(),
+  schedule: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().nullable().optional(),
+  ),
+  lookbackHours: z.coerce.number().int().min(1).max(168).optional(),
+  maxPosts: z.coerce.number().int().min(1).max(100).optional(),
+  delivery: z.enum(
+    Object.values(DeliveryChannel) as [DeliveryChannel, ...DeliveryChannel[]],
+  ).optional(),
+  subredditIds: z.array(z.string()).optional(),
+  active: formDataBoolean.optional(),
+});
+
+const deleteProfileSchema = z.object({
+  profileId: z.string().min(1),
+});
+
+const cancelRunSchema = z.object({
+  jobId: z.string().min(1),
 });
 
 // --- Actions ---
@@ -173,4 +219,129 @@ export async function fetchRuns() {
 export async function fetchDigestForJob(jobId: string) {
   const digest = await dal.getDigestByJobId(jobId);
   return digest ? serializeDigest(digest) : null;
+}
+
+// --- Profile actions ---
+
+export async function createProfileAction(
+  _prevState: ActionResult<{ profileId: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ profileId: string }>> {
+  const raw = Object.fromEntries(formData.entries());
+  const subredditIds =
+    typeof raw.subredditIds === "string" && raw.subredditIds
+      ? raw.subredditIds.split(",")
+      : undefined;
+  const parsed = createProfileSchema.safeParse({ ...raw, subredditIds });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+  try {
+    const result = await dal.createProfile(parsed.data);
+    revalidatePath("/profiles");
+    return { ok: true, data: result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+export async function updateProfileAction(
+  _prevState: ActionResult<{ profileId: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ profileId: string }>> {
+  const raw = Object.fromEntries(formData.entries());
+  const subredditIds =
+    typeof raw.subredditIds === "string" && raw.subredditIds
+      ? raw.subredditIds.split(",")
+      : undefined;
+  const parsed = updateProfileSchema.safeParse({ ...raw, subredditIds });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+  try {
+    const result = await dal.updateProfile(parsed.data);
+    revalidatePath("/profiles");
+    return { ok: true, data: result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+export async function deleteProfileAction(
+  _prevState: ActionResult<{ profileId: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ profileId: string }>> {
+  const parsed = deleteProfileSchema.safeParse(
+    Object.fromEntries(formData.entries()),
+  );
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+  try {
+    const result = await dal.deleteProfile(parsed.data.profileId);
+    revalidatePath("/profiles");
+    return { ok: true, data: result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+export async function cancelRunAction(
+  _prevState: ActionResult<{ jobId: string; status: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ jobId: string; status: string }>> {
+  const parsed = cancelRunSchema.safeParse(
+    Object.fromEntries(formData.entries()),
+  );
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+  try {
+    const result = await dal.cancelRun(parsed.data.jobId);
+    revalidatePath("/history");
+    return { ok: true, data: result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+export async function fetchProfiles() {
+  const profiles = await dal.listProfiles();
+  return profiles.map(serializeProfile);
+}
+
+export async function fetchDigests(limit?: number) {
+  const result = await dal.listDigests(limit);
+  return {
+    items: result.items.map(serializeDigest),
+    nextCursor: result.nextCursor,
+  };
+}
+
+export async function fetchDeliveryStatus(digestId: string) {
+  return dal.getDeliveryStatus(digestId);
 }
