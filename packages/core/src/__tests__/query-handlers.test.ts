@@ -1328,8 +1328,8 @@ describe("queryHandlers registry", () => {
     expect(queryHandlers.ComparePeriods).toBeDefined();
   });
 
-  it("has exactly 18 entries", () => {
+  it("has exactly 20 entries", () => {
     const handlerCount = Object.keys(queryHandlers).length;
-    expect(handlerCount).toBe(18);
+    expect(handlerCount).toBe(20);
   });
 });

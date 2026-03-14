@@ -4,7 +4,7 @@
  * the DomainEventBus type signatures, and the Zod schema requirements.
  */
 export interface DomainEventMap {
-  DigestRequested: { jobId: string; subredditIds: string[]; forceRefresh?: boolean; maxPosts?: number };
+  DigestRequested: { jobId: string; subredditIds: string[]; forceRefresh?: boolean; maxPosts?: number; profileId?: string };
   DigestCompleted: { jobId: string; digestId: string };
   DigestFailed: { jobId: string; error: string };
   DigestCanceled: { jobId: string };
@@ -26,6 +26,8 @@ export interface DomainEventMap {
     channel: "EMAIL" | "SLACK";
     error: string;
   };
+  ProfileCreated: { profileId: string; name: string };
+  ProfileDeleted: { profileId: string; name: string };
 }
 
 export type DomainEventType = keyof DomainEventMap;

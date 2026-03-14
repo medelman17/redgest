@@ -4,6 +4,7 @@ import type {
   PostView,
   RunView,
   SubredditView,
+  ProfileView,
   Config,
 } from "@redgest/db";
 import type { SearchResult } from "../search/index.js";
@@ -210,6 +211,8 @@ export interface QueryMap {
   GetDeliveryStatus: { digestId?: string; limit?: number };
   GetTrendingTopics: { limit?: number; since?: string; subreddit?: string };
   ComparePeriods: { periodA: string; periodB: string; subreddit?: string };
+  ListProfiles: Record<string, never>;
+  GetProfile: { profileId: string };
 }
 
 /**
@@ -235,6 +238,8 @@ export interface QueryResultMap {
   GetDeliveryStatus: DeliveryStatusResult;
   GetTrendingTopics: TrendingTopic[];
   ComparePeriods: PeriodComparisonResult;
+  ListProfiles: ProfileView[];
+  GetProfile: ProfileView | null;
 }
 
 // Derived types

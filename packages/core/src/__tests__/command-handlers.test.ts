@@ -8,6 +8,9 @@ import { handleRemoveSubreddit } from "../commands/handlers/remove-subreddit.js"
 import { handleUpdateSubreddit } from "../commands/handlers/update-subreddit.js";
 import { handleUpdateConfig } from "../commands/handlers/update-config.js";
 import { handleCancelRun } from "../commands/handlers/cancel-run.js";
+import { handleCreateProfile } from "../commands/handlers/create-profile.js";
+import { handleUpdateProfile } from "../commands/handlers/update-profile.js";
+import { handleDeleteProfile } from "../commands/handlers/delete-profile.js";
 import { commandHandlers } from "../commands/handlers/index.js";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
@@ -49,6 +52,7 @@ describe("handleGenerateDigest", () => {
         status: "QUEUED",
         subreddits: ["sub-1", "sub-2"],
         lookback: "48h",
+        profileId: null,
       },
     });
   });
@@ -70,6 +74,7 @@ describe("handleGenerateDigest", () => {
         status: "QUEUED",
         subreddits: [],
         lookback: "24h",
+        profileId: null,
       },
     });
   });
@@ -448,12 +453,15 @@ describe("handleCancelRun", () => {
 });
 
 describe("commandHandlers registry", () => {
-  it("registers all 6 handlers", () => {
+  it("registers all 9 handlers", () => {
     expect(commandHandlers.GenerateDigest).toBe(handleGenerateDigest);
     expect(commandHandlers.AddSubreddit).toBe(handleAddSubreddit);
     expect(commandHandlers.RemoveSubreddit).toBe(handleRemoveSubreddit);
     expect(commandHandlers.UpdateSubreddit).toBe(handleUpdateSubreddit);
     expect(commandHandlers.UpdateConfig).toBe(handleUpdateConfig);
     expect(commandHandlers.CancelRun).toBe(handleCancelRun);
+    expect(commandHandlers.CreateProfile).toBe(handleCreateProfile);
+    expect(commandHandlers.UpdateProfile).toBe(handleUpdateProfile);
+    expect(commandHandlers.DeleteProfile).toBe(handleDeleteProfile);
   });
 });

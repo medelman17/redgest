@@ -14,6 +14,7 @@ export const eventPayloadSchemas = {
     subredditIds: z.array(z.string()),
     forceRefresh: z.boolean().optional(),
     maxPosts: z.number().optional(),
+    profileId: z.string().optional(),
   }),
   DigestCompleted: z.object({
     jobId: z.string(),
@@ -62,6 +63,14 @@ export const eventPayloadSchemas = {
     digestId: z.string(),
     channel: deliveryChannelEnum,
     error: z.string(),
+  }),
+  ProfileCreated: z.object({
+    profileId: z.string(),
+    name: z.string(),
+  }),
+  ProfileDeleted: z.object({
+    profileId: z.string(),
+    name: z.string(),
   }),
 } as const satisfies Record<DomainEventType, z.ZodType>;
 

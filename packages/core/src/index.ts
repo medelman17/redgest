@@ -65,6 +65,9 @@ export {
   handleUpdateSubreddit,
   handleUpdateConfig,
   handleCancelRun,
+  handleCreateProfile,
+  handleUpdateProfile,
+  handleDeleteProfile,
 } from "./commands/handlers/index.js";
 
 // Query handlers
@@ -87,6 +90,8 @@ export {
   handleAskHistory,
   handleGetTrendingTopics,
   handleComparePeriods,
+  handleListProfiles,
+  handleGetProfile,
 } from "./queries/handlers/index.js";
 
 // Context

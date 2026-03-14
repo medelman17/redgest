@@ -177,7 +177,18 @@ async function runPipelineBody(
   // 3. Load config for global insight prompt + maxDigestPosts
   const dbConfig = await db.config.findFirst();
   const globalInsightPrompt = dbConfig?.globalInsightPrompt ?? "";
-  const targetPostCount = deps.maxPosts ?? dbConfig?.maxDigestPosts ?? 5;
+
+  // 3b. Load profile if job is associated with one
+  const job = await db.job.findUnique({
+    where: { id: jobId },
+    select: { profileId: true },
+  });
+  const profile = job?.profileId
+    ? await db.digestProfile.findUnique({ where: { id: job.profileId } })
+    : null;
+
+  // Resolution priority: explicit param > profile > config > default
+  const targetPostCount = deps.maxPosts ?? profile?.maxPosts ?? dbConfig?.maxDigestPosts ?? 5;
 
   // Read LLM model config at runtime (not boot time)
   // so config changes take effect without restart
@@ -210,6 +221,11 @@ async function runPipelineBody(
   // Collect global insight prompt
   if (globalInsightPrompt.length > 0) {
     allInsightPrompts.push(globalInsightPrompt);
+  }
+
+  // Collect profile insight prompt (combined with global + per-sub)
+  if (profile?.insightPrompt && profile.insightPrompt.length > 0) {
+    allInsightPrompts.push(profile.insightPrompt);
   }
 
   for (const sub of subreddits) {

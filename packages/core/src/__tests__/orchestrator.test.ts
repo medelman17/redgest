@@ -855,7 +855,9 @@ describe("cancellation checkpoints", () => {
   // 4. before-triage, 5. before-summarize, 6. per-post, 7. final
 
   it("stops before fetch when job is CANCELED", async () => {
-    mockDb.job.findUnique.mockResolvedValue({ status: "CANCELED" });
+    mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
+      .mockResolvedValue({ status: "CANCELED" });
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -865,6 +867,7 @@ describe("cancellation checkpoints", () => {
 
   it("stops before triage when job is CANCELED after fetch", async () => {
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub1
       .mockResolvedValueOnce({ status: "CANCELED" }) // after fetch loop → CANCELED
@@ -879,6 +882,7 @@ describe("cancellation checkpoints", () => {
 
   it("stops before summarize when job is CANCELED after triage", async () => {
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
       .mockResolvedValueOnce({ status: "RUNNING" })  // after fetch loop
@@ -916,6 +920,7 @@ describe("cancellation checkpoints", () => {
     mockSummarizeStep.mockResolvedValueOnce(makeSummarizeResult());
 
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub1
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch sub2
@@ -937,6 +942,7 @@ describe("cancellation checkpoints", () => {
   it("does not overwrite CANCELED status with COMPLETED", async () => {
     // All checkpoints return RUNNING except the final check
     mockDb.job.findUnique
+      .mockResolvedValueOnce({ profileId: null })     // profile lookup
       .mockResolvedValueOnce({ status: "RUNNING" })  // pre-loop check
       .mockResolvedValueOnce({ status: "RUNNING" })  // before fetch
       .mockResolvedValueOnce({ status: "RUNNING" })  // after fetch loop

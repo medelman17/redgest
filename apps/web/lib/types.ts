@@ -17,6 +17,7 @@ export function serializeSubreddit(sub: SubredditView): SerializedSubreddit {
     createdAt: sub.createdAt.toISOString(),
     updatedAt: sub.updatedAt.toISOString(),
     lastDigestDate: sub.lastDigestDate?.toISOString() ?? null,
+    nextCrawlAt: sub.nextCrawlAt?.toISOString() ?? null,
   };
 }
 

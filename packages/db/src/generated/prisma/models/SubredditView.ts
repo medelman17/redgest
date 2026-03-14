@@ -28,6 +28,7 @@ export type AggregateSubredditView = {
 
 export type SubredditViewAvgAggregateOutputType = {
   maxPosts: number | null
+  crawlIntervalMinutes: number | null
   postsInLastDigest: number | null
   totalPostsFetched: number | null
   totalDigestsAppearedIn: number | null
@@ -35,6 +36,7 @@ export type SubredditViewAvgAggregateOutputType = {
 
 export type SubredditViewSumAggregateOutputType = {
   maxPosts: number | null
+  crawlIntervalMinutes: number | null
   postsInLastDigest: number | null
   totalPostsFetched: number | null
   totalDigestsAppearedIn: number | null
@@ -47,6 +49,8 @@ export type SubredditViewMinAggregateOutputType = {
   maxPosts: number | null
   includeNsfw: boolean | null
   isActive: boolean | null
+  crawlIntervalMinutes: number | null
+  nextCrawlAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   lastDigestDate: Date | null
@@ -62,6 +66,8 @@ export type SubredditViewMaxAggregateOutputType = {
   maxPosts: number | null
   includeNsfw: boolean | null
   isActive: boolean | null
+  crawlIntervalMinutes: number | null
+  nextCrawlAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   lastDigestDate: Date | null
@@ -77,6 +83,8 @@ export type SubredditViewCountAggregateOutputType = {
   maxPosts: number
   includeNsfw: number
   isActive: number
+  crawlIntervalMinutes: number
+  nextCrawlAt: number
   createdAt: number
   updatedAt: number
   lastDigestDate: number
@@ -89,6 +97,7 @@ export type SubredditViewCountAggregateOutputType = {
 
 export type SubredditViewAvgAggregateInputType = {
   maxPosts?: true
+  crawlIntervalMinutes?: true
   postsInLastDigest?: true
   totalPostsFetched?: true
   totalDigestsAppearedIn?: true
@@ -96,6 +105,7 @@ export type SubredditViewAvgAggregateInputType = {
 
 export type SubredditViewSumAggregateInputType = {
   maxPosts?: true
+  crawlIntervalMinutes?: true
   postsInLastDigest?: true
   totalPostsFetched?: true
   totalDigestsAppearedIn?: true
@@ -108,6 +118,8 @@ export type SubredditViewMinAggregateInputType = {
   maxPosts?: true
   includeNsfw?: true
   isActive?: true
+  crawlIntervalMinutes?: true
+  nextCrawlAt?: true
   createdAt?: true
   updatedAt?: true
   lastDigestDate?: true
@@ -123,6 +135,8 @@ export type SubredditViewMaxAggregateInputType = {
   maxPosts?: true
   includeNsfw?: true
   isActive?: true
+  crawlIntervalMinutes?: true
+  nextCrawlAt?: true
   createdAt?: true
   updatedAt?: true
   lastDigestDate?: true
@@ -138,6 +152,8 @@ export type SubredditViewCountAggregateInputType = {
   maxPosts?: true
   includeNsfw?: true
   isActive?: true
+  crawlIntervalMinutes?: true
+  nextCrawlAt?: true
   createdAt?: true
   updatedAt?: true
   lastDigestDate?: true
@@ -240,6 +256,8 @@ export type SubredditViewGroupByOutputType = {
   maxPosts: number
   includeNsfw: boolean
   isActive: boolean
+  crawlIntervalMinutes: number
+  nextCrawlAt: Date | null
   createdAt: Date
   updatedAt: Date
   lastDigestDate: Date | null
@@ -278,6 +296,8 @@ export type SubredditViewWhereInput = {
   maxPosts?: Prisma.IntFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolFilter<"SubredditView"> | boolean
   isActive?: Prisma.BoolFilter<"SubredditView"> | boolean
+  crawlIntervalMinutes?: Prisma.IntFilter<"SubredditView"> | number
+  nextCrawlAt?: Prisma.DateTimeNullableFilter<"SubredditView"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"SubredditView"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SubredditView"> | Date | string
   lastDigestDate?: Prisma.DateTimeNullableFilter<"SubredditView"> | Date | string | null
@@ -293,6 +313,8 @@ export type SubredditViewOrderByWithRelationInput = {
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
+  nextCrawlAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastDigestDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -311,6 +333,8 @@ export type SubredditViewWhereUniqueInput = Prisma.AtLeast<{
   maxPosts?: Prisma.IntFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolFilter<"SubredditView"> | boolean
   isActive?: Prisma.BoolFilter<"SubredditView"> | boolean
+  crawlIntervalMinutes?: Prisma.IntFilter<"SubredditView"> | number
+  nextCrawlAt?: Prisma.DateTimeNullableFilter<"SubredditView"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"SubredditView"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SubredditView"> | Date | string
   lastDigestDate?: Prisma.DateTimeNullableFilter<"SubredditView"> | Date | string | null
@@ -326,6 +350,8 @@ export type SubredditViewOrderByWithAggregationInput = {
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
+  nextCrawlAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastDigestDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -349,6 +375,8 @@ export type SubredditViewScalarWhereWithAggregatesInput = {
   maxPosts?: Prisma.IntWithAggregatesFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolWithAggregatesFilter<"SubredditView"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"SubredditView"> | boolean
+  crawlIntervalMinutes?: Prisma.IntWithAggregatesFilter<"SubredditView"> | number
+  nextCrawlAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SubredditView"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SubredditView"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SubredditView"> | Date | string
   lastDigestDate?: Prisma.DateTimeNullableWithAggregatesFilter<"SubredditView"> | Date | string | null
@@ -364,6 +392,8 @@ export type SubredditViewCountOrderByAggregateInput = {
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
+  nextCrawlAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastDigestDate?: Prisma.SortOrder
@@ -374,6 +404,7 @@ export type SubredditViewCountOrderByAggregateInput = {
 
 export type SubredditViewAvgOrderByAggregateInput = {
   maxPosts?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
   postsInLastDigest?: Prisma.SortOrder
   totalPostsFetched?: Prisma.SortOrder
   totalDigestsAppearedIn?: Prisma.SortOrder
@@ -386,6 +417,8 @@ export type SubredditViewMaxOrderByAggregateInput = {
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
+  nextCrawlAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastDigestDate?: Prisma.SortOrder
@@ -401,6 +434,8 @@ export type SubredditViewMinOrderByAggregateInput = {
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
+  nextCrawlAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastDigestDate?: Prisma.SortOrder
@@ -411,6 +446,7 @@ export type SubredditViewMinOrderByAggregateInput = {
 
 export type SubredditViewSumOrderByAggregateInput = {
   maxPosts?: Prisma.SortOrder
+  crawlIntervalMinutes?: Prisma.SortOrder
   postsInLastDigest?: Prisma.SortOrder
   totalPostsFetched?: Prisma.SortOrder
   totalDigestsAppearedIn?: Prisma.SortOrder
@@ -425,6 +461,8 @@ export type SubredditViewSelect<ExtArgs extends runtime.Types.Extensions.Interna
   maxPosts?: boolean
   includeNsfw?: boolean
   isActive?: boolean
+  crawlIntervalMinutes?: boolean
+  nextCrawlAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastDigestDate?: boolean
@@ -442,6 +480,8 @@ export type SubredditViewSelectScalar = {
   maxPosts?: boolean
   includeNsfw?: boolean
   isActive?: boolean
+  crawlIntervalMinutes?: boolean
+  nextCrawlAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastDigestDate?: boolean
@@ -450,7 +490,7 @@ export type SubredditViewSelectScalar = {
   totalDigestsAppearedIn?: boolean
 }
 
-export type SubredditViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "createdAt" | "updatedAt" | "lastDigestDate" | "postsInLastDigest" | "totalPostsFetched" | "totalDigestsAppearedIn", ExtArgs["result"]["subredditView"]>
+export type SubredditViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "crawlIntervalMinutes" | "nextCrawlAt" | "createdAt" | "updatedAt" | "lastDigestDate" | "postsInLastDigest" | "totalPostsFetched" | "totalDigestsAppearedIn", ExtArgs["result"]["subredditView"]>
 
 export type $SubredditViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SubredditView"
@@ -462,6 +502,8 @@ export type $SubredditViewPayload<ExtArgs extends runtime.Types.Extensions.Inter
     maxPosts: number
     includeNsfw: boolean
     isActive: boolean
+    crawlIntervalMinutes: number
+    nextCrawlAt: Date | null
     createdAt: Date
     updatedAt: Date
     lastDigestDate: Date | null
@@ -732,6 +774,8 @@ export interface SubredditViewFieldRefs {
   readonly maxPosts: Prisma.FieldRef<"SubredditView", 'Int'>
   readonly includeNsfw: Prisma.FieldRef<"SubredditView", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"SubredditView", 'Boolean'>
+  readonly crawlIntervalMinutes: Prisma.FieldRef<"SubredditView", 'Int'>
+  readonly nextCrawlAt: Prisma.FieldRef<"SubredditView", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"SubredditView", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SubredditView", 'DateTime'>
   readonly lastDigestDate: Prisma.FieldRef<"SubredditView", 'DateTime'>

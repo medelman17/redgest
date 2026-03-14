@@ -17,6 +17,8 @@ import { handleFindSimilar } from "./find-similar.js";
 import { handleAskHistory } from "./ask-history.js";
 import { handleGetTrendingTopics } from "./get-trending-topics.js";
 import { handleComparePeriods } from "./compare-periods.js";
+import { handleListProfiles } from "./list-profiles.js";
+import { handleGetProfile } from "./get-profile.js";
 
 type QueryHandlerRegistry = {
   [K in QueryType]?: QueryHandler<K>;
@@ -41,6 +43,8 @@ export const queryHandlers: QueryHandlerRegistry = {
   AskHistory: handleAskHistory,
   GetTrendingTopics: handleGetTrendingTopics,
   ComparePeriods: handleComparePeriods,
+  ListProfiles: handleListProfiles,
+  GetProfile: handleGetProfile,
 };
 
 export {
@@ -62,4 +66,6 @@ export {
   handleAskHistory,
   handleGetTrendingTopics,
   handleComparePeriods,
+  handleListProfiles,
+  handleGetProfile,
 };

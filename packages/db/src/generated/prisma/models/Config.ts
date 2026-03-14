@@ -443,10 +443,6 @@ export type ConfigSumOrderByAggregateInput = {
   maxDigestPosts?: Prisma.SortOrder
 }
 
-export type EnumDeliveryChannelFieldUpdateOperationsInput = {
-  set?: $Enums.DeliveryChannel
-}
-
 
 
 export type ConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{

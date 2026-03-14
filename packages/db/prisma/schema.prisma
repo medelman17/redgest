@@ -52,18 +52,54 @@ enum DeliveryStatus {
 // ─── Subreddit (config table for tracked subs) ───────────
 
 model Subreddit {
-  id            String   @id @default(uuid(7))
-  name          String   @unique
-  insightPrompt String?  @map("insight_prompt") @db.Text
-  maxPosts      Int      @default(5) @map("max_posts")
-  includeNsfw   Boolean  @default(false) @map("include_nsfw")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  lastFetchedAt DateTime? @map("last_fetched_at")
+  id                   String   @id @default(uuid(7))
+  name                 String   @unique
+  insightPrompt        String?  @map("insight_prompt") @db.Text
+  maxPosts             Int      @default(5) @map("max_posts")
+  includeNsfw          Boolean  @default(false) @map("include_nsfw")
+  isActive             Boolean  @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  lastFetchedAt        DateTime? @map("last_fetched_at")
+  crawlIntervalMinutes Int      @default(30) @map("crawl_interval_minutes")
+  nextCrawlAt          DateTime? @map("next_crawl_at")
+
+  profiles DigestProfileSubreddit[]
 
   @@index([isActive])
   @@map("subreddits")
+}
+
+// ─── DigestProfile (per-interest digest configuration) ───
+
+model DigestProfile {
+  id            String          @id @default(uuid(7))
+  name          String          @unique
+  insightPrompt String?         @map("insight_prompt") @db.Text
+  schedule      String?
+  lookbackHours Int             @default(24) @map("lookback_hours")
+  maxPosts      Int             @default(5) @map("max_posts")
+  delivery      DeliveryChannel @default(NONE)
+  isActive      Boolean         @default(true) @map("is_active")
+  filters       Json?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  subreddits DigestProfileSubreddit[]
+  jobs       Job[]
+
+  @@map("digest_profiles")
+}
+
+model DigestProfileSubreddit {
+  profileId   String @map("profile_id")
+  subredditId String @map("subreddit_id")
+
+  profile   DigestProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  subreddit Subreddit     @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, subredditId])
+  @@map("digest_profile_subreddits")
 }
 
 // ─── Config (singleton settings row) ─────────────────────
@@ -90,6 +126,7 @@ model Job {
   subreddits   Json
   lookback     String
   delivery     DeliveryChannel @default(NONE)
+  profileId    String?         @map("profile_id")
   triggerRunId String?         @map("trigger_run_id")
   progress     Json?
   startedAt    DateTime?       @map("started_at")
@@ -97,6 +134,7 @@ model Job {
   error        String?         @db.Text
   createdAt    DateTime        @default(now()) @map("created_at")
 
+  profile       DigestProfile?  @relation(fields: [profileId], references: [id])
   postSummaries PostSummary[]
   digest        Digest?
   llmCalls      LlmCall[]
@@ -137,6 +175,7 @@ model Post {
   body         String?                   @db.Text
   author       String
   score        Int
+  scoreDelta   Int                       @default(0) @map("score_delta")
   commentCount Int                       @map("comment_count")
   url          String                    @db.Text
   permalink    String                    @db.Text
@@ -373,6 +412,8 @@ view SubredditView {
   maxPosts               Int       @map("max_posts")
   includeNsfw            Boolean   @map("include_nsfw")
   isActive               Boolean   @map("is_active")
+  crawlIntervalMinutes   Int       @map("crawl_interval_minutes")
+  nextCrawlAt            DateTime? @map("next_crawl_at")
   createdAt              DateTime  @map("created_at")
   updatedAt              DateTime  @map("updated_at")
   lastDigestDate         DateTime? @map("last_digest_date")
@@ -381,6 +422,23 @@ view SubredditView {
   totalDigestsAppearedIn Int       @map("total_digests_appeared_in")
 
   @@map("subreddit_view")
+}
+
+view ProfileView {
+  profileId      String    @unique @map("profile_id")
+  name           String
+  insightPrompt  String?   @map("insight_prompt")
+  schedule       String?
+  lookbackHours  Int       @map("lookback_hours")
+  maxPosts       Int       @map("max_posts")
+  delivery       String
+  isActive       Boolean   @map("is_active")
+  createdAt      DateTime  @map("created_at")
+  updatedAt      DateTime  @map("updated_at")
+  subredditList  Json      @map("subreddit_list")
+  subredditCount Int       @map("subreddit_count")
+
+  @@map("profile_view")
 }
 
 view DeliveryView {

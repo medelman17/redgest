@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Subreddit: 'Subreddit',
+  DigestProfile: 'DigestProfile',
+  DigestProfileSubreddit: 'DigestProfileSubreddit',
   Config: 'Config',
   Job: 'Job',
   Event: 'Event',
@@ -68,6 +70,7 @@ export const ModelName = {
   PostView: 'PostView',
   RunView: 'RunView',
   SubredditView: 'SubredditView',
+  ProfileView: 'ProfileView',
   DeliveryView: 'DeliveryView'
 } as const
 
@@ -96,10 +99,37 @@ export const SubredditScalarFieldEnum = {
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  lastFetchedAt: 'lastFetchedAt'
+  lastFetchedAt: 'lastFetchedAt',
+  crawlIntervalMinutes: 'crawlIntervalMinutes',
+  nextCrawlAt: 'nextCrawlAt'
 } as const
 
 export type SubredditScalarFieldEnum = (typeof SubredditScalarFieldEnum)[keyof typeof SubredditScalarFieldEnum]
+
+
+export const DigestProfileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  schedule: 'schedule',
+  lookbackHours: 'lookbackHours',
+  maxPosts: 'maxPosts',
+  delivery: 'delivery',
+  isActive: 'isActive',
+  filters: 'filters',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DigestProfileScalarFieldEnum = (typeof DigestProfileScalarFieldEnum)[keyof typeof DigestProfileScalarFieldEnum]
+
+
+export const DigestProfileSubredditScalarFieldEnum = {
+  profileId: 'profileId',
+  subredditId: 'subredditId'
+} as const
+
+export type DigestProfileSubredditScalarFieldEnum = (typeof DigestProfileSubredditScalarFieldEnum)[keyof typeof DigestProfileSubredditScalarFieldEnum]
 
 
 export const ConfigScalarFieldEnum = {
@@ -123,6 +153,7 @@ export const JobScalarFieldEnum = {
   subreddits: 'subreddits',
   lookback: 'lookback',
   delivery: 'delivery',
+  profileId: 'profileId',
   triggerRunId: 'triggerRunId',
   progress: 'progress',
   startedAt: 'startedAt',
@@ -158,6 +189,7 @@ export const PostScalarFieldEnum = {
   body: 'body',
   author: 'author',
   score: 'score',
+  scoreDelta: 'scoreDelta',
   commentCount: 'commentCount',
   url: 'url',
   permalink: 'permalink',
@@ -345,6 +377,8 @@ export const SubredditViewScalarFieldEnum = {
   maxPosts: 'maxPosts',
   includeNsfw: 'includeNsfw',
   isActive: 'isActive',
+  crawlIntervalMinutes: 'crawlIntervalMinutes',
+  nextCrawlAt: 'nextCrawlAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastDigestDate: 'lastDigestDate',
@@ -354,6 +388,24 @@ export const SubredditViewScalarFieldEnum = {
 } as const
 
 export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)[keyof typeof SubredditViewScalarFieldEnum]
+
+
+export const ProfileViewScalarFieldEnum = {
+  profileId: 'profileId',
+  name: 'name',
+  insightPrompt: 'insightPrompt',
+  schedule: 'schedule',
+  lookbackHours: 'lookbackHours',
+  maxPosts: 'maxPosts',
+  delivery: 'delivery',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  subredditList: 'subredditList',
+  subredditCount: 'subredditCount'
+} as const
+
+export type ProfileViewScalarFieldEnum = (typeof ProfileViewScalarFieldEnum)[keyof typeof ProfileViewScalarFieldEnum]
 
 
 export const DeliveryViewScalarFieldEnum = {
@@ -382,19 +434,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

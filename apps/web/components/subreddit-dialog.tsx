@@ -69,6 +69,8 @@ export function SubredditDialog({
             maxPosts: Number(formData.get("maxPosts")) || 5,
             includeNsfw: formData.get("nsfw") === "on",
             isActive: true,
+            crawlIntervalMinutes: 30,
+            nextCrawlAt: null,
             createdAt: now,
             updatedAt: now,
             lastDigestDate: null,
