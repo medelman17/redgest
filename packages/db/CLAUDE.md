@@ -23,23 +23,28 @@ const prisma = new PrismaClient({ adapter });
 
 **Exported types:** `PrismaClient`, `TransactionClient` (omits `$connect`/`$disconnect`/`$transaction`/`$extends`).
 
-## Schema: 10 Tables, 4 Views
+## Schema: 15 Tables, 6 Views
 
 **Tables:**
 | Table | Key Notes |
 |-------|-----------|
-| `subreddits` | UUID v7, unique `name`, `isActive` flag |
+| `subreddits` | UUID v7, unique `name`, `isActive` flag, `crawlIntervalMinutes`, `nextCrawlAt` |
+| `digest_profiles` | Named digest configurations with schedule, lookback, maxPosts, delivery |
+| `digest_profile_subreddits` | Profile↔subreddit join table, composite PK, cascade deletes |
 | `config` | Singleton (CHECK constraint `id = 1`) |
-| `jobs` | Immutable run records, JSONB `subreddits` + `progress` |
+| `jobs` | Immutable run records, JSONB `subreddits` + `progress`, optional `profileId` FK |
 | `events` | **BigInt autoincrement ID** (not UUID), append-only |
-| `posts` | Unique `redditId`, `Unsupported("tsvector")` for FTS |
+| `posts` | Unique `redditId`, `Unsupported("tsvector")` for FTS, `scoreDelta` for trend tracking |
 | `post_comments` | Cascade delete from post |
-| `post_summaries` | Dual FK: post + job, JSONB `keyTakeaways` + `commentHighlights` |
-| `digests` | Unique `jobId` (1:1), markdown/HTML/slack_blocks |
+| `post_summaries` | Dual FK: post + job, JSONB `keyTakeaways` + `commentHighlights`, `embedding` vector(1536) |
+| `digests` | Unique `jobId` (1:1), markdown/HTML/slack_blocks, `Unsupported("tsvector")` for FTS |
 | `digest_posts` | Join table, composite PK `[digestId, postId]`, rank column |
 | `llm_calls` | Token usage logging, FK: job + optional post |
+| `deliveries` | Email/Slack delivery tracking per digest, status + error + timestamps |
+| `topics` | Extracted trending topics, unique name, occurrence count |
+| `post_topics` | Post↔topic join table, composite PK |
 
-**Views (raw SQL):** `digest_view`, `post_view`, `run_view`, `subreddit_view`
+**Views (raw SQL):** `digest_view`, `post_view`, `run_view`, `subreddit_view`, `profile_view`, `delivery_view`
 
 ## Migration History
 
@@ -50,6 +55,12 @@ const prisma = new PrismaClient({ adapter });
 | 3 | `20260310162203_add_llm_calls_table` | llm_calls table (**accidentally dropped raw indexes**) |
 | 4 | `20260310170000_restore_dropped_indexes` | Re-creates the 3 dropped indexes |
 | 5 | `20260312040236_add_canceled_status` | Adds `CANCELED` to `job_status` enum + restores raw indexes |
+| 6 | `20260312130000_fix_run_view_aggregate_type_case` | Fixes case sensitivity in run_view aggregate type filter |
+| 7 | `20260312221754_add_deliveries_table` | Delivery tracking table + delivery_view |
+| 8 | `20260313162138_add_fetch_caching` | Adds `lastFetchedAt` to posts for fetch cache |
+| 9 | `20260313170206_phase3_search` | tsvector columns, pgvector extension, embeddings, topics tables |
+| 10 | `20260314010000_add_max_digest_posts` | Adds `maxDigestPosts` to config |
+| 11 | `20260314020000_digest_profiles_decoupled_crawling` | Digest profiles, crawl fields, score_delta, profile_view |
 
 ## Raw SQL Indexes (Not in Prisma Schema)
 
@@ -72,6 +83,7 @@ Prisma cannot express BRIN, partial, or DESC indexes. They must be maintained ma
 - **Singleton enforcement** — Config table uses DB-level `CHECK (id = 1)` + application-level upsert.
 - **Cascade deletes** — Deleting a post cascades to comments and summaries. Deleting a digest cascades to digest_posts.
 - **Seed auto-runs** — `prisma.config.ts` configures `tsx prisma/seed.ts` to run after `prisma migrate dev`.
+- **`CREATE OR REPLACE VIEW` cannot reorder columns** — If new columns are inserted before existing ones, Postgres requires `DROP VIEW` + `CREATE VIEW`. Always check column ordering in view migrations.
 
 ## Commands
 
