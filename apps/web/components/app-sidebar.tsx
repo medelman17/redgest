@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Rss, Settings, Clock, Play } from "lucide-react";
+import { Rss, Settings, Clock, Play, Layers, BookOpen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,8 @@ import {
 
 const NAV_ITEMS = [
   { title: "Subreddits", href: "/subreddits", icon: Rss },
+  { title: "Profiles", href: "/profiles", icon: Layers },
+  { title: "Digests", href: "/digests", icon: BookOpen },
   { title: "Settings", href: "/settings", icon: Settings },
   { title: "History", href: "/history", icon: Clock },
   { title: "Trigger", href: "/trigger", icon: Play },

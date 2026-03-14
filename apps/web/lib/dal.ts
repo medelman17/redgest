@@ -101,9 +101,10 @@ export async function getDigest(
 
 export async function listDigests(
   limit?: number,
+  cursor?: string,
 ): Promise<QueryResultMap["ListDigests"]> {
   const { query, queryCtx } = await getBootstrap();
-  return query("ListDigests", { limit }, queryCtx);
+  return query("ListDigests", { limit, cursor }, queryCtx);
 }
 
 export async function listRuns(
@@ -162,4 +163,62 @@ export async function generateDigest(
 ): Promise<CommandResultMap["GenerateDigest"]> {
   const { execute, executeCtx } = await getBootstrap();
   return execute("GenerateDigest", params, executeCtx);
+}
+
+// --- Profile queries ---
+
+export async function listProfiles(): Promise<
+  QueryResultMap["ListProfiles"]
+> {
+  const { query, queryCtx } = await getBootstrap();
+  return query("ListProfiles", EMPTY_PARAMS, queryCtx);
+}
+
+export async function getProfile(
+  profileId: string,
+): Promise<QueryResultMap["GetProfile"]> {
+  const { query, queryCtx } = await getBootstrap();
+  return query("GetProfile", { profileId }, queryCtx);
+}
+
+// --- Delivery queries ---
+
+export async function getDeliveryStatus(
+  digestId?: string,
+  limit?: number,
+): Promise<QueryResultMap["GetDeliveryStatus"]> {
+  const { query, queryCtx } = await getBootstrap();
+  return query("GetDeliveryStatus", { digestId, limit }, queryCtx);
+}
+
+// --- Profile commands ---
+
+export async function createProfile(
+  params: CommandMap["CreateProfile"],
+): Promise<CommandResultMap["CreateProfile"]> {
+  const { execute, executeCtx } = await getBootstrap();
+  return execute("CreateProfile", params, executeCtx);
+}
+
+export async function updateProfile(
+  params: CommandMap["UpdateProfile"],
+): Promise<CommandResultMap["UpdateProfile"]> {
+  const { execute, executeCtx } = await getBootstrap();
+  return execute("UpdateProfile", params, executeCtx);
+}
+
+export async function deleteProfile(
+  profileId: string,
+): Promise<CommandResultMap["DeleteProfile"]> {
+  const { execute, executeCtx } = await getBootstrap();
+  return execute("DeleteProfile", { profileId }, executeCtx);
+}
+
+// --- Run commands ---
+
+export async function cancelRun(
+  jobId: string,
+): Promise<CommandResultMap["CancelRun"]> {
+  const { execute, executeCtx } = await getBootstrap();
+  return execute("CancelRun", { jobId }, executeCtx);
 }
