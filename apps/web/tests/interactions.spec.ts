@@ -325,6 +325,36 @@ test.describe("Theme Toggle", () => {
   });
 });
 
+test.describe("Search Page", () => {
+  test("shows search input and filter controls", async ({ page }) => {
+    await page.goto("/search");
+    await expect(page.getByPlaceholder("Search across post summaries...")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
+  });
+
+  test("search button is disabled with empty query", async ({ page }) => {
+    await page.goto("/search");
+    await expect(page.getByRole("button", { name: "Search" })).toBeDisabled();
+  });
+});
+
+test.describe("Dashboard Page", () => {
+  test("shows summary stat cards", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page.getByText("Total LLM Calls")).toBeVisible();
+    await expect(page.getByText("Cache Hit Rate")).toBeVisible();
+    await expect(page.getByText("Active Subreddits")).toBeVisible();
+    await expect(page.getByText("Trending Topics")).toBeVisible();
+  });
+
+  test("shows panel sections", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page.getByText("LLM Usage by Task")).toBeVisible();
+    await expect(page.getByText("Crawl Health")).toBeVisible();
+    await expect(page.getByText("Recent Runs")).toBeVisible();
+  });
+});
+
 test.describe("Responsive Layout", () => {
   test("sidebar collapses on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });

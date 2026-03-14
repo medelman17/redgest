@@ -1,17 +1,19 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Navigation & Layout", () => {
-  test("home redirects to /subreddits", async ({ page }) => {
+  test("home redirects to /dashboard", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/subreddits/);
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 
   test("sidebar shows all nav items", async ({ page }) => {
     await page.goto("/subreddits");
     const sidebar = page.locator("[data-sidebar]").first();
+    await expect(sidebar.getByText("Dashboard")).toBeVisible();
     await expect(sidebar.getByText("Subreddits")).toBeVisible();
     await expect(sidebar.getByText("Profiles")).toBeVisible();
     await expect(sidebar.getByText("Digests")).toBeVisible();
+    await expect(sidebar.getByText("Search")).toBeVisible();
     await expect(sidebar.getByText("Settings")).toBeVisible();
     await expect(sidebar.getByText("History")).toBeVisible();
     await expect(sidebar.getByText("Trigger")).toBeVisible();
@@ -101,6 +103,30 @@ test.describe("Profiles Page", () => {
   });
 });
 
+test.describe("Search Page", () => {
+  test("renders page heading", async ({ page }) => {
+    await page.goto("/search");
+    await expect(
+      page.getByRole("heading", { name: "Search" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Search across posts and digests with full-text and semantic search"),
+    ).toBeVisible();
+  });
+});
+
+test.describe("Dashboard Page", () => {
+  test("renders page heading", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(
+      page.getByRole("heading", { name: "Dashboard" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Overview of trending topics, LLM usage, and system health"),
+    ).toBeVisible();
+  });
+});
+
 test.describe("Digests Page", () => {
   test("renders page heading", async ({ page }) => {
     await page.goto("/digests");
@@ -117,6 +143,13 @@ test.describe("Navigation between pages", () => {
   test("can navigate to all pages via sidebar", async ({ page }) => {
     await page.goto("/subreddits");
 
+    // Navigate to Dashboard
+    await page.locator("[data-sidebar]").first().getByText("Dashboard").click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(
+      page.getByRole("heading", { name: "Dashboard" }),
+    ).toBeVisible();
+
     // Navigate to Profiles
     await page.locator("[data-sidebar]").first().getByText("Profiles").click();
     await expect(page).toHaveURL(/\/profiles/);
@@ -129,6 +162,13 @@ test.describe("Navigation between pages", () => {
     await expect(page).toHaveURL(/\/digests/);
     await expect(
       page.getByRole("heading", { name: "Digests" }),
+    ).toBeVisible();
+
+    // Navigate to Search
+    await page.locator("[data-sidebar]").first().getByText("Search").click();
+    await expect(page).toHaveURL(/\/search/);
+    await expect(
+      page.getByRole("heading", { name: "Search" }),
     ).toBeVisible();
 
     // Navigate to Settings
