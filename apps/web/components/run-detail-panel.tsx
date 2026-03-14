@@ -1,10 +1,15 @@
 "use client";
 
+import { useActionState, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Markdown from "react-markdown";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { JobStatus } from "@redgest/db/enums";
-import { fetchDigestForJob } from "@/lib/actions";
+import { fetchDigestForJob, cancelRunAction } from "@/lib/actions";
+import { useActionToast } from "@/lib/hooks";
+import { Button } from "@/components/ui/button";
+import type { ActionResult } from "@/lib/types";
 
 interface RunDetailPanelProps {
   jobId: string;
@@ -13,7 +18,12 @@ interface RunDetailPanelProps {
 }
 
 export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
-  const isTerminal = status === JobStatus.COMPLETED || status === JobStatus.PARTIAL || status === JobStatus.FAILED || status === JobStatus.CANCELED;
+  const isTerminal =
+    status === JobStatus.COMPLETED ||
+    status === JobStatus.PARTIAL ||
+    status === JobStatus.FAILED ||
+    status === JobStatus.CANCELED;
+
   const { data: digest, isLoading } = useQuery({
     queryKey: ["digest", jobId],
     queryFn: () => fetchDigestForJob(jobId),
@@ -21,10 +31,42 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
     staleTime: isTerminal ? Infinity : 0,
   });
 
+  const [cancelState, cancelAction, isCanceling] = useActionState<
+    ActionResult<{ jobId: string; status: string }>,
+    FormData
+  >(cancelRunAction, null);
+
+  useActionToast(cancelState, "Run canceled");
+
+  const isActive =
+    status === JobStatus.QUEUED || status === JobStatus.RUNNING;
+
   if (status === JobStatus.QUEUED) {
     return (
-      <div className="py-6 text-center text-sm text-muted-foreground">
-        Job is queued — digest not yet available.
+      <div className="space-y-4 py-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Job is queued — digest not yet available.
+        </p>
+        {isActive && (
+          <form
+            action={(fd: FormData) => {
+              startTransition(() => cancelAction(fd));
+            }}
+          >
+            <input type="hidden" name="jobId" value={jobId} />
+            <Button
+              type="submit"
+              variant="destructive"
+              size="sm"
+              disabled={isCanceling}
+            >
+              {isCanceling && (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              )}
+              Cancel Run
+            </Button>
+          </form>
+        )}
       </div>
     );
   }
@@ -61,10 +103,32 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
 
   if (!digest) {
     return (
-      <div className="py-6 text-center text-sm text-muted-foreground">
-        {status === JobStatus.RUNNING
-          ? "Digest is being generated..."
-          : "No digest available for this run."}
+      <div className="space-y-4 py-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          {status === JobStatus.RUNNING
+            ? "Digest is being generated..."
+            : "No digest available for this run."}
+        </p>
+        {status === JobStatus.RUNNING && (
+          <form
+            action={(fd: FormData) => {
+              startTransition(() => cancelAction(fd));
+            }}
+          >
+            <input type="hidden" name="jobId" value={jobId} />
+            <Button
+              type="submit"
+              variant="destructive"
+              size="sm"
+              disabled={isCanceling}
+            >
+              {isCanceling && (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              )}
+              Cancel Run
+            </Button>
+          </form>
+        )}
       </div>
     );
   }
@@ -91,6 +155,11 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
           <Markdown>{digest.contentMarkdown}</Markdown>
         </div>
       ) : null}
+      <div className="flex justify-end pt-2">
+        <Link href="/digests" className="text-xs text-primary hover:underline">
+          View in Digests
+        </Link>
+      </div>
     </div>
   );
 }
