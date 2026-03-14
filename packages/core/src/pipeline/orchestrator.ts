@@ -1,11 +1,6 @@
 import type { PrismaClient } from "@redgest/db";
 import type { DomainEventBus } from "../events/bus.js";
-import type {
-  DomainEvent,
-  DomainEventType,
-  DomainEventMap,
-} from "../events/types.js";
-import { persistEvent, type EventCreateClient } from "../events/persist.js";
+import { emitDomainEvent } from "../events/emit.js";
 import { getModel } from "@redgest/llm";
 import type { TriagePostCandidate, SummarizationComment } from "@redgest/llm";
 import { findPreviousPostIds } from "./dedup.js";
@@ -20,30 +15,6 @@ import type {
   PipelineResult,
   SubredditPipelineResult,
 } from "./types.js";
-
-async function emitEvent<K extends DomainEventType>(
-  db: PrismaClient,
-  eventBus: DomainEventBus,
-  type: K,
-  payload: DomainEventMap[K],
-  aggregateId: string,
-): Promise<void> {
-  const event: DomainEvent = {
-    type,
-    payload,
-    aggregateId,
-    aggregateType: "job",
-    version: 1,
-    correlationId: null,
-    causationId: null,
-    metadata: {},
-    occurredAt: new Date(),
-  } as unknown as DomainEvent;
-
-  // PrismaClient satisfies EventCreateClient at runtime; Prisma's generated types are stricter
-  await persistEvent(db as unknown as EventCreateClient, event);
-  eventBus.emitEvent(event);
-}
 
 async function checkCancellation(
   jobId: string,
@@ -129,12 +100,13 @@ export async function runDigestPipeline(
     }
     // Best-effort: emit failure event
     try {
-      await emitEvent(
+      await emitDomainEvent(
         db,
         eventBus,
         "DigestFailed",
         { jobId, error: message },
         jobId,
+        "job",
       );
     } catch {
       // Event persistence may fail — swallow
@@ -175,15 +147,16 @@ async function runPipelineBody(
         : { isActive: true },
   });
 
-  // 3. Load config for global insight prompt + maxDigestPosts
-  const dbConfig = await db.config.findFirst();
+  // 3. Load config + job profile in parallel (independent queries)
+  const [dbConfig, job] = await Promise.all([
+    db.config.findFirst(),
+    db.job.findUnique({
+      where: { id: jobId },
+      select: { profileId: true },
+    }),
+  ]);
   const globalInsightPrompt = dbConfig?.globalInsightPrompt ?? "";
 
-  // 3b. Load profile if job is associated with one
-  const job = await db.job.findUnique({
-    where: { id: jobId },
-    select: { profileId: true },
-  });
   const profile = job?.profileId
     ? await db.digestProfile.findUnique({ where: { id: job.profileId } })
     : null;
@@ -262,12 +235,13 @@ async function runPipelineBody(
         });
       }
 
-      await emitEvent(
+      await emitDomainEvent(
         db,
         eventBus,
         "PostsFetched",
         { jobId, subreddit: sub.name, count: fetchResult.posts.length },
         jobId,
+        "job",
       );
 
       // Dedup
@@ -340,7 +314,7 @@ async function runPipelineBody(
       where: { id: jobId },
       data: { status: "FAILED", completedAt: new Date(), error: errorMessage },
     });
-    await emitEvent(db, eventBus, "DigestFailed", { jobId, error: errorMessage }, jobId);
+    await emitDomainEvent(db, eventBus, "DigestFailed", { jobId, error: errorMessage }, jobId, "job");
     return { jobId, status: "FAILED", subredditResults, errors };
   }
 
@@ -373,12 +347,13 @@ async function runPipelineBody(
   );
 
   const triageSubreddits = [...new Set(fetchedSubreddits)];
-  await emitEvent(
+  await emitDomainEvent(
     db,
     eventBus,
     "PostsTriaged",
     { jobId, selectedCount: triageResult.selected.length, subreddits: triageSubreddits },
     jobId,
+    "job",
   );
 
   // ─── PHASE 3: SUMMARIZE selected posts (per-post error recovery) ───
@@ -514,12 +489,13 @@ async function runPipelineBody(
     }
   }
 
-  await emitEvent(
+  await emitDomainEvent(
     db,
     eventBus,
     "PostsSummarized",
     { jobId, summaryCount: summarizedPosts.length },
     jobId,
+    "job",
   );
 
   // ─── PHASE 4: GROUP results by subreddit + ASSEMBLE ───
@@ -578,12 +554,13 @@ async function runPipelineBody(
       data: { status: "FAILED", completedAt: new Date(), error: errorMessage },
     });
 
-    await emitEvent(
+    await emitDomainEvent(
       db,
       eventBus,
       "DigestFailed",
       { jobId, error: errorMessage },
       jobId,
+      "job",
     );
 
     return { jobId, status: "FAILED", subredditResults, errors };
@@ -603,7 +580,7 @@ async function runPipelineBody(
     },
   });
 
-  await emitEvent(
+  await emitDomainEvent(
     db,
     eventBus,
     "DigestCompleted",
@@ -612,6 +589,7 @@ async function runPipelineBody(
       digestId: assembleResult.digestId,
     },
     jobId,
+    "job",
   );
 
   return {

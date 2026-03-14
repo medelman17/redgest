@@ -54,6 +54,7 @@ function makeDb() {
   return {
     post: {
       findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
       upsert: vi.fn().mockResolvedValue(upsertReturn),
     },
     postComment: {
@@ -289,7 +290,9 @@ describe("fetchStep", () => {
     source = makeSource(content);
 
     // Simulate existing post with score 60
-    (db.post.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ score: 60 });
+    (db.post.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { redditId: "reddit-post-1", score: 60 },
+    ]);
 
     await fetchStep(subredditConfig, source, db);
 

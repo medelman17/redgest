@@ -29,10 +29,11 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
     maxPosts?: number,
   ): Promise<void> {
     try {
-      const overrides: Partial<typeof pipelineDeps> = {};
-      if (forceRefresh) overrides.forceRefresh = true;
-      if (maxPosts !== undefined) overrides.maxPosts = maxPosts;
-      const deps = Object.keys(overrides).length > 0 ? { ...pipelineDeps, ...overrides } : pipelineDeps;
+      const deps = {
+        ...pipelineDeps,
+        ...(forceRefresh ? { forceRefresh: true as const } : {}),
+        ...(maxPosts !== undefined ? { maxPosts } : {}),
+      };
       await runDigestPipeline(jobId, subredditIds, deps);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

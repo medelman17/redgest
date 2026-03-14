@@ -1,8 +1,7 @@
 import type { PrismaClient } from "@redgest/db";
 import { sanitizeContent } from "@redgest/reddit";
 import type { DomainEventBus } from "./events/bus.js";
-import type { DomainEvent, DomainEventType, DomainEventMap } from "./events/types.js";
-import { persistEvent, type EventCreateClient } from "./events/persist.js";
+import { emitDomainEvent } from "./events/emit.js";
 import type { ContentSource } from "./pipeline/types.js";
 
 export interface CrawlResult {
@@ -17,32 +16,6 @@ export interface CrawlDeps {
   db: PrismaClient;
   eventBus: DomainEventBus;
   contentSource: ContentSource;
-}
-
-async function emitCrawlEvent<K extends DomainEventType>(
-  db: PrismaClient,
-  eventBus: DomainEventBus,
-  type: K,
-  payload: DomainEventMap[K],
-  aggregateId: string,
-): Promise<void> {
-  // Build envelope via Record — single cast follows dispatch.ts buildEvent() pattern
-  const envelope: Record<string, unknown> = {
-    type,
-    payload,
-    aggregateId,
-    aggregateType: "subreddit",
-    version: 1,
-    correlationId: null,
-    causationId: null,
-    metadata: {},
-    occurredAt: new Date(),
-  };
-  const event = envelope as DomainEvent;
-
-  // PrismaClient satisfies EventCreateClient at runtime; Prisma's generated types are stricter
-  await persistEvent(db as unknown as EventCreateClient, event);
-  eventBus.emitEvent(event);
 }
 
 /**
@@ -70,17 +43,23 @@ export async function runCrawl(
     let newPostCount = 0;
     let updatedPostCount = 0;
 
-    for (const { post, comments } of content.posts) {
-      if (post.over_18 && !sub.includeNsfw) continue;
+    // Bulk load existing scores to avoid N+1 findUnique per post
+    const eligiblePosts = content.posts.filter(
+      ({ post }) => !(post.over_18 && !sub.includeNsfw),
+    );
+    const existingPosts = await db.post.findMany({
+      where: { redditId: { in: eligiblePosts.map(({ post }) => post.id) } },
+      select: { redditId: true, score: true },
+    });
+    const scoreByRedditId = new Map(
+      existingPosts.map((p) => [p.redditId, p.score]),
+    );
 
-      // Compute scoreDelta
-      const existing = await db.post.findUnique({
-        where: { redditId: post.id },
-        select: { score: true },
-      });
-      const scoreDelta = existing ? post.score - existing.score : 0;
+    for (const { post, comments } of eligiblePosts) {
+      const prevScore = scoreByRedditId.get(post.id);
+      const scoreDelta = prevScore !== undefined ? post.score - prevScore : 0;
 
-      if (existing) {
+      if (prevScore !== undefined) {
         updatedPostCount++;
       } else {
         newPostCount++;
@@ -147,18 +126,19 @@ export async function runCrawl(
       updatedPostCount,
     };
 
-    await emitCrawlEvent(db, eventBus, "CrawlCompleted", result, subredditId);
+    await emitDomainEvent(db, eventBus, "CrawlCompleted", result, subredditId, "subreddit");
 
     return result;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
 
-    await emitCrawlEvent(
+    await emitDomainEvent(
       db,
       eventBus,
       "CrawlFailed",
       { subredditId, subreddit: sub.name, error },
       subredditId,
+      "subreddit",
     );
 
     throw err;

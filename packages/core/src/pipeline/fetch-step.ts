@@ -89,16 +89,21 @@ export async function fetchStep(
 
   const results: FetchStepResult["posts"] = [];
 
-  for (const { post, comments } of content.posts) {
-    // Skip NSFW if not allowed
-    if (post.over_18 && !subreddit.includeNsfw) continue;
+  // Filter eligible posts, then bulk load existing scores to avoid N+1
+  const eligiblePosts = content.posts.filter(
+    ({ post }) => !(post.over_18 && !subreddit.includeNsfw),
+  );
+  const existingPosts = await db.post.findMany({
+    where: { redditId: { in: eligiblePosts.map(({ post }) => post.id) } },
+    select: { redditId: true, score: true },
+  });
+  const scoreByRedditId = new Map(
+    existingPosts.map((p) => [p.redditId, p.score]),
+  );
 
-    // Compute scoreDelta before upsert
-    const existing = await db.post.findUnique({
-      where: { redditId: post.id },
-      select: { score: true },
-    });
-    const scoreDelta = existing ? post.score - existing.score : 0;
+  for (const { post, comments } of eligiblePosts) {
+    const prevScore = scoreByRedditId.get(post.id);
+    const scoreDelta = prevScore !== undefined ? post.score - prevScore : 0;
 
     // Upsert post (redditId is unique)
     const dbPost = await db.post.upsert({

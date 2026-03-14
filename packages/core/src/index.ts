@@ -9,6 +9,7 @@ export type {
 } from "./events/types.js";
 export { DomainEventBus } from "./events/bus.js";
 export { persistEvent, type EventCreateClient } from "./events/persist.js";
+export { emitDomainEvent } from "./events/emit.js";
 export { eventPayloadSchemas, parseEventPayload } from "./events/schemas.js";
 
 // Commands
