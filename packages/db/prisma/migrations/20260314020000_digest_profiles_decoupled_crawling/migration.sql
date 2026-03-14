@@ -73,8 +73,11 @@ FROM digest_profiles dp, subreddits s
 WHERE dp.name = 'Default' AND s.is_active = true;
 
 -- ─── Update subreddit_view to include crawl fields ───────
+-- DROP required: CREATE OR REPLACE VIEW cannot reorder/insert columns
+-- (Postgres error: "cannot change name of view column")
 
-CREATE OR REPLACE VIEW subreddit_view AS
+DROP VIEW IF EXISTS subreddit_view;
+CREATE VIEW subreddit_view AS
 WITH digest_stats AS (
   SELECT
     dp.subreddit,
