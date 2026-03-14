@@ -23,21 +23,36 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import type { SerializedSubreddit, ActionResult } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type {
+  SerializedSubreddit,
+  SerializedProfile,
+  ActionResult,
+} from "@/lib/types";
 
 interface DigestTriggerFormProps {
   subreddits: SerializedSubreddit[];
+  profiles: SerializedProfile[];
   defaultLookbackHours: number;
 }
 
 export function DigestTriggerForm({
   subreddits,
+  profiles,
   defaultLookbackHours,
 }: DigestTriggerFormProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(subreddits.map((s) => s.id)),
   );
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>("custom");
+  const [lookbackHours, setLookbackHours] = useState(defaultLookbackHours);
 
   const [state, formAction, isPending] = useActionState(
     async (
@@ -73,6 +88,16 @@ export function DigestTriggerForm({
     }
   };
 
+  const handleProfileChange = (value: string) => {
+    setSelectedProfileId(value);
+    if (value === "custom") return;
+    const profile = profiles.find((p) => p.profileId === value);
+    if (!profile) return;
+    const subList = profile.subredditList as Array<{ id: string; name: string }>;
+    setSelectedIds(new Set(subList.map((s) => s.id)));
+    setLookbackHours(profile.lookbackHours);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -83,12 +108,45 @@ export function DigestTriggerForm({
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-6">
-            {/* Hidden field with selected subreddit IDs */}
+            {/* Hidden fields */}
             <input
               type="hidden"
               name="subredditIds"
               value={Array.from(selectedIds).join(",")}
             />
+            {selectedProfileId !== "custom" && (
+              <input
+                type="hidden"
+                name="profileId"
+                value={selectedProfileId}
+              />
+            )}
+
+            {/* Profile selection */}
+            {profiles.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="profile">Profile</Label>
+                <Select
+                  value={selectedProfileId}
+                  onValueChange={handleProfileChange}
+                >
+                  <SelectTrigger id="profile" className="w-64">
+                    <SelectValue placeholder="Select a profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">Custom</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.profileId} value={p.profileId}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Select a profile to pre-fill subreddits and lookback hours
+                </p>
+              </div>
+            )}
 
             {/* Subreddit selection */}
             <div className="space-y-3">
@@ -144,7 +202,8 @@ export function DigestTriggerForm({
                 type="number"
                 min={1}
                 max={168}
-                defaultValue={defaultLookbackHours}
+                value={lookbackHours}
+                onChange={(e) => setLookbackHours(Number(e.target.value))}
                 className="w-32"
               />
               <p className="text-xs text-muted-foreground">

@@ -1,16 +1,19 @@
-import { listSubreddits, getConfig } from "@/lib/dal";
-import { serializeSubreddit } from "@/lib/types";
+import { listSubreddits, getConfig, listProfiles } from "@/lib/dal";
+import { serializeSubreddit, serializeProfile } from "@/lib/types";
 import { parseLookbackHours } from "@/lib/utils";
 import { DigestTriggerForm } from "@/components/digest-trigger-form";
 
 export default async function TriggerPage() {
-  const [subreddits, config] = await Promise.all([
+  const [subreddits, config, profiles] = await Promise.all([
     listSubreddits(),
     getConfig(),
+    listProfiles(),
   ]);
   const serialized = subreddits
     .filter((s) => s.isActive)
     .map(serializeSubreddit);
+
+  const serializedProfiles = profiles.map(serializeProfile);
 
   const lookbackHours = config
     ? parseLookbackHours(config.defaultLookback)
@@ -28,6 +31,7 @@ export default async function TriggerPage() {
       </div>
       <DigestTriggerForm
         subreddits={serialized}
+        profiles={serializedProfiles}
         defaultLookbackHours={lookbackHours}
       />
     </div>
