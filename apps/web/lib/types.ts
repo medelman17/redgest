@@ -68,6 +68,29 @@ export type ProfileOptimisticAction =
   | { type: "remove"; id: string }
   | { type: "update"; id: string; changes: Partial<SerializedProfile> };
 
+/** Shape of items in the subredditList JSON column on ProfileView / DigestView. */
+export type SubredditListItem = { id: string; name: string };
+
+/** Extract an array of SubredditListItem from a Prisma JsonValue field. */
+export function parseSubredditList(value: unknown): SubredditListItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is SubredditListItem =>
+      item !== null &&
+      typeof item === "object" &&
+      "id" in item &&
+      "name" in item &&
+      typeof (item as SubredditListItem).id === "string" &&
+      typeof (item as SubredditListItem).name === "string",
+  );
+}
+
+/** Format subreddit list items as "r/foo, r/bar". Returns "—" if empty. */
+export function formatSubredditNames(value: unknown): string {
+  const items = parseSubredditList(value);
+  return items.length > 0 ? items.map((s) => `r/${s.name}`).join(", ") : "—";
+}
+
 /** Shared action result type -- matches Server Action return shapes in actions.ts */
 export type ActionResult<T = { subredditId: string }> =
   | { ok: true; data: T }

@@ -11,6 +11,12 @@ import {
   type ActionResult,
 } from "@/lib/types";
 
+// --- Helpers ---
+
+function parseCommaSeparated(value: unknown): string[] | undefined {
+  return typeof value === "string" && value ? value.split(",") : undefined;
+}
+
 // --- Schemas ---
 
 // Helper: FormData sends booleans as "on"/"true" strings
@@ -181,10 +187,7 @@ export async function generateDigestAction(
   formData: FormData,
 ): Promise<ActionResult<{ jobId: string; status: string }>> {
   const raw = Object.fromEntries(formData.entries());
-  // Handle subredditIds as comma-separated or array
-  const subredditIds = typeof raw.subredditIds === "string" && raw.subredditIds
-    ? raw.subredditIds.split(",")
-    : undefined;
+  const subredditIds = parseCommaSeparated(raw.subredditIds);
   const parsed = generateDigestSchema.safeParse({
     ...raw,
     subredditIds,
@@ -228,10 +231,7 @@ export async function createProfileAction(
   formData: FormData,
 ): Promise<ActionResult<{ profileId: string }>> {
   const raw = Object.fromEntries(formData.entries());
-  const subredditIds =
-    typeof raw.subredditIds === "string" && raw.subredditIds
-      ? raw.subredditIds.split(",")
-      : undefined;
+  const subredditIds = parseCommaSeparated(raw.subredditIds);
   const parsed = createProfileSchema.safeParse({ ...raw, subredditIds });
   if (!parsed.success) {
     return {
@@ -256,10 +256,7 @@ export async function updateProfileAction(
   formData: FormData,
 ): Promise<ActionResult<{ profileId: string }>> {
   const raw = Object.fromEntries(formData.entries());
-  const subredditIds =
-    typeof raw.subredditIds === "string" && raw.subredditIds
-      ? raw.subredditIds.split(",")
-      : undefined;
+  const subredditIds = parseCommaSeparated(raw.subredditIds);
   const parsed = updateProfileSchema.safeParse({ ...raw, subredditIds });
   if (!parsed.success) {
     return {

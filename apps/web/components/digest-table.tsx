@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,10 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { JobStatus } from "@redgest/db/enums";
 import { DigestContent } from "@/components/digest-content";
 import { DeliveryBadges } from "@/components/delivery-badges";
 import { fetchDeliveryStatus } from "@/lib/actions";
-import type { SerializedDigest } from "@/lib/types";
+import { formatSubredditNames, type SerializedDigest } from "@/lib/types";
 import type { DeliveryStatusChannel } from "@redgest/core";
 
 interface DigestTableProps {
@@ -24,15 +25,10 @@ interface DigestTableProps {
 function statusVariant(
   status: string,
 ): "default" | "secondary" | "destructive" | "outline" {
-  if (status === "COMPLETED") return "default";
-  if (status === "PARTIAL") return "secondary";
-  if (status === "FAILED") return "destructive";
+  if (status === JobStatus.COMPLETED) return "default";
+  if (status === JobStatus.PARTIAL) return "secondary";
+  if (status === JobStatus.FAILED) return "destructive";
   return "outline";
-}
-
-function parseSubreddits(subredditList: unknown): string {
-  if (!Array.isArray(subredditList)) return "";
-  return (subredditList as string[]).join(", ");
 }
 
 export function DigestTable({ digests }: DigestTableProps) {
@@ -87,9 +83,8 @@ export function DigestTable({ digests }: DigestTableProps) {
             const channels = deliveryCache[digest.digestId];
 
             return (
-              <>
+              <Fragment key={digest.digestId}>
                 <TableRow
-                  key={digest.digestId}
                   className="cursor-pointer"
                   onClick={() => toggleRow(digest.digestId)}
                 >
@@ -105,7 +100,7 @@ export function DigestTable({ digests }: DigestTableProps) {
                   </TableCell>
                   <TableCell className="text-sm">{digest.postCount}</TableCell>
                   <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
-                    {parseSubreddits(digest.subredditList)}
+                    {formatSubredditNames(digest.subredditList)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant(digest.jobStatus)}>
@@ -146,7 +141,7 @@ export function DigestTable({ digests }: DigestTableProps) {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </TableBody>

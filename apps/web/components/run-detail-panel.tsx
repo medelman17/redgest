@@ -2,14 +2,45 @@
 
 import { useActionState, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Markdown from "react-markdown";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { JobStatus } from "@redgest/db/enums";
 import { fetchDigestForJob, cancelRunAction } from "@/lib/actions";
 import { useActionToast } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
-import type { ActionResult } from "@/lib/types";
+import { DigestContent } from "@/components/digest-content";
+import { formatSubredditNames, type ActionResult } from "@/lib/types";
+
+function CancelForm({
+  jobId,
+  cancelAction,
+  isCanceling,
+}: {
+  jobId: string;
+  cancelAction: (payload: FormData) => void;
+  isCanceling: boolean;
+}) {
+  return (
+    <form
+      action={(fd: FormData) => {
+        startTransition(() => cancelAction(fd));
+      }}
+    >
+      <input type="hidden" name="jobId" value={jobId} />
+      <Button
+        type="submit"
+        variant="destructive"
+        size="sm"
+        disabled={isCanceling}
+      >
+        {isCanceling && (
+          <Loader2 className="mr-1.5 size-4 animate-spin" />
+        )}
+        Cancel Run
+      </Button>
+    </form>
+  );
+}
 
 interface RunDetailPanelProps {
   jobId: string;
@@ -38,35 +69,13 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
 
   useActionToast(cancelState, "Run canceled");
 
-  const isActive =
-    status === JobStatus.QUEUED || status === JobStatus.RUNNING;
-
   if (status === JobStatus.QUEUED) {
     return (
       <div className="space-y-4 py-6 text-center">
         <p className="text-sm text-muted-foreground">
           Job is queued — digest not yet available.
         </p>
-        {isActive && (
-          <form
-            action={(fd: FormData) => {
-              startTransition(() => cancelAction(fd));
-            }}
-          >
-            <input type="hidden" name="jobId" value={jobId} />
-            <Button
-              type="submit"
-              variant="destructive"
-              size="sm"
-              disabled={isCanceling}
-            >
-              {isCanceling && (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              )}
-              Cancel Run
-            </Button>
-          </form>
-        )}
+        <CancelForm jobId={jobId} cancelAction={cancelAction} isCanceling={isCanceling} />
       </div>
     );
   }
@@ -110,32 +119,13 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
             : "No digest available for this run."}
         </p>
         {status === JobStatus.RUNNING && (
-          <form
-            action={(fd: FormData) => {
-              startTransition(() => cancelAction(fd));
-            }}
-          >
-            <input type="hidden" name="jobId" value={jobId} />
-            <Button
-              type="submit"
-              variant="destructive"
-              size="sm"
-              disabled={isCanceling}
-            >
-              {isCanceling && (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              )}
-              Cancel Run
-            </Button>
-          </form>
+          <CancelForm jobId={jobId} cancelAction={cancelAction} isCanceling={isCanceling} />
         )}
       </div>
     );
   }
 
-  const subreddits = Array.isArray(digest.subredditList)
-    ? (digest.subredditList as string[]).join(", ")
-    : "";
+  const subreddits = formatSubredditNames(digest.subredditList);
 
   return (
     <div className="min-w-0 space-y-3 py-4">
@@ -143,17 +133,15 @@ export function RunDetailPanel({ jobId, status, error }: RunDetailPanelProps) {
         <span>
           <strong className="text-foreground">{digest.postCount}</strong> posts
         </span>
-        {subreddits && <span>{subreddits}</span>}
+        {subreddits !== "—" && <span>{subreddits}</span>}
       </div>
       {digest.contentHtml ? (
         <div
-          className="prose prose-invert prose-sm max-w-none break-words"
+          className="prose prose-sm dark:prose-invert max-w-none break-words"
           dangerouslySetInnerHTML={{ __html: digest.contentHtml }}
         />
       ) : digest.contentMarkdown ? (
-        <div className="prose prose-invert prose-sm max-w-none break-words">
-          <Markdown>{digest.contentMarkdown}</Markdown>
-        </div>
+        <DigestContent markdown={digest.contentMarkdown} />
       ) : null}
       <div className="flex justify-end pt-2">
         <Link href="/digests" className="text-xs text-primary hover:underline">

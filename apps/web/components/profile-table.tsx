@@ -17,10 +17,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type {
-  SerializedProfile,
-  SerializedSubreddit,
-  ProfileOptimisticAction,
+import {
+  formatSubredditNames,
+  type SerializedProfile,
+  type SerializedSubreddit,
+  type ProfileOptimisticAction,
 } from "@/lib/types";
 import { ProfileDialog } from "@/components/profile-dialog";
 import { DeleteProfileDialog } from "@/components/delete-profile-dialog";
@@ -28,20 +29,6 @@ import { DeleteProfileDialog } from "@/components/delete-profile-dialog";
 interface ProfileTableProps {
   profiles: SerializedProfile[];
   subreddits: SerializedSubreddit[];
-}
-
-function getSubredditNames(subredditList: unknown): string {
-  if (!Array.isArray(subredditList)) return "—";
-  const names = subredditList
-    .map((item) => {
-      if (item !== null && typeof item === "object" && "name" in item) {
-        const name = (item as { name?: unknown }).name;
-        return typeof name === "string" ? name : null;
-      }
-      return null;
-    })
-    .filter((n): n is string => n !== null);
-  return names.length > 0 ? names.map((n) => `r/${n}`).join(", ") : "—";
 }
 
 function getDeliveryBadgeVariant(
@@ -125,25 +112,26 @@ export function ProfileTable({ profiles, subreddits }: ProfileTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {optimisticProfiles.map((profile) => (
+              {optimisticProfiles.map((profile) => {
+                const subNames = formatSubredditNames(profile.subredditList);
+                return (
                 <TableRow key={profile.profileId}>
                   <TableCell className="font-mono font-medium">
                     {profile.name}
                   </TableCell>
                   <TableCell className="max-w-[200px]">
-                    {Array.isArray(profile.subredditList) &&
-                    profile.subredditList.length > 0 ? (
+                    {subNames !== "—" ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="block cursor-default truncate text-sm">
-                            {getSubredditNames(profile.subredditList)}
+                            {subNames}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent
                           side="bottom"
                           className="max-w-sm whitespace-pre-wrap"
                         >
-                          {getSubredditNames(profile.subredditList)}
+                          {subNames}
                         </TooltipContent>
                       </Tooltip>
                     ) : (
@@ -201,7 +189,8 @@ export function ProfileTable({ profiles, subreddits }: ProfileTableProps) {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </>

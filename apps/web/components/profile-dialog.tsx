@@ -19,11 +19,12 @@ import {
   createProfileAction,
   updateProfileAction,
 } from "@/lib/actions";
-import type {
-  SerializedProfile,
-  SerializedSubreddit,
-  ActionResult,
-  ProfileOptimisticAction,
+import {
+  parseSubredditList,
+  type SerializedProfile,
+  type SerializedSubreddit,
+  type ActionResult,
+  type ProfileOptimisticAction,
 } from "@/lib/types";
 
 interface ProfileDialogProps {
@@ -33,19 +34,6 @@ interface ProfileDialogProps {
   onOpenChange: (open: boolean) => void;
   onOptimistic: (action: ProfileOptimisticAction) => void;
   subreddits: SerializedSubreddit[];
-}
-
-function parseSubredditIds(subredditList: unknown): string[] {
-  if (!Array.isArray(subredditList)) return [];
-  return subredditList
-    .map((item) => {
-      if (item !== null && typeof item === "object" && "id" in item) {
-        const id = (item as { id?: unknown }).id;
-        return typeof id === "string" ? id : null;
-      }
-      return null;
-    })
-    .filter((id): id is string => id !== null);
 }
 
 export function ProfileDialog({
@@ -64,7 +52,7 @@ export function ProfileDialog({
 
   const initialSubredditIds =
     mode === "edit" && profile
-      ? parseSubredditIds(profile.subredditList)
+      ? parseSubredditList(profile.subredditList).map((s) => s.id)
       : [];
   const [selectedSubredditIds, setSelectedSubredditIds] =
     useState<string[]>(initialSubredditIds);

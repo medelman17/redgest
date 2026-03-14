@@ -30,10 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type {
-  SerializedSubreddit,
-  SerializedProfile,
-  ActionResult,
+import {
+  parseSubredditList,
+  type SerializedSubreddit,
+  type SerializedProfile,
+  type ActionResult,
 } from "@/lib/types";
 
 interface DigestTriggerFormProps {
@@ -93,7 +94,7 @@ export function DigestTriggerForm({
     if (value === "custom") return;
     const profile = profiles.find((p) => p.profileId === value);
     if (!profile) return;
-    const subList = profile.subredditList as Array<{ id: string; name: string }>;
+    const subList = parseSubredditList(profile.subredditList);
     setSelectedIds(new Set(subList.map((s) => s.id)));
     setLookbackHours(profile.lookbackHours);
   };
