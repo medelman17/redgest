@@ -107,6 +107,7 @@ export const ConfigScalarFieldEnum = {
   globalInsightPrompt: 'globalInsightPrompt',
   defaultLookback: 'defaultLookback',
   defaultDelivery: 'defaultDelivery',
+  maxDigestPosts: 'maxDigestPosts',
   llmProvider: 'llmProvider',
   llmModel: 'llmModel',
   schedule: 'schedule',

@@ -73,13 +73,17 @@ function buildSteps(events: EventRow[]): RunStatusSteps {
           completedAt: timestamp,
         });
         break;
-      case "PostsTriaged":
+      case "PostsTriaged": {
+        // Global triage: subreddits is an array; legacy: subreddit is a string
+        const subs = payload["subreddits"];
+        const subredditLabel = Array.isArray(subs) ? (subs as string[]).join(", ") : String(payload["subreddit"] ?? "");
         triage.push({
-          subreddit: String(payload["subreddit"] ?? ""),
+          subreddit: subredditLabel,
           count: Number(payload["selectedCount"] ?? 0),
           completedAt: timestamp,
         });
         break;
+      }
       case "PostsSummarized":
         summarize.push({
           subreddit: String(payload["subreddit"] ?? ""),

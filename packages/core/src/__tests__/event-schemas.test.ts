@@ -66,8 +66,8 @@ describe("eventPayloadSchemas", () => {
   it("validates PostsTriaged payload", () => {
     const result = parseEventPayload("PostsTriaged", {
       jobId: "job-1",
-      subreddit: "typescript",
       selectedCount: 5,
+      subreddits: ["typescript", "rust"],
     });
     expect(result.success).toBe(true);
   });
@@ -75,7 +75,6 @@ describe("eventPayloadSchemas", () => {
   it("validates PostsSummarized payload", () => {
     const result = parseEventPayload("PostsSummarized", {
       jobId: "job-1",
-      subreddit: "typescript",
       summaryCount: 5,
     });
     expect(result.success).toBe(true);

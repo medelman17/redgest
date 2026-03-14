@@ -199,6 +199,7 @@ export function createToolHandlers(
             subredditIds,
             lookbackHours: parseLookback(lookback),
             forceRefresh: args.force_refresh as boolean | undefined,
+            maxPosts: args.max_posts as number | undefined,
           },
           eCtx,
         );
@@ -449,6 +450,7 @@ export function createToolHandlers(
           {
             globalInsightPrompt: args.globalInsightPrompt as string | undefined,
             defaultLookbackHours: args.defaultLookbackHours as number | undefined,
+            maxDigestPosts: args.maxDigestPosts as number | undefined,
             llmProvider: args.llmProvider as string | undefined,
             llmModel: args.llmModel as string | undefined,
             defaultDelivery: args.defaultDelivery as DeliveryChannel | undefined,
@@ -726,6 +728,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
       subreddits: z.array(z.string()).optional().describe("Subreddit names or IDs to include (omit for all active)"),
       lookback: z.string().optional().describe('Lookback window: number + unit, e.g. "48h", "2d", "30m" (default: 24h)'),
       force_refresh: z.boolean().optional().describe("Bypass fetch cache and always hit Reddit API"),
+      max_posts: z.number().optional().describe("Max total posts to include in the digest (overrides config.maxDigestPosts, default: 5)"),
     },
     async (args) => call("generate_digest", args),
   );
@@ -904,6 +907,7 @@ export function createToolServer(deps: BootstrapResult): McpServer {
     {
       globalInsightPrompt: z.string().optional().describe("Global insight prompt"),
       defaultLookbackHours: z.number().optional().describe("Default lookback window in hours"),
+      maxDigestPosts: z.number().optional().describe("Max total posts per digest across all subreddits (default: 5)"),
       llmProvider: z.string().optional().describe("LLM provider (anthropic, openai)"),
       llmModel: z.string().optional().describe("LLM model name"),
       defaultDelivery: z.enum(["NONE", "EMAIL", "SLACK", "ALL"]).optional().describe("Default delivery channel for digests"),

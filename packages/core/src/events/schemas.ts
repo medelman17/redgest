@@ -13,6 +13,7 @@ export const eventPayloadSchemas = {
     jobId: z.string(),
     subredditIds: z.array(z.string()),
     forceRefresh: z.boolean().optional(),
+    maxPosts: z.number().optional(),
   }),
   DigestCompleted: z.object({
     jobId: z.string(),
@@ -32,12 +33,11 @@ export const eventPayloadSchemas = {
   }),
   PostsTriaged: z.object({
     jobId: z.string(),
-    subreddit: z.string(),
     selectedCount: z.number(),
+    subreddits: z.array(z.string()),
   }),
   PostsSummarized: z.object({
     jobId: z.string(),
-    subreddit: z.string(),
     summaryCount: z.number(),
   }),
   SubredditAdded: z.object({

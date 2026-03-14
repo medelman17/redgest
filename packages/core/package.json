@@ -19,6 +19,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@trigger.dev/sdk": "^4.4.3",
     "@types/node": "^25.3.5"
   }
 }

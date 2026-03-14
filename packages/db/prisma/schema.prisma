@@ -73,6 +73,7 @@ model Config {
   globalInsightPrompt String          @map("global_insight_prompt") @db.Text
   defaultLookback     String          @default("24h") @map("default_lookback")
   defaultDelivery     DeliveryChannel @default(NONE) @map("default_delivery")
+  maxDigestPosts      Int             @default(5) @map("max_digest_posts")
   llmProvider         String          @map("llm_provider")
   llmModel            String          @map("llm_model")
   schedule            String?

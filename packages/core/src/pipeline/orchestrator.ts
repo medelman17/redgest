@@ -147,6 +147,15 @@ export async function runDigestPipeline(
   }
 }
 
+/** Tracks a fetched post alongside its source subreddit name. */
+interface PooledPost {
+  subreddit: string;
+  postId: string;
+  redditId: string;
+  post: import("./types.js").RedditPostData;
+  comments: import("./types.js").RedditCommentData[];
+}
+
 /** Inner pipeline body — extracted so the outer function can catch unhandled exceptions. */
 async function runPipelineBody(
   jobId: string,
@@ -165,9 +174,10 @@ async function runPipelineBody(
         : { isActive: true },
   });
 
-  // 3. Load config for global insight prompt
+  // 3. Load config for global insight prompt + maxDigestPosts
   const dbConfig = await db.config.findFirst();
   const globalInsightPrompt = dbConfig?.globalInsightPrompt ?? "";
+  const targetPostCount = deps.maxPosts ?? dbConfig?.maxDigestPosts ?? 5;
 
   // Read LLM model config at runtime (not boot time)
   // so config changes take effect without restart
@@ -190,9 +200,17 @@ async function runPipelineBody(
     return { jobId, status: "CANCELED", subredditResults: [], errors: [] };
   }
 
-  // 5. Process each subreddit
-  const subredditResults: SubredditPipelineResult[] = [];
+  // ─── PHASE 1: FETCH from all subreddits (per-sub error recovery) ───
   const errors: string[] = [];
+  const fetchErrors: Map<string, string> = new Map();
+  const allNewPosts: PooledPost[] = [];
+  const allInsightPrompts: string[] = [];
+  const fetchedSubreddits: string[] = [];
+
+  // Collect global insight prompt
+  if (globalInsightPrompt.length > 0) {
+    allInsightPrompts.push(globalInsightPrompt);
+  }
 
   for (const sub of subreddits) {
     try {
@@ -201,7 +219,6 @@ async function runPipelineBody(
         break;
       }
 
-      // --- Fetch ---
       const forceRefresh = deps.forceRefresh ?? false;
       const fetchResult = await fetchStep(
         {
@@ -226,36 +243,31 @@ async function runPipelineBody(
         db,
         eventBus,
         "PostsFetched",
-        {
-          jobId,
-          subreddit: sub.name,
-          count: fetchResult.posts.length,
-        },
+        { jobId, subreddit: sub.name, count: fetchResult.posts.length },
         jobId,
       );
 
-      // --- Dedup ---
+      // Dedup
       const newPosts = fetchResult.posts.filter(
         (p) => !previousPostIds.has(p.redditId),
       );
 
-      if (newPosts.length === 0) {
-        subredditResults.push({ subreddit: sub.name, posts: [] });
-        continue;
+      for (const p of newPosts) {
+        allNewPosts.push({
+          subreddit: sub.name,
+          postId: p.postId,
+          redditId: p.redditId,
+          post: p.post,
+          comments: p.comments,
+        });
       }
 
-      // Checkpoint: before triage
-      if (await checkCancellation(jobId, db)) {
-        break;
+      // Collect per-sub insight prompt
+      if (sub.insightPrompt && sub.insightPrompt.length > 0) {
+        allInsightPrompts.push(sub.insightPrompt);
       }
 
-      // --- Build insight prompts ---
-      const insightPrompts = [globalInsightPrompt, sub.insightPrompt].filter(
-        (p): p is string => p != null && p.length > 0,
-      );
-
-      // --- Historical context for triage (best-effort) ---
-      const enrichedPrompts = [...insightPrompts];
+      // Historical context for triage (best-effort)
       if (deps.searchService) {
         try {
           const recentHistory = await deps.searchService.searchByKeyword(
@@ -266,7 +278,7 @@ async function runPipelineBody(
             const context = recentHistory
               .map((r) => `"${r.title}" (score: ${r.score})`)
               .join("; ");
-            enrichedPrompts.push(
+            allInsightPrompts.push(
               `Previously discussed topics in r/${sub.name}: ${context}. Prefer posts with NEW information or different perspectives.`,
             );
           }
@@ -275,187 +287,246 @@ async function runPipelineBody(
         }
       }
 
-      // --- Triage ---
-      const candidates: TriagePostCandidate[] = newPosts.map((p, i) => ({
-        index: i,
-        subreddit: p.post.subreddit,
-        title: p.post.title,
-        score: p.post.score,
-        numComments: p.post.num_comments,
-        createdUtc: p.post.created_utc,
-        selftext: p.post.selftext,
-      }));
-
-      const triageModel = runtimeModel ? getModel("triage", runtimeModel) : undefined;
-      const triageResult = await triageStep(
-        candidates,
-        enrichedPrompts,
-        sub.maxPosts,
-        db,
-        jobId,
-        triageModel,
-        deps.generateTriage as Parameters<typeof triageStep>[6],
-      );
-
-      await emitEvent(
-        db,
-        eventBus,
-        "PostsTriaged",
-        {
-          jobId,
-          subreddit: sub.name,
-          selectedCount: triageResult.selected.length,
-        },
-        jobId,
-      );
-
-      // --- Summarize selected posts concurrently (per-post error recovery) ---
-
-      // Pre-load embedding module once per subreddit (not per post)
-      let generateEmbeddingFn: ((text: string) => Promise<import("@redgest/llm").GenerateResult<number[]>>) | undefined;
-      if (process.env.OPENAI_API_KEY) {
-        try {
-          const llmMod = await import("@redgest/llm");
-          generateEmbeddingFn = llmMod.generateEmbedding;
-        } catch {
-          // Embedding unavailable — proceed without it
-        }
-      }
-
-      // Build work items (filter out invalid indices)
-      const workItems = triageResult.selected.flatMap((sel) => {
-        const postData = newPosts[sel.index];
-        return postData ? [{ sel, postData }] : [];
-      });
-
-      // Shared cancellation flag — once set, remaining workers skip
-      let canceled = false;
-      const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
-
-      type PostResult = SubredditPipelineResult["posts"][number];
-      const settled = await mapSettled(
-        workItems,
-        async ({ sel, postData }): Promise<PostResult | null> => {
-          // Skip if cancellation was detected by another concurrent worker
-          if (canceled) return null;
-
-          // Checkpoint: check cancellation before starting this post
-          if (await checkCancellation(jobId, db)) {
-            canceled = true;
-            return null;
-          }
-
-          const sumComments: SummarizationComment[] =
-            postData.comments.map((c) => ({
-              author: c.author,
-              score: c.score,
-              body: c.body,
-            }));
-
-          const sumResult = await summarizeStep(
-            {
-              title: postData.post.title,
-              subreddit: postData.post.subreddit,
-              author: postData.post.author,
-              score: postData.post.score,
-              selftext: postData.post.selftext,
-            },
-            sumComments,
-            enrichedPrompts,
-            jobId,
-            postData.postId,
-            db,
-            sumModel,
-            sel.rationale,
-            deps.generateSummary as Parameters<typeof summarizeStep>[8],
-          );
-
-          // --- Embedding (optional, best-effort) ---
-          if (generateEmbeddingFn) {
-            try {
-              const embResult = await generateEmbeddingFn(sumResult.summary.summary);
-              const vecStr = `[${embResult.data.join(",")}]`;
-              await db.$executeRaw`
-                UPDATE post_summaries SET embedding = ${vecStr}::vector WHERE id = ${sumResult.postSummaryId}
-              `;
-              if (embResult.log) {
-                await db.llmCall.create({
-                  data: {
-                    jobId,
-                    postId: postData.postId,
-                    task: "embed",
-                    model: embResult.log.model,
-                    inputTokens: embResult.log.inputTokens,
-                    outputTokens: embResult.log.outputTokens,
-                    durationMs: embResult.log.durationMs,
-                    cached: embResult.log.cached,
-                    finishReason: embResult.log.finishReason,
-                  },
-                });
-              }
-            } catch (err) {
-              console.error(
-                `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
-              );
-            }
-          }
-
-          // --- Topic extraction (best-effort) ---
-          try {
-            await topicStep(postData.postId, sumResult.summary, db);
-          } catch (err) {
-            console.error(
-              `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
-            );
-          }
-
-          return {
-            postId: postData.postId,
-            redditId: postData.redditId,
-            title: postData.post.title,
-            summary: sumResult.summary,
-            selectionRationale: sel.rationale,
-          };
-        },
-        SUMMARIZE_CONCURRENCY,
-      );
-
-      // Collect results and errors from settled promises
-      const postResults: SubredditPipelineResult["posts"] = [];
-      for (let i = 0; i < settled.length; i++) {
-        const s = settled[i];
-        if (!s) continue;
-        if (s.status === "fulfilled" && s.value !== null) {
-          postResults.push(s.value);
-        } else if (s.status === "rejected") {
-          const workItem = workItems[i];
-          const msg = s.reason instanceof Error ? s.reason.message : String(s.reason);
-          errors.push(
-            `Failed to summarize post ${workItem?.postData.redditId}: ${msg}`,
-          );
-        }
-      }
-
-      await emitEvent(
-        db,
-        eventBus,
-        "PostsSummarized",
-        {
-          jobId,
-          subreddit: sub.name,
-          summaryCount: postResults.length,
-        },
-        jobId,
-      );
-
-      subredditResults.push({ subreddit: sub.name, posts: postResults });
+      fetchedSubreddits.push(sub.name);
     } catch (err) {
-      // Per-subreddit error recovery
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Failed to process r/${sub.name}: ${msg}`);
-      subredditResults.push({ subreddit: sub.name, posts: [], error: msg });
+      fetchErrors.set(sub.name, msg);
     }
   }
+
+  // If canceled during fetch, assemble what we have
+  if (await checkCancellation(jobId, db)) {
+    return { jobId, status: "CANCELED", subredditResults: [], errors };
+  }
+
+  // No candidates at all — FAILED
+  if (allNewPosts.length === 0) {
+    // Build subredditResults for subs that had fetch errors
+    const subredditResults: SubredditPipelineResult[] = subreddits.map((sub) => {
+      const fetchError = fetchErrors.get(sub.name);
+      return {
+        subreddit: sub.name,
+        posts: [],
+        ...(fetchError ? { error: fetchError } : {}),
+      };
+    });
+
+    const errorMessage = errors.join("; ") || "No content produced";
+    await db.job.update({
+      where: { id: jobId },
+      data: { status: "FAILED", completedAt: new Date(), error: errorMessage },
+    });
+    await emitEvent(db, eventBus, "DigestFailed", { jobId, error: errorMessage }, jobId);
+    return { jobId, status: "FAILED", subredditResults, errors };
+  }
+
+  // ─── PHASE 2: POOL + TRIAGE (single global call) ───
+
+  // Checkpoint: before triage
+  if (await checkCancellation(jobId, db)) {
+    return { jobId, status: "CANCELED", subredditResults: [], errors };
+  }
+
+  const candidates: TriagePostCandidate[] = allNewPosts.map((p, i) => ({
+    index: i,
+    subreddit: p.post.subreddit,
+    title: p.post.title,
+    score: p.post.score,
+    numComments: p.post.num_comments,
+    createdUtc: p.post.created_utc,
+    selftext: p.post.selftext,
+  }));
+
+  const triageModel = runtimeModel ? getModel("triage", runtimeModel) : undefined;
+  const triageResult = await triageStep(
+    candidates,
+    allInsightPrompts,
+    targetPostCount,
+    db,
+    jobId,
+    triageModel,
+    deps.generateTriage as Parameters<typeof triageStep>[6],
+  );
+
+  const triageSubreddits = [...new Set(fetchedSubreddits)];
+  await emitEvent(
+    db,
+    eventBus,
+    "PostsTriaged",
+    { jobId, selectedCount: triageResult.selected.length, subreddits: triageSubreddits },
+    jobId,
+  );
+
+  // ─── PHASE 3: SUMMARIZE selected posts (per-post error recovery) ───
+
+  // Checkpoint: before summarize
+  if (await checkCancellation(jobId, db)) {
+    return { jobId, status: "CANCELED", subredditResults: [], errors };
+  }
+
+  // Pre-load embedding module once (not per post)
+  let generateEmbeddingFn: ((text: string) => Promise<import("@redgest/llm").GenerateResult<number[]>>) | undefined;
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const llmMod = await import("@redgest/llm");
+      generateEmbeddingFn = llmMod.generateEmbedding;
+    } catch {
+      // Embedding unavailable — proceed without it
+    }
+  }
+
+  // Build work items (filter out invalid indices)
+  const workItems = triageResult.selected.flatMap((sel) => {
+    const postData = allNewPosts[sel.index];
+    return postData ? [{ sel, postData }] : [];
+  });
+
+  // Shared cancellation flag — once set, remaining workers skip
+  let canceled = false;
+  const sumModel = runtimeModel ? getModel("summarize", runtimeModel) : undefined;
+
+  type PostResult = SubredditPipelineResult["posts"][number] & { subreddit: string };
+  const settled = await mapSettled(
+    workItems,
+    async ({ sel, postData }): Promise<PostResult | null> => {
+      // Skip if cancellation was detected by another concurrent worker
+      if (canceled) return null;
+
+      // Checkpoint: check cancellation before starting this post
+      if (await checkCancellation(jobId, db)) {
+        canceled = true;
+        return null;
+      }
+
+      const sumComments: SummarizationComment[] =
+        postData.comments.map((c) => ({
+          author: c.author,
+          score: c.score,
+          body: c.body,
+        }));
+
+      const sumResult = await summarizeStep(
+        {
+          title: postData.post.title,
+          subreddit: postData.post.subreddit,
+          author: postData.post.author,
+          score: postData.post.score,
+          selftext: postData.post.selftext,
+        },
+        sumComments,
+        allInsightPrompts,
+        jobId,
+        postData.postId,
+        db,
+        sumModel,
+        sel.rationale,
+        deps.generateSummary as Parameters<typeof summarizeStep>[8],
+      );
+
+      // --- Embedding (optional, best-effort) ---
+      if (generateEmbeddingFn) {
+        try {
+          const embResult = await generateEmbeddingFn(sumResult.summary.summary);
+          const vecStr = `[${embResult.data.join(",")}]`;
+          await db.$executeRaw`
+            UPDATE post_summaries SET embedding = ${vecStr}::vector WHERE id = ${sumResult.postSummaryId}
+          `;
+          if (embResult.log) {
+            await db.llmCall.create({
+              data: {
+                jobId,
+                postId: postData.postId,
+                task: "embed",
+                model: embResult.log.model,
+                inputTokens: embResult.log.inputTokens,
+                outputTokens: embResult.log.outputTokens,
+                durationMs: embResult.log.durationMs,
+                cached: embResult.log.cached,
+                finishReason: embResult.log.finishReason,
+              },
+            });
+          }
+        } catch (err) {
+          console.error(
+            `[Pipeline] Embedding failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
+
+      // --- Topic extraction (best-effort) ---
+      try {
+        await topicStep(postData.postId, sumResult.summary, db);
+      } catch (err) {
+        console.error(
+          `[Pipeline] Topic extraction failed for post ${postData.redditId}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+
+      return {
+        subreddit: postData.subreddit,
+        postId: postData.postId,
+        redditId: postData.redditId,
+        title: postData.post.title,
+        summary: sumResult.summary,
+        selectionRationale: sel.rationale,
+      };
+    },
+    SUMMARIZE_CONCURRENCY,
+  );
+
+  // Collect results and errors from settled promises
+  const summarizedPosts: PostResult[] = [];
+  for (let i = 0; i < settled.length; i++) {
+    const s = settled[i];
+    if (!s) continue;
+    if (s.status === "fulfilled" && s.value !== null) {
+      summarizedPosts.push(s.value);
+    } else if (s.status === "rejected") {
+      const workItem = workItems[i];
+      const msg = s.reason instanceof Error ? s.reason.message : String(s.reason);
+      errors.push(
+        `Failed to summarize post ${workItem?.postData.redditId}: ${msg}`,
+      );
+    }
+  }
+
+  await emitEvent(
+    db,
+    eventBus,
+    "PostsSummarized",
+    { jobId, summaryCount: summarizedPosts.length },
+    jobId,
+  );
+
+  // ─── PHASE 4: GROUP results by subreddit + ASSEMBLE ───
+
+  // Group summarized posts back into per-subreddit results (preserving triage order)
+  const postsBySubreddit = new Map<string, SubredditPipelineResult["posts"]>();
+  for (const post of summarizedPosts) {
+    let bucket = postsBySubreddit.get(post.subreddit);
+    if (!bucket) {
+      bucket = [];
+      postsBySubreddit.set(post.subreddit, bucket);
+    }
+    bucket.push({
+      postId: post.postId,
+      redditId: post.redditId,
+      title: post.title,
+      summary: post.summary,
+      selectionRationale: post.selectionRationale,
+    });
+  }
+
+  // Build SubredditPipelineResult[] for all subreddits (including those with no selected posts)
+  const subredditResults: SubredditPipelineResult[] = subreddits.map((sub) => {
+    const fetchError = fetchErrors.get(sub.name);
+    return {
+      subreddit: sub.name,
+      posts: postsBySubreddit.get(sub.name) ?? [],
+      ...(fetchError ? { error: fetchError } : {}),
+    };
+  });
 
   // Check if job was canceled — preserve CANCELED status
   if (await checkCancellation(jobId, db)) {
@@ -463,7 +534,6 @@ async function runPipelineBody(
       (sum, r) => sum + r.posts.length,
       0,
     );
-    // Assemble partial results if any content was generated
     if (canceledTotalPosts > 0) {
       await assembleStep(jobId, subredditResults, db);
     }

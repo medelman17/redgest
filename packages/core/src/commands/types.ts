@@ -9,6 +9,7 @@ export interface CommandMap {
     subredditIds?: string[];
     lookbackHours?: number;
     forceRefresh?: boolean;
+    maxPosts?: number;
   };
   AddSubreddit: {
     name: string;
@@ -29,6 +30,7 @@ export interface CommandMap {
   UpdateConfig: {
     globalInsightPrompt?: string;
     defaultLookbackHours?: number;
+    maxDigestPosts?: number;
     llmProvider?: string;
     llmModel?: string;
     defaultDelivery?: import("@redgest/db").DeliveryChannel;

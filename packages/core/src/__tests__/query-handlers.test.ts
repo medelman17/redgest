@@ -298,23 +298,13 @@ describe("handleGetRunStatus", () => {
       },
       {
         type: "PostsTriaged",
-        payload: { jobId: "j-1", subreddit: "typescript", selectedCount: 5 },
+        payload: { jobId: "j-1", selectedCount: 8, subreddits: ["typescript", "rust"] },
         createdAt: new Date("2026-03-12T10:00:12Z"),
       },
       {
-        type: "PostsTriaged",
-        payload: { jobId: "j-1", subreddit: "rust", selectedCount: 3 },
-        createdAt: new Date("2026-03-12T10:00:15Z"),
-      },
-      {
         type: "PostsSummarized",
-        payload: { jobId: "j-1", subreddit: "typescript", summaryCount: 5 },
+        payload: { jobId: "j-1", summaryCount: 8 },
         createdAt: new Date("2026-03-12T10:00:22Z"),
-      },
-      {
-        type: "PostsSummarized",
-        payload: { jobId: "j-1", subreddit: "rust", summaryCount: 3 },
-        createdAt: new Date("2026-03-12T10:00:25Z"),
       },
       {
         type: "DigestCompleted",
@@ -343,9 +333,11 @@ describe("handleGetRunStatus", () => {
       count: 25,
       completedAt: "2026-03-12T10:00:05.000Z",
     });
-    expect(result?.steps.triage).toHaveLength(2);
-    expect(result?.steps.triage[0]?.count).toBe(5);
-    expect(result?.steps.summarize).toHaveLength(2);
+    expect(result?.steps.triage).toHaveLength(1);
+    expect(result?.steps.triage[0]?.count).toBe(8);
+    expect(result?.steps.triage[0]?.subreddit).toBe("typescript, rust");
+    expect(result?.steps.summarize).toHaveLength(1);
+    expect(result?.steps.summarize[0]?.count).toBe(8);
     expect(result?.steps.assemble).toEqual({
       status: "completed",
       digestId: "d-1",

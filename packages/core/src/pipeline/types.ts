@@ -96,6 +96,9 @@ export interface PipelineDeps {
   /** Skip fetch cache — always fetch fresh from Reddit. */
   forceRefresh?: boolean;
 
+  /** Override the global max posts for this pipeline run (from generate_digest max_posts param). */
+  maxPosts?: number;
+
   /** Optional search service for historical context injection during triage. */
   searchService?: SearchService;
 

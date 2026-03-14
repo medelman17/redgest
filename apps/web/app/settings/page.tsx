@@ -8,6 +8,7 @@ const DEFAULT_CONFIG: Omit<SerializedConfig, "updatedAt"> = {
   globalInsightPrompt: "",
   defaultLookback: "24h",
   defaultDelivery: "NONE",
+  maxDigestPosts: 5,
   llmProvider: "anthropic",
   llmModel: "claude-sonnet-4-20250514",
   schedule: null,

@@ -26,9 +26,13 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
     jobId: string,
     subredditIds: string[],
     forceRefresh?: boolean,
+    maxPosts?: number,
   ): Promise<void> {
     try {
-      const deps = forceRefresh ? { ...pipelineDeps, forceRefresh } : pipelineDeps;
+      const overrides: Partial<typeof pipelineDeps> = {};
+      if (forceRefresh) overrides.forceRefresh = true;
+      if (maxPosts !== undefined) overrides.maxPosts = maxPosts;
+      const deps = Object.keys(overrides).length > 0 ? { ...pipelineDeps, ...overrides } : pipelineDeps;
       await runDigestPipeline(jobId, subredditIds, deps);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -49,13 +53,13 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
   }
 
   eventBus.on("DigestRequested", async (event) => {
-    const { jobId, subredditIds, forceRefresh } = event.payload;
+    const { jobId, subredditIds, forceRefresh, maxPosts } = event.payload;
 
     if (triggerSecretKey) {
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
-        // Note: Trigger.dev path does NOT propagate forceRefresh.
-        // The worker task would need to accept it as a payload field.
+        // Note: Trigger.dev path does NOT propagate forceRefresh/maxPosts.
+        // The worker task would need to accept them as payload fields.
         // Deferred to when worker tests are added (TD-005).
         await tasks.trigger("generate-digest", { jobId, subredditIds });
       } catch (err) {
@@ -63,10 +67,10 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
         console.error(
           `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
         );
-        await runInProcess(jobId, subredditIds, forceRefresh);
+        await runInProcess(jobId, subredditIds, forceRefresh, maxPosts);
       }
     } else {
-      await runInProcess(jobId, subredditIds, forceRefresh);
+      await runInProcess(jobId, subredditIds, forceRefresh, maxPosts);
     }
   });
 
