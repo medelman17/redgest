@@ -1,4 +1,4 @@
-import type { Config, SubredditView, RunView, DigestView } from "@redgest/db";
+import type { Config, SubredditView, RunView, DigestView, ProfileView } from "@redgest/db";
 
 /** Convert Date fields to strings for crossing the RSC → client boundary. */
 type Serialized<T> = {
@@ -52,6 +52,21 @@ export function serializeDigest(digest: DigestView): SerializedDigest {
     createdAt: digest.createdAt.toISOString(),
   };
 }
+
+export type SerializedProfile = Serialized<ProfileView>;
+
+export function serializeProfile(profile: ProfileView): SerializedProfile {
+  return {
+    ...profile,
+    createdAt: profile.createdAt.toISOString(),
+    updatedAt: profile.updatedAt.toISOString(),
+  };
+}
+
+export type ProfileOptimisticAction =
+  | { type: "add"; profile: SerializedProfile }
+  | { type: "remove"; id: string }
+  | { type: "update"; id: string; changes: Partial<SerializedProfile> };
 
 /** Shared action result type -- matches Server Action return shapes in actions.ts */
 export type ActionResult<T = { subredditId: string }> =
