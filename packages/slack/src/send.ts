@@ -1,8 +1,8 @@
-import type { DigestDeliveryData } from "@redgest/email";
+import type { FormattedDigest } from "@redgest/email";
 import { formatDigestBlocks } from "./format.js";
 
 export async function sendDigestSlack(
-  digest: DigestDeliveryData,
+  digest: FormattedDigest,
   webhookUrl: string,
 ): Promise<void> {
   const blocks = formatDigestBlocks(digest);

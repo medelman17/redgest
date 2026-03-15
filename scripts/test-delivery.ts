@@ -1,8 +1,9 @@
 import { config } from "dotenv";
 config({ override: true });
 import { prisma } from "@redgest/db";
-import { sendDigestEmail, buildDeliveryData } from "@redgest/email";
+import { sendDigestEmail, buildDeliveryData, buildFormattedDigest } from "@redgest/email";
 import { sendDigestSlack } from "@redgest/slack";
+import { generateDeliveryProse } from "@redgest/llm";
 
 const digestId = process.argv[2];
 if (!digestId) {
@@ -26,10 +27,27 @@ const digest = await prisma.digest.findUniqueOrThrow({
 
 const data = buildDeliveryData(digest);
 
+// Map to LLM input
+const llmInput = {
+  subreddits: data.subreddits.map((s) => ({
+    name: s.name,
+    posts: s.posts.map((p) => ({
+      title: p.title,
+      score: p.score,
+      summary: p.summary,
+      keyTakeaways: p.keyTakeaways,
+      insightNotes: p.insightNotes,
+      commentHighlights: p.commentHighlights,
+    })),
+  })),
+};
+
 // Send email
 try {
+  const { data: emailProse } = await generateDeliveryProse(llmInput, "email");
+  const emailFormatted = buildFormattedDigest(data, emailProse);
   const emailResult = await sendDigestEmail(
-    data,
+    emailFormatted,
     process.env.DELIVERY_EMAIL!,
     process.env.RESEND_API_KEY!,
   );
@@ -40,8 +58,10 @@ try {
 
 // Send Slack
 try {
+  const { data: slackProse } = await generateDeliveryProse(llmInput, "slack");
+  const slackFormatted = buildFormattedDigest(data, slackProse);
   const slackResult = await sendDigestSlack(
-    data,
+    slackFormatted,
     process.env.SLACK_WEBHOOK_URL!,
   );
   console.log("Slack sent:", JSON.stringify(slackResult));

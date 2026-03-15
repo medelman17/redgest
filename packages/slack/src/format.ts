@@ -1,4 +1,4 @@
-import type { DigestDeliveryData } from "@redgest/email";
+import type { FormattedDigest } from "@redgest/email";
 
 export interface SlackBlock {
   type: string;
@@ -6,7 +6,7 @@ export interface SlackBlock {
   elements?: Array<{ type: string; text: string }>;
 }
 
-export function formatDigestBlocks(digest: DigestDeliveryData): SlackBlock[] {
+export function formatDigestBlocks(digest: FormattedDigest): SlackBlock[] {
   const dateStr = digest.createdAt.toISOString().split("T")[0] ?? "";
   const blocks: SlackBlock[] = [
     {
@@ -17,33 +17,36 @@ export function formatDigestBlocks(digest: DigestDeliveryData): SlackBlock[] {
         emoji: true,
       },
     },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: digest.headline },
+    },
   ];
 
-  for (const sub of digest.subreddits) {
-    if (sub.posts.length === 0) continue;
+  for (const section of digest.sections) {
+    if (section.posts.length === 0) continue;
 
     blocks.push({ type: "divider" });
     blocks.push({
       type: "section",
-      text: { type: "mrkdwn", text: `*r/${sub.name}*` },
+      text: { type: "mrkdwn", text: `*r/${section.subreddit}*` },
+    });
+    blocks.push({
+      type: "section",
+      text: { type: "mrkdwn", text: section.body },
     });
 
-    for (const post of sub.posts) {
+    if (section.posts.length > 0) {
+      const links = section.posts
+        .map(
+          (p) =>
+            `<https://reddit.com${p.permalink}|${p.title}> (${p.score} pts)`,
+        )
+        .join("  ·  ");
       blocks.push({
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*<https://reddit.com${post.permalink}|${post.title}>* (${post.score} pts)\n${post.summary}`,
-        },
+        type: "context",
+        elements: [{ type: "mrkdwn", text: links }],
       });
-
-      if (post.keyTakeaways.length > 0) {
-        const takeaways = post.keyTakeaways.map((t) => `\u2022 ${t}`).join("\n");
-        blocks.push({
-          type: "section",
-          text: { type: "mrkdwn", text: `*Key Takeaways:*\n${takeaways}` },
-        });
-      }
     }
   }
 

@@ -95,12 +95,28 @@ export async function bootstrap(): Promise<BootstrapResult> {
       },
     });
 
-    const { buildDeliveryData, sendDigestEmail } = await import(
+    const { buildDeliveryData, buildFormattedDigest, sendDigestEmail } = await import(
       "@redgest/email"
     );
     const { sendDigestSlack } = await import("@redgest/slack");
+    const { generateDeliveryProse } = await import("@redgest/llm");
 
     const deliveryData = buildDeliveryData(digest);
+
+    // Map to LLM input
+    const llmInput = {
+      subreddits: deliveryData.subreddits.map((s) => ({
+        name: s.name,
+        posts: s.posts.map((p) => ({
+          title: p.title,
+          score: p.score,
+          summary: p.summary,
+          keyTakeaways: p.keyTakeaways,
+          insightNotes: p.insightNotes,
+          commentHighlights: p.commentHighlights,
+        })),
+      })),
+    };
 
     // Determine which channels are configured
     const channels: Array<{
@@ -114,8 +130,11 @@ export async function bootstrap(): Promise<BootstrapResult> {
       channels.push({
         name: "email",
         type: "EMAIL",
-        send: () =>
-          sendDigestEmail(deliveryData, DELIVERY_EMAIL, RESEND_API_KEY),
+        send: async () => {
+          const { data: prose } = await generateDeliveryProse(llmInput, "email");
+          const formatted = buildFormattedDigest(deliveryData, prose);
+          return sendDigestEmail(formatted, DELIVERY_EMAIL, RESEND_API_KEY);
+        },
       });
     }
 
@@ -124,7 +143,11 @@ export async function bootstrap(): Promise<BootstrapResult> {
       channels.push({
         name: "slack",
         type: "SLACK",
-        send: () => sendDigestSlack(deliveryData, webhookUrl),
+        send: async () => {
+          const { data: prose } = await generateDeliveryProse(llmInput, "slack");
+          const formatted = buildFormattedDigest(deliveryData, prose);
+          return sendDigestSlack(formatted, webhookUrl);
+        },
       });
     }
 
