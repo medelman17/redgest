@@ -358,23 +358,3 @@ export async function fetchSearchResults(params: {
   return results.map(serializeSearchResult);
 }
 
-export async function fetchTrendingTopics(params?: {
-  limit?: number;
-  since?: string;
-  subreddit?: string;
-}) {
-  return dal.getTrendingTopics(params);
-}
-
-export async function fetchLlmMetrics(params?: {
-  jobId?: string;
-  limit?: number;
-}) {
-  return dal.getLlmMetrics(params);
-}
-
-export async function fetchCrawlStatus(params?: {
-  name?: string;
-}) {
-  return dal.getCrawlStatus(params);
-}

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { formatRelativeTime } from "@/lib/utils";
 import type { TrendingTopic, LlmMetrics, CrawlStatusItem } from "@redgest/core";
-import type { SerializedRun } from "@/lib/types";
+import { parseSubredditList, type SerializedRun } from "@/lib/types";
 
 interface DashboardPanelsProps {
   topics: TrendingTopic[];
@@ -45,11 +45,6 @@ function getStatusVariant(
     return "default";
   if (status === "FAILED") return "destructive";
   return "secondary";
-}
-
-function getSubredditCount(subreddits: unknown): number {
-  if (Array.isArray(subreddits)) return subreddits.length;
-  return 0;
 }
 
 export function DashboardPanels({
@@ -274,23 +269,26 @@ export function DashboardPanels({
               <p className="text-sm text-muted-foreground">No runs yet</p>
             ) : (
               <ul className="space-y-2">
-                {recentRuns.map((run) => (
-                  <li
-                    key={run.jobId}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <Badge variant={getStatusVariant(run.status)}>
-                      {run.status}
-                    </Badge>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>
-                        {getSubredditCount(run.subreddits)} subreddit
-                        {getSubredditCount(run.subreddits) !== 1 ? "s" : ""}
-                      </span>
-                      <span>{formatRelativeTime(run.createdAt)}</span>
-                    </div>
-                  </li>
-                ))}
+                {recentRuns.map((run) => {
+                  const subCount = parseSubredditList(run.subreddits).length;
+                  return (
+                    <li
+                      key={run.jobId}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <Badge variant={getStatusVariant(run.status)}>
+                        {run.status}
+                      </Badge>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>
+                          {subCount} subreddit
+                          {subCount !== 1 ? "s" : ""}
+                        </span>
+                        <span>{formatRelativeTime(run.createdAt)}</span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>

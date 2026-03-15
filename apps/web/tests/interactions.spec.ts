@@ -344,7 +344,7 @@ test.describe("Dashboard Page", () => {
     await expect(page.getByText("Total LLM Calls")).toBeVisible();
     await expect(page.getByText("Cache Hit Rate")).toBeVisible();
     await expect(page.getByText("Active Subreddits")).toBeVisible();
-    await expect(page.getByText("Trending Topics")).toBeVisible();
+    await expect(page.getByText("Trending Topics").first()).toBeVisible();
   });
 
   test("shows panel sections", async ({ page }) => {

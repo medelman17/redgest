@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { fetchSearchResults } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
@@ -34,16 +34,16 @@ function sentimentVariant(
   return "secondary";
 }
 
+const ALL = "__all__";
+
 export function SearchPanel({ subreddits }: SearchPanelProps) {
   const [query, setQuery] = useState("");
-  const [subreddit, setSubreddit] = useState("");
-  const [sentiment, setSentiment] = useState("");
-  const [since, setSince] = useState("");
+  const [subreddit, setSubreddit] = useState(ALL);
+  const [sentiment, setSentiment] = useState(ALL);
+  const [since, setSince] = useState(ALL);
   const [minScore, setMinScore] = useState("");
   const [results, setResults] = useState<SerializedSearchResult[] | null>(null);
-  const [searched, setSearched] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = () => {
     const trimmed = query.trim();
@@ -54,14 +54,13 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
         query: trimmed,
         limit: 25,
       };
-      if (subreddit) params.subreddit = subreddit;
-      if (since) params.since = since;
-      if (sentiment) params.sentiment = sentiment;
+      if (subreddit !== ALL) params.subreddit = subreddit;
+      if (since !== ALL) params.since = since;
+      if (sentiment !== ALL) params.sentiment = sentiment;
       if (minScore !== "") params.minScore = Number(minScore);
 
       const data = await fetchSearchResults(params);
       setResults(data);
-      setSearched(true);
     });
   };
 
@@ -82,7 +81,6 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
           {/* Query input */}
           <div className="flex gap-2">
             <Input
-              ref={inputRef}
               placeholder="Search across post summaries..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -115,7 +113,7 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
                   <SelectValue placeholder="All subreddits" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All subreddits</SelectItem>
+                  <SelectItem value={ALL}>All subreddits</SelectItem>
                   {subreddits.map((s) => (
                     <SelectItem key={s.id} value={s.name}>
                       r/{s.name}
@@ -133,7 +131,7 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value={ALL}>Any</SelectItem>
                   <SelectItem value="positive">Positive</SelectItem>
                   <SelectItem value="neutral">Neutral</SelectItem>
                   <SelectItem value="negative">Negative</SelectItem>
@@ -149,7 +147,7 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
                   <SelectValue placeholder="Any time" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any time</SelectItem>
+                  <SelectItem value={ALL}>Any time</SelectItem>
                   <SelectItem value="24h">Last 24 hours</SelectItem>
                   <SelectItem value="7d">Last 7 days</SelectItem>
                   <SelectItem value="30d">Last 30 days</SelectItem>
@@ -185,14 +183,8 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
       )}
 
       {/* Results */}
-      {!isPending && searched && results !== null && (
+      {!isPending && results !== null && (
         <>
-          <p className="text-sm text-muted-foreground">
-            {results.length === 0
-              ? "No results found."
-              : `${results.length} result${results.length !== 1 ? "s" : ""} found`}
-          </p>
-
           {results.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -200,11 +192,16 @@ export function SearchPanel({ subreddits }: SearchPanelProps) {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {results.map((result) => (
-                <SearchResultCard key={result.postId} result={result} />
-              ))}
-            </div>
+            <>
+              <p className="text-sm text-muted-foreground">
+                {results.length} result{results.length !== 1 ? "s" : ""} found
+              </p>
+              <div className="space-y-3">
+                {results.map((result) => (
+                  <SearchResultCard key={result.postId} result={result} />
+                ))}
+              </div>
+            </>
           )}
         </>
       )}
