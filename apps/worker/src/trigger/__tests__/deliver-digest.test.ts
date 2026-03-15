@@ -8,6 +8,8 @@ const {
   mockSendDigestEmail,
   mockSendDigestSlack,
   mockBuildDeliveryData,
+  mockBuildFormattedDigest,
+  mockGenerateDeliveryProse,
   mockLoadConfig,
   mockLoggerInfo,
   mockLoggerError,
@@ -17,7 +19,9 @@ const {
   mockRecordDeliveryResult: vi.fn().mockResolvedValue(undefined),
   mockSendDigestEmail: vi.fn().mockResolvedValue({ id: "email-123" }),
   mockSendDigestSlack: vi.fn().mockResolvedValue(undefined),
-  mockBuildDeliveryData: vi.fn(() => ({ title: "Test Digest", sections: [] })),
+  mockBuildDeliveryData: vi.fn(() => ({ subreddits: [] })),
+  mockBuildFormattedDigest: vi.fn(() => ({ title: "Test Digest", sections: [] })),
+  mockGenerateDeliveryProse: vi.fn().mockResolvedValue({ data: { headline: "", sections: [] } }),
   mockLoadConfig: vi.fn(),
   mockLoggerInfo: vi.fn(),
   mockLoggerError: vi.fn(),
@@ -56,6 +60,11 @@ vi.mock("@redgest/core", () => ({
 vi.mock("@redgest/email", () => ({
   sendDigestEmail: mockSendDigestEmail,
   buildDeliveryData: mockBuildDeliveryData,
+  buildFormattedDigest: mockBuildFormattedDigest,
+}));
+
+vi.mock("@redgest/llm", () => ({
+  generateDeliveryProse: mockGenerateDeliveryProse,
 }));
 
 vi.mock("@redgest/slack", () => ({
