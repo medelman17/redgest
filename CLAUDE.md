@@ -50,7 +50,7 @@ redgest/
 │   └── config/         # Zod-validated env config (shared across all packages)
 ├── apps/
 │   ├── web/            # Next.js config UI
-│   └── worker/         # Trigger.dev tasks (generate-digest, deliver-digest, scheduled-digest)
+│   └── worker/         # Trigger.dev tasks (5 tasks: digest + crawl pipelines)
 ├── tests/
 │   └── fixtures/       # FakeContentSource, fake LLM for E2E/integration tests
 ├── docker-compose.yml  # Postgres (port 5433) + Redis + mcp-server
@@ -152,13 +152,17 @@ Profiles group subreddits with their own schedule, lookback, maxPosts, and deliv
 
 ## Trigger.dev Task Architecture
 
-Three tasks in `apps/worker/src/trigger/`:
+Five tasks in `apps/worker/src/trigger/`:
 
 - **`generate-digest`** — Wraps `runDigestPipeline()`. On completion, triggers `deliver-digest` with idempotency key. Retry: 2 attempts.
 - **`deliver-digest`** — Loads digest with relations, builds `DigestDeliveryData`, generates per-channel LLM editorial prose via `generateDeliveryProse()`, merges with `buildFormattedDigest()`, dispatches to configured email/Slack channels via `Promise.allSettled`. Retry: 3 attempts.
 - **`scheduled-digest`** — Cron task (`DIGEST_CRON` env, default `0 7 * * *`). Finds active subreddits, creates Job record, triggers `generate-digest`.
+- **`crawl-subreddit`** — Crawls a single subreddit via `runCrawl()`. Creates Reddit client (authenticated or public fallback), content source, and event bus. Retry: 3 attempts.
+- **`scheduled-crawl`** — Cron task (`*/5 * * * *`). Finds subreddits where `nextCrawlAt <= now()`, triggers `crawl-subreddit` for each with idempotency key.
 
-**Dispatch flow:** MCP `generate_digest` tool → `GenerateDigestHandler` → `DigestRequested` event → `bootstrap.ts` event handler → `tasks.trigger("generate-digest")` or in-process fallback.
+**Digest dispatch flow:** MCP `generate_digest` tool → `GenerateDigestHandler` → `DigestRequested` event → `bootstrap.ts` event handler → `tasks.trigger("generate-digest")` or in-process fallback.
+
+**Crawl dispatch flow:** MCP `add_subreddit` tool → `AddSubredditHandler` → `SubredditAdded` event → `wireCrawlDispatch()` → `tasks.trigger("crawl-subreddit")` or in-process fallback. Scheduled crawls run independently via `scheduled-crawl` cron.
 
 ## Delivery Channels
 

@@ -169,7 +169,7 @@ packages/
   slack/        # Block Kit digest formatter + webhook delivery
 apps/
   web/          # Next.js 16 config UI
-  worker/       # Trigger.dev tasks (generate-digest, deliver-digest, scheduled runs)
+  worker/       # Trigger.dev tasks (5 tasks: digest gen/deliver/schedule + crawl/schedule)
 ```
 
 **Dependency graph:** `mcp-server` → `core` → `db`, `reddit`, `llm`. `worker` → `core`, `llm`, `email`, `slack`. No circular dependencies.
@@ -226,10 +226,12 @@ create_profile("AI Research", subreddits: ["MachineLearning", "LocalLLaMA"],
 
 ### Trigger.dev Integration
 
-Three async tasks:
+Five async tasks:
 - **`generate-digest`** — Wraps the full pipeline. Retry: 2 attempts.
 - **`deliver-digest`** — Generates per-channel LLM prose, merges with structured data, dispatches to email/Slack. Retry: 3 attempts.
 - **`scheduled-digest`** — Cron-based (`DIGEST_CRON`, default `0 7 * * *`).
+- **`crawl-subreddit`** — Crawls a single subreddit independently. Retry: 3 attempts.
+- **`scheduled-crawl`** — Cron-based (`*/5 * * * *`), triggers crawls for subreddits past their `nextCrawlAt`.
 
 **Conditional dispatch:** If `TRIGGER_SECRET_KEY` is set, jobs dispatch to Trigger.dev Cloud. Otherwise, the pipeline runs in-process — no external dependencies needed for local use.
 
