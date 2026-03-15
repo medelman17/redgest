@@ -163,6 +163,114 @@ describe("configSchema", () => {
       expect(result.data.REDDIT_CLIENT_SECRET).toBe("test-client-secret");
     }
   });
+
+  it("rejects BETTER_AUTH_SECRET shorter than 32 characters", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      BETTER_AUTH_SECRET: "tooshort",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts BETTER_AUTH_SECRET with exactly 32 characters", () => {
+    const secret = "a".repeat(32);
+    const result = configSchema.safeParse({
+      ...validEnv,
+      BETTER_AUTH_SECRET: secret,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_SECRET).toBe(secret);
+    }
+  });
+
+  it("accepts BETTER_AUTH_SECRET longer than 32 characters", () => {
+    const secret = "a".repeat(64);
+    const result = configSchema.safeParse({
+      ...validEnv,
+      BETTER_AUTH_SECRET: secret,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_SECRET).toBe(secret);
+    }
+  });
+
+  it("allows missing BETTER_AUTH_SECRET in development", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      NODE_ENV: "development",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_SECRET).toBeUndefined();
+    }
+  });
+
+  it("rejects missing BETTER_AUTH_SECRET in production", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      NODE_ENV: "production",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths).toContain("BETTER_AUTH_SECRET");
+    }
+  });
+
+  it("accepts BETTER_AUTH_SECRET in production when provided", () => {
+    const secret = "production-secret-that-is-long-enough-to-pass";
+    const result = configSchema.safeParse({
+      ...validEnv,
+      NODE_ENV: "production",
+      BETTER_AUTH_SECRET: secret,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_SECRET).toBe(secret);
+    }
+  });
+
+  it("accepts optional BETTER_AUTH_TRUSTED_ORIGINS when provided", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      BETTER_AUTH_TRUSTED_ORIGINS: "https://example.com,https://app.example.com",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_TRUSTED_ORIGINS).toBe(
+        "https://example.com,https://app.example.com",
+      );
+    }
+  });
+
+  it("accepts missing BETTER_AUTH_TRUSTED_ORIGINS", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.BETTER_AUTH_TRUSTED_ORIGINS).toBeUndefined();
+    }
+  });
+
+  it("accepts optional REDGEST_ORG_ID when provided", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      REDGEST_ORG_ID: "org_12345",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.REDGEST_ORG_ID).toBe("org_12345");
+    }
+  });
+
+  it("accepts missing REDGEST_ORG_ID", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.REDGEST_ORG_ID).toBeUndefined();
+    }
+  });
 });
 
 describe("loadConfig", () => {
