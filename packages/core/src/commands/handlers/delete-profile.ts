@@ -20,7 +20,7 @@ export const handleDeleteProfile: CommandHandler<"DeleteProfile"> = async (
   }
 
   await ctx.db.digestProfile.delete({
-    where: { id: params.profileId },
+    where: { id: profile.id },
   });
 
   return {

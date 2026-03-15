@@ -5,18 +5,17 @@ export const handleRemoveSubreddit: CommandHandler<"RemoveSubreddit"> = async (
   params,
   ctx,
 ) => {
-  // Verify subreddit belongs to this org before deletion
-  const existing = await ctx.db.subreddit.findFirst({
+  // Atomic org-scoped lookup + deletion (avoids TOCTOU)
+  const sub = await ctx.db.subreddit.findFirst({
     where: { id: params.subredditId, organizationId: ctx.organizationId },
-    select: { id: true },
+    select: { id: true, name: true },
   });
-  if (!existing) {
+  if (!sub) {
     throw new RedgestError("NOT_FOUND", "Subreddit not found");
   }
 
-  const sub = await ctx.db.subreddit.delete({
-    where: { id: params.subredditId },
-    select: { id: true, name: true },
+  await ctx.db.subreddit.delete({
+    where: { id: sub.id },
   });
 
   return {

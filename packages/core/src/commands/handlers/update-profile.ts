@@ -16,7 +16,7 @@ export const handleUpdateProfile: CommandHandler<"UpdateProfile"> = async (
   // If subredditIds provided, replace the full set
   if (params.subredditIds !== undefined) {
     await ctx.db.digestProfileSubreddit.deleteMany({
-      where: { profileId: params.profileId },
+      where: { profileId: existing.id },
     });
     if (params.subredditIds.length > 0) {
       await ctx.db.digestProfileSubreddit.createMany({

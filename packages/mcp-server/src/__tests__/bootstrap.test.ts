@@ -82,6 +82,7 @@ const {
 // ── Module mocks ──────────────────────────────────────────────────────
 vi.mock("@redgest/config", () => ({
   loadConfig: mockLoadConfig,
+  DEFAULT_ORGANIZATION_ID: "org_default",
 }));
 
 vi.mock("@redgest/db", () => ({

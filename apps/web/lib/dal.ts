@@ -1,6 +1,6 @@
 import "server-only";
 
-import { loadConfig } from "@redgest/config";
+import { loadConfig, DEFAULT_ORGANIZATION_ID } from "@redgest/config";
 import { prisma } from "@redgest/db";
 import {
   DomainEventBus,
@@ -45,7 +45,7 @@ async function getBootstrap(): Promise<BootstrapResult> {
   // because Prisma's $transaction overloads don't structurally match
   // TransactableClient (same pattern as mcp-server/tools.ts:execCtx)
   // TODO: Read organizationId from auth session once auth UI is wired
-  const organizationId = process.env.REDGEST_ORG_ID ?? "org_default";
+  const organizationId = process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
   const executeCtx: ExecuteContext = {
     db: db as unknown as ExecuteContext["db"],
     eventBus,
@@ -64,7 +64,7 @@ async function getBootstrap(): Promise<BootstrapResult> {
 
   wireDigestDispatch({
     eventBus,
-    pipelineDeps: { db, eventBus, contentSource, config },
+    pipelineDeps: { db, eventBus, contentSource, config, organizationId },
     triggerSecretKey: config.TRIGGER_SECRET_KEY,
   });
 

@@ -1,4 +1,4 @@
-import { loadConfig, type RedgestConfig } from "@redgest/config";
+import { loadConfig, DEFAULT_ORGANIZATION_ID, type RedgestConfig } from "@redgest/config";
 import { prisma, type PrismaClient } from "@redgest/db";
 import {
   DomainEventBus,
@@ -41,7 +41,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const db = prisma;
   const eventBus = new DomainEventBus();
   const searchService = createSearchService(db);
-  const organizationId = process.env.REDGEST_ORG_ID ?? "org_default";
+  const organizationId = process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
   const ctx: HandlerContext = { db, eventBus, config, searchService, organizationId };
 
   const execute = createExecute(commandHandlers);

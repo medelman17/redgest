@@ -40,22 +40,22 @@ export const handleCompareDigests: QueryHandler<"CompareDigests"> = async (
     },
   };
 
+  // Push-down org filter via job relation (digest doesn't have organizationId directly)
   const [rawA, rawB] = await Promise.all([
-    ctx.db.digest.findUnique({
-      where: { id: params.digestIdA },
-      include: { ...includeShape, job: { select: { organizationId: true } } },
+    ctx.db.digest.findFirst({
+      where: { id: params.digestIdA, job: { organizationId: ctx.organizationId } },
+      include: includeShape,
     }),
-    ctx.db.digest.findUnique({
-      where: { id: params.digestIdB },
-      include: { ...includeShape, job: { select: { organizationId: true } } },
+    ctx.db.digest.findFirst({
+      where: { id: params.digestIdB, job: { organizationId: ctx.organizationId } },
+      include: includeShape,
     }),
   ]);
 
-  // Tenant isolation: verify both digests exist and belong to caller's organization
-  if (!rawA || rawA.job.organizationId !== ctx.organizationId) {
+  if (!rawA) {
     throw new RedgestError("NOT_FOUND", `Digest ${params.digestIdA} not found`);
   }
-  if (!rawB || rawB.job.organizationId !== ctx.organizationId) {
+  if (!rawB) {
     throw new RedgestError("NOT_FOUND", `Digest ${params.digestIdB} not found`);
   }
 

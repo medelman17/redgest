@@ -14,24 +14,14 @@ export const handleUpdateSubreddit: CommandHandler<"UpdateSubreddit"> = async (
     throw new RedgestError("NOT_FOUND", "Subreddit not found");
   }
 
-  const data: Record<string, unknown> = {};
-
-  if (params.insightPrompt !== undefined) {
-    data.insightPrompt = params.insightPrompt;
-  }
-  if (params.maxPosts !== undefined) {
-    data.maxPosts = params.maxPosts;
-  }
-  if (params.active !== undefined) {
-    data.isActive = params.active;
-  }
-  if (params.crawlIntervalMinutes !== undefined) {
-    data.crawlIntervalMinutes = params.crawlIntervalMinutes;
-  }
-
   await ctx.db.subreddit.update({
     where: { id: params.subredditId },
-    data,
+    data: {
+      ...(params.insightPrompt !== undefined && { insightPrompt: params.insightPrompt }),
+      ...(params.maxPosts !== undefined && { maxPosts: params.maxPosts }),
+      ...(params.active !== undefined && { isActive: params.active }),
+      ...(params.crawlIntervalMinutes !== undefined && { crawlIntervalMinutes: params.crawlIntervalMinutes }),
+    },
   });
 
   return {

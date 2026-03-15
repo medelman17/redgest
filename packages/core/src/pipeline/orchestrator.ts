@@ -140,20 +140,17 @@ async function runPipelineBody(
 ): Promise<PipelineResult> {
   const { contentSource } = deps;
 
-  // 2. Load subreddits (scoped to organization if available)
-  const orgFilter = deps.organizationId ? { organizationId: deps.organizationId } : {};
+  // 2. Load subreddits (scoped to organization)
   const subreddits = await db.subreddit.findMany({
     where:
       subredditIds.length > 0
-        ? { id: { in: subredditIds }, isActive: true, ...orgFilter }
-        : { isActive: true, ...orgFilter },
+        ? { id: { in: subredditIds }, isActive: true, organizationId: deps.organizationId }
+        : { isActive: true, organizationId: deps.organizationId },
   });
 
   // 3. Load config + job profile in parallel (independent queries)
   const [dbConfig, job] = await Promise.all([
-    deps.organizationId
-      ? db.config.findUnique({ where: { organizationId: deps.organizationId } })
-      : db.config.findFirst(),
+    db.config.findUnique({ where: { organizationId: deps.organizationId } }),
     db.job.findUnique({
       where: { id: jobId },
       select: { profileId: true },

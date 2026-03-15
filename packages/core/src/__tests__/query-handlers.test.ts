@@ -36,20 +36,20 @@ function makeCtx(dbMock: Record<string, unknown>): HandlerContext {
 describe("handleGetDigest", () => {
   it("returns a digest view by digestId", async () => {
     const mockDigest = { digestId: "d-1", contentMarkdown: "# Digest", organizationId: "org_test" };
-    const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
-    const ctx = makeCtx({ digestView: { findUnique: mockFindUnique } });
+    const mockFindFirst = vi.fn().mockResolvedValue(mockDigest);
+    const ctx = makeCtx({ digestView: { findFirst: mockFindFirst } });
 
     const result = await handleGetDigest({ digestId: "d-1" }, ctx);
 
     expect(result).toEqual(mockDigest);
-    expect(mockFindUnique).toHaveBeenCalledWith({
-      where: { digestId: "d-1" },
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { digestId: "d-1", organizationId: "org_test" },
     });
   });
 
   it("returns null when digest not found", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue(null);
-    const ctx = makeCtx({ digestView: { findUnique: mockFindUnique } });
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ digestView: { findFirst: mockFindFirst } });
 
     const result = await handleGetDigest({ digestId: "nonexistent" }, ctx);
 
@@ -317,10 +317,10 @@ describe("handleGetRunStatus", () => {
         createdAt: new Date("2026-03-12T10:00:28Z"),
       },
     ];
-    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockFindFirst = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue(mockEvents);
     const ctx = makeCtx({
-      runView: { findUnique: mockFindUnique },
+      runView: { findFirst: mockFindFirst },
       event: { findMany: mockEventFindMany },
     });
 
@@ -354,8 +354,8 @@ describe("handleGetRunStatus", () => {
   });
 
   it("returns null when run not found", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue(null);
-    const ctx = makeCtx({ runView: { findUnique: mockFindUnique } });
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ runView: { findFirst: mockFindFirst } });
 
     const result = await handleGetRunStatus({ jobId: "nonexistent" }, ctx);
 
@@ -380,10 +380,10 @@ describe("handleGetRunStatus", () => {
       subreddits: ["s-1"],
       organizationId: "org_test",
     };
-    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockFindFirst = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({
-      runView: { findUnique: mockFindUnique },
+      runView: { findFirst: mockFindFirst },
       event: { findMany: mockEventFindMany },
     });
 
@@ -419,10 +419,10 @@ describe("handleGetRunStatus", () => {
         createdAt: new Date("2026-03-12T10:00:05Z"),
       },
     ];
-    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockFindFirst = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue(mockEvents);
     const ctx = makeCtx({
-      runView: { findUnique: mockFindUnique },
+      runView: { findFirst: mockFindFirst },
       event: { findMany: mockEventFindMany },
     });
 
@@ -451,10 +451,10 @@ describe("handleGetRunStatus", () => {
       subreddits: [],
       organizationId: "org_test",
     };
-    const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
+    const mockFindFirst = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({
-      runView: { findUnique: mockFindUnique },
+      runView: { findFirst: mockFindFirst },
       event: { findMany: mockEventFindMany },
     });
 
@@ -793,7 +793,6 @@ describe("handleCompareDigests", () => {
     return {
       id,
       createdAt,
-      job: { organizationId: "org_test" },
       digestPosts: posts.map((p) => ({
         rank: p.rank,
         subreddit: p.subreddit,
@@ -814,10 +813,10 @@ describe("handleCompareDigests", () => {
       { id: "p5", redditId: "t3_eee", title: "Post B2", subreddit: "nextjs", score: 70, rank: 3 },
     ]);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b" },
@@ -858,10 +857,10 @@ describe("handleCompareDigests", () => {
     const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), posts);
     const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), posts);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b" },
@@ -882,10 +881,10 @@ describe("handleCompareDigests", () => {
       { id: "p2", redditId: "t3_bbb", title: "Post 2", subreddit: "rust", score: 90, rank: 1 },
     ]);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b" },
@@ -902,10 +901,10 @@ describe("handleCompareDigests", () => {
     const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), []);
     const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), []);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b" },
@@ -925,10 +924,10 @@ describe("handleCompareDigests", () => {
       { id: "p1", redditId: "t3_aaa", title: "Post 1", subreddit: "typescript", score: 100, rank: 1 },
     ]);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b" },
@@ -950,10 +949,10 @@ describe("handleCompareDigests", () => {
       { id: "p3", redditId: "t3_ccc", title: "Post 3", subreddit: "typescript", score: 70, rank: 2 },
     ]);
 
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     const result = await handleCompareDigests(
       { digestIdA: "d-a", digestIdB: "d-b", subreddit: "typescript" },
@@ -972,8 +971,8 @@ describe("handleCompareDigests", () => {
   });
 
   it("throws RedgestError NOT_FOUND when digest A not found", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue(null);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     await expect(
       handleCompareDigests({ digestIdA: "missing", digestIdB: "d-b" }, ctx),
@@ -983,27 +982,26 @@ describe("handleCompareDigests", () => {
   it("fetches digests with correct include shape", async () => {
     const digestA = mockDigestWithPosts("d-a", new Date("2026-03-10"), []);
     const digestB = mockDigestWithPosts("d-b", new Date("2026-03-11"), []);
-    const mockFindUnique = vi.fn()
+    const mockFindFirst = vi.fn()
       .mockResolvedValueOnce(digestA)
       .mockResolvedValueOnce(digestB);
-    const ctx = makeCtx({ digest: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ digest: { findFirst: mockFindFirst } });
 
     await handleCompareDigests({ digestIdA: "d-a", digestIdB: "d-b" }, ctx);
 
     const expectedQuery = {
-      where: { id: "d-a" },
+      where: { id: "d-a", job: { organizationId: "org_test" } },
       include: {
         digestPosts: {
           orderBy: { rank: "asc" },
           include: { post: true },
         },
-        job: { select: { organizationId: true } },
       },
     };
-    expect(mockFindUnique).toHaveBeenCalledWith(expectedQuery);
-    expect(mockFindUnique).toHaveBeenCalledWith({
+    expect(mockFindFirst).toHaveBeenCalledWith(expectedQuery);
+    expect(mockFindFirst).toHaveBeenCalledWith({
       ...expectedQuery,
-      where: { id: "d-b" },
+      where: { id: "d-b", job: { organizationId: "org_test" } },
     });
   });
 });

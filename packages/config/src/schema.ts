@@ -58,3 +58,6 @@ export const configSchema = z.object({
 });
 
 export type RedgestConfig = z.infer<typeof configSchema>;
+
+/** Sentinel organization ID used when auth is not yet wired (single-tenant fallback). */
+export const DEFAULT_ORGANIZATION_ID = "org_default";

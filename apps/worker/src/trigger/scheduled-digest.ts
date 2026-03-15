@@ -32,7 +32,8 @@ export const scheduledDigest = schedules.task({
       }
 
       // TODO: Legacy path — default org. Multi-org scheduling needs per-org iteration.
-      const legacyOrgId = process.env.REDGEST_ORG_ID ?? "org_default";
+      const { DEFAULT_ORGANIZATION_ID } = await import("@redgest/config");
+      const legacyOrgId = process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
       const job = await prisma.job.create({
         data: {
           status: "QUEUED",

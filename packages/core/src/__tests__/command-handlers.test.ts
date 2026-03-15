@@ -167,11 +167,8 @@ describe("handleAddSubreddit", () => {
 
 describe("handleRemoveSubreddit", () => {
   it("deletes the subreddit record and emits event", async () => {
-    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-del" });
-    const mockDelete = vi.fn().mockResolvedValue({
-      id: "sub-del",
-      name: "oldsubreddit",
-    });
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-del", name: "oldsubreddit" });
+    const mockDelete = vi.fn().mockResolvedValue({});
     const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, delete: mockDelete } });
 
     const result = await handleRemoveSubreddit(
@@ -186,11 +183,10 @@ describe("handleRemoveSubreddit", () => {
     });
     expect(mockFindFirst).toHaveBeenCalledWith({
       where: { id: "sub-del", organizationId: "org_test" },
-      select: { id: true },
+      select: { id: true, name: true },
     });
     expect(mockDelete).toHaveBeenCalledWith({
       where: { id: "sub-del" },
-      select: { id: true, name: true },
     });
   });
 });

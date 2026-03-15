@@ -95,7 +95,7 @@ export interface PipelineDeps {
   model?: ModelConfig;
 
   /** Organization ID for tenant scoping. */
-  organizationId?: string;
+  organizationId: string;
 
   /** Skip fetch cache — always fetch fresh from Reddit. */
   forceRefresh?: boolean;

@@ -106,14 +106,11 @@ export const handleGetRunStatus: QueryHandler<"GetRunStatus"> = async (
   params,
   ctx,
 ) => {
-  const runView = await ctx.db.runView.findUnique({
-    where: { jobId: params.jobId },
+  const runView = await ctx.db.runView.findFirst({
+    where: { jobId: params.jobId, organizationId: ctx.organizationId },
   });
 
   if (!runView) return null;
-
-  // Tenant isolation: ensure the run belongs to the caller's organization
-  if (runView.organizationId !== ctx.organizationId) return null;
 
   // Fetch all pipeline events for this job, ordered chronologically
   const events = await ctx.db.event.findMany({

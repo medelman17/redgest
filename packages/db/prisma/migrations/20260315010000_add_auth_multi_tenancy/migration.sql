@@ -219,25 +219,30 @@ CREATE VIEW subreddit_view AS
 WITH digest_stats AS (
   SELECT
     dp.subreddit,
+    j.organization_id,
     MAX(d.created_at)              AS last_digest_date,
     COUNT(DISTINCT dp.digest_id)   AS total_digests
   FROM digest_posts dp
     JOIN digests d ON d.id = dp.digest_id
-  GROUP BY dp.subreddit
+    JOIN jobs j ON j.id = d.job_id
+  GROUP BY dp.subreddit, j.organization_id
 ),
 last_digest_counts AS (
   SELECT
     dp.subreddit,
+    j.organization_id,
     COUNT(*)::int AS posts_in_last
   FROM digest_posts dp
     JOIN digests d ON d.id = dp.digest_id
-  WHERE d.created_at = (
-    SELECT MAX(d2.created_at)
-    FROM digests d2
-      JOIN digest_posts dp2 ON dp2.digest_id = d2.id
-    WHERE dp2.subreddit = dp.subreddit
-  )
-  GROUP BY dp.subreddit
+    JOIN jobs j ON j.id = d.job_id
+    JOIN digest_stats ds2 ON ds2.subreddit = dp.subreddit AND ds2.organization_id = j.organization_id
+  WHERE d.created_at = ds2.last_digest_date
+  GROUP BY dp.subreddit, j.organization_id
+),
+post_counts AS (
+  SELECT subreddit, COUNT(*)::int AS cnt
+  FROM posts
+  GROUP BY subreddit
 )
 SELECT
   s.id,
@@ -253,12 +258,12 @@ SELECT
   s.updated_at,
   ds.last_digest_date,
   COALESCE(ldc.posts_in_last, 0)::int     AS posts_in_last_digest,
-  (SELECT COUNT(*)::int
-   FROM posts p WHERE p.subreddit = s.name) AS total_posts_fetched,
+  COALESCE(pc.cnt, 0)::int                AS total_posts_fetched,
   COALESCE(ds.total_digests, 0)::int       AS total_digests_appeared_in
 FROM subreddits s
-  LEFT JOIN digest_stats ds ON ds.subreddit = s.name
-  LEFT JOIN last_digest_counts ldc ON ldc.subreddit = s.name;
+  LEFT JOIN digest_stats ds ON ds.subreddit = s.name AND ds.organization_id = s.organization_id
+  LEFT JOIN last_digest_counts ldc ON ldc.subreddit = s.name AND ldc.organization_id = s.organization_id
+  LEFT JOIN post_counts pc ON pc.subreddit = s.name;
 
 -- profile_view: must DROP + recreate
 DROP VIEW IF EXISTS profile_view;
