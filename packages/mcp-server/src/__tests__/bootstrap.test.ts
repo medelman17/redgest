@@ -164,6 +164,7 @@ describe("bootstrap()", () => {
         contentSource: mockContentSourceInstance,
         config: fakeConfig,
         searchService: mockSearchServiceInstance,
+        organizationId: expect.any(String),
       },
       triggerSecretKey: "tr_test",
       deliverDigest: expect.any(Function),
@@ -195,6 +196,7 @@ describe("bootstrap()", () => {
       eventBus: mockEventBusInstance,
       config: fakeConfig,
       searchService: mockSearchServiceInstance,
+      organizationId: expect.any(String),
     });
   });
 

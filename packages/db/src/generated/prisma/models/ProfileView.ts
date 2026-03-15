@@ -41,6 +41,7 @@ export type ProfileViewSumAggregateOutputType = {
 export type ProfileViewMinAggregateOutputType = {
   profileId: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number | null
@@ -55,6 +56,7 @@ export type ProfileViewMinAggregateOutputType = {
 export type ProfileViewMaxAggregateOutputType = {
   profileId: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number | null
@@ -69,6 +71,7 @@ export type ProfileViewMaxAggregateOutputType = {
 export type ProfileViewCountAggregateOutputType = {
   profileId: number
   name: number
+  organizationId: number
   insightPrompt: number
   schedule: number
   lookbackHours: number
@@ -98,6 +101,7 @@ export type ProfileViewSumAggregateInputType = {
 export type ProfileViewMinAggregateInputType = {
   profileId?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -112,6 +116,7 @@ export type ProfileViewMinAggregateInputType = {
 export type ProfileViewMaxAggregateInputType = {
   profileId?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -126,6 +131,7 @@ export type ProfileViewMaxAggregateInputType = {
 export type ProfileViewCountAggregateInputType = {
   profileId?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -228,6 +234,7 @@ export type ProfileViewGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type ProfileViewGroupByOutputType = {
   profileId: string
   name: string
+  organizationId: string
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number
@@ -266,6 +273,7 @@ export type ProfileViewWhereInput = {
   NOT?: Prisma.ProfileViewWhereInput | Prisma.ProfileViewWhereInput[]
   profileId?: Prisma.StringFilter<"ProfileView"> | string
   name?: Prisma.StringFilter<"ProfileView"> | string
+  organizationId?: Prisma.StringFilter<"ProfileView"> | string
   insightPrompt?: Prisma.StringNullableFilter<"ProfileView"> | string | null
   schedule?: Prisma.StringNullableFilter<"ProfileView"> | string | null
   lookbackHours?: Prisma.IntFilter<"ProfileView"> | number
@@ -281,6 +289,7 @@ export type ProfileViewWhereInput = {
 export type ProfileViewOrderByWithRelationInput = {
   profileId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -299,6 +308,7 @@ export type ProfileViewWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ProfileViewWhereInput[]
   NOT?: Prisma.ProfileViewWhereInput | Prisma.ProfileViewWhereInput[]
   name?: Prisma.StringFilter<"ProfileView"> | string
+  organizationId?: Prisma.StringFilter<"ProfileView"> | string
   insightPrompt?: Prisma.StringNullableFilter<"ProfileView"> | string | null
   schedule?: Prisma.StringNullableFilter<"ProfileView"> | string | null
   lookbackHours?: Prisma.IntFilter<"ProfileView"> | number
@@ -314,6 +324,7 @@ export type ProfileViewWhereUniqueInput = Prisma.AtLeast<{
 export type ProfileViewOrderByWithAggregationInput = {
   profileId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -337,6 +348,7 @@ export type ProfileViewScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ProfileViewScalarWhereWithAggregatesInput | Prisma.ProfileViewScalarWhereWithAggregatesInput[]
   profileId?: Prisma.StringWithAggregatesFilter<"ProfileView"> | string
   name?: Prisma.StringWithAggregatesFilter<"ProfileView"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"ProfileView"> | string
   insightPrompt?: Prisma.StringNullableWithAggregatesFilter<"ProfileView"> | string | null
   schedule?: Prisma.StringNullableWithAggregatesFilter<"ProfileView"> | string | null
   lookbackHours?: Prisma.IntWithAggregatesFilter<"ProfileView"> | number
@@ -352,6 +364,7 @@ export type ProfileViewScalarWhereWithAggregatesInput = {
 export type ProfileViewCountOrderByAggregateInput = {
   profileId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -373,6 +386,7 @@ export type ProfileViewAvgOrderByAggregateInput = {
 export type ProfileViewMaxOrderByAggregateInput = {
   profileId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -387,6 +401,7 @@ export type ProfileViewMaxOrderByAggregateInput = {
 export type ProfileViewMinOrderByAggregateInput = {
   profileId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -409,6 +424,7 @@ export type ProfileViewSumOrderByAggregateInput = {
 export type ProfileViewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   profileId?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -426,6 +442,7 @@ export type ProfileViewSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ProfileViewSelectScalar = {
   profileId?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -438,7 +455,7 @@ export type ProfileViewSelectScalar = {
   subredditCount?: boolean
 }
 
-export type ProfileViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"profileId" | "name" | "insightPrompt" | "schedule" | "lookbackHours" | "maxPosts" | "delivery" | "isActive" | "createdAt" | "updatedAt" | "subredditList" | "subredditCount", ExtArgs["result"]["profileView"]>
+export type ProfileViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"profileId" | "name" | "organizationId" | "insightPrompt" | "schedule" | "lookbackHours" | "maxPosts" | "delivery" | "isActive" | "createdAt" | "updatedAt" | "subredditList" | "subredditCount", ExtArgs["result"]["profileView"]>
 
 export type $ProfileViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ProfileView"
@@ -446,6 +463,7 @@ export type $ProfileViewPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     profileId: string
     name: string
+    organizationId: string
     insightPrompt: string | null
     schedule: string | null
     lookbackHours: number
@@ -716,6 +734,7 @@ export interface Prisma__ProfileViewClient<T, Null = never, ExtArgs extends runt
 export interface ProfileViewFieldRefs {
   readonly profileId: Prisma.FieldRef<"ProfileView", 'String'>
   readonly name: Prisma.FieldRef<"ProfileView", 'String'>
+  readonly organizationId: Prisma.FieldRef<"ProfileView", 'String'>
   readonly insightPrompt: Prisma.FieldRef<"ProfileView", 'String'>
   readonly schedule: Prisma.FieldRef<"ProfileView", 'String'>
   readonly lookbackHours: Prisma.FieldRef<"ProfileView", 'Int'>

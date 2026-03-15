@@ -20,6 +20,7 @@ export async function emitDomainEvent<K extends DomainEventType>(
   payload: DomainEventMap[K],
   aggregateId: string,
   aggregateType: string,
+  organizationId?: string,
 ): Promise<void> {
   const envelope: Record<string, unknown> = {
     type,
@@ -27,6 +28,7 @@ export async function emitDomainEvent<K extends DomainEventType>(
     aggregateId,
     aggregateType,
     version: 1,
+    organizationId: organizationId ?? null,
     correlationId: null,
     causationId: null,
     metadata: {},

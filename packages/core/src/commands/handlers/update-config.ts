@@ -29,10 +29,10 @@ export const handleUpdateConfig: CommandHandler<"UpdateConfig"> = async (
   }
 
   await ctx.db.config.upsert({
-    where: { id: 1 },
+    where: { organizationId: ctx.organizationId },
     update: changes,
     create: {
-      id: 1,
+      organizationId: ctx.organizationId,
       globalInsightPrompt:
         (changes.globalInsightPrompt as string | undefined) ?? "",
       llmProvider: (changes.llmProvider as string | undefined) ?? "anthropic",

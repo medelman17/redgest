@@ -17,7 +17,11 @@
     "DELIVERY_EMAIL",
     "REDGEST_TEST_MODE",
     "LOG_LEVEL",
-    "DIGEST_CRON"
+    "DIGEST_CRON",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET"
   ],
   "tasks": {
     "build": {

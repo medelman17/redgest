@@ -40,6 +40,7 @@ export interface ExecuteContext {
   db: TransactableClient;
   eventBus: HandlerContext["eventBus"];
   config: HandlerContext["config"];
+  organizationId: string;
 }
 
 /**
@@ -109,6 +110,7 @@ export function createExecute(handlers: HandlerRegistry) {
           db,
           eventBus: ctx.eventBus,
           config: ctx.config,
+          organizationId: ctx.organizationId,
         };
         const result = await handler(params, handlerCtx);
 
@@ -118,6 +120,7 @@ export function createExecute(handlers: HandlerRegistry) {
             result.event as Record<string, unknown>,
             extractAggregateId(type, result.data),
             aggregateType,
+            ctx.organizationId,
           );
 
           await persistEvent(tx, fullEvent);
@@ -147,6 +150,7 @@ function buildEvent(
   payload: Record<string, unknown>,
   aggregateId: string,
   aggregateType: string,
+  organizationId?: string,
 ): DomainEvent {
   const envelope: Record<string, unknown> = {
     type: eventType,
@@ -154,6 +158,7 @@ function buildEvent(
     aggregateId,
     aggregateType,
     version: 1,
+    organizationId: organizationId ?? null,
     correlationId: null,
     causationId: null,
     metadata: {},

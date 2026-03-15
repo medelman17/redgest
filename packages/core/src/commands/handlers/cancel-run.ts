@@ -7,8 +7,8 @@ export const handleCancelRun: CommandHandler<"CancelRun"> = async (
   params,
   ctx,
 ) => {
-  const job = await ctx.db.job.findUnique({
-    where: { id: params.jobId },
+  const job = await ctx.db.job.findFirst({
+    where: { id: params.jobId, organizationId: ctx.organizationId },
     select: { id: true, status: true, triggerRunId: true },
   });
 

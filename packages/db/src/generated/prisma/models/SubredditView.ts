@@ -45,6 +45,7 @@ export type SubredditViewSumAggregateOutputType = {
 export type SubredditViewMinAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   maxPosts: number | null
   includeNsfw: boolean | null
@@ -62,6 +63,7 @@ export type SubredditViewMinAggregateOutputType = {
 export type SubredditViewMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   maxPosts: number | null
   includeNsfw: boolean | null
@@ -79,6 +81,7 @@ export type SubredditViewMaxAggregateOutputType = {
 export type SubredditViewCountAggregateOutputType = {
   id: number
   name: number
+  organizationId: number
   insightPrompt: number
   maxPosts: number
   includeNsfw: number
@@ -114,6 +117,7 @@ export type SubredditViewSumAggregateInputType = {
 export type SubredditViewMinAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -131,6 +135,7 @@ export type SubredditViewMinAggregateInputType = {
 export type SubredditViewMaxAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -148,6 +153,7 @@ export type SubredditViewMaxAggregateInputType = {
 export type SubredditViewCountAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -252,6 +258,7 @@ export type SubredditViewGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type SubredditViewGroupByOutputType = {
   id: string
   name: string
+  organizationId: string
   insightPrompt: string | null
   maxPosts: number
   includeNsfw: boolean
@@ -292,6 +299,7 @@ export type SubredditViewWhereInput = {
   NOT?: Prisma.SubredditViewWhereInput | Prisma.SubredditViewWhereInput[]
   id?: Prisma.StringFilter<"SubredditView"> | string
   name?: Prisma.StringFilter<"SubredditView"> | string
+  organizationId?: Prisma.StringFilter<"SubredditView"> | string
   insightPrompt?: Prisma.StringNullableFilter<"SubredditView"> | string | null
   maxPosts?: Prisma.IntFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolFilter<"SubredditView"> | boolean
@@ -309,6 +317,7 @@ export type SubredditViewWhereInput = {
 export type SubredditViewOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -329,6 +338,7 @@ export type SubredditViewWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SubredditViewWhereInput[]
   NOT?: Prisma.SubredditViewWhereInput | Prisma.SubredditViewWhereInput[]
   name?: Prisma.StringFilter<"SubredditView"> | string
+  organizationId?: Prisma.StringFilter<"SubredditView"> | string
   insightPrompt?: Prisma.StringNullableFilter<"SubredditView"> | string | null
   maxPosts?: Prisma.IntFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolFilter<"SubredditView"> | boolean
@@ -346,6 +356,7 @@ export type SubredditViewWhereUniqueInput = Prisma.AtLeast<{
 export type SubredditViewOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -371,6 +382,7 @@ export type SubredditViewScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SubredditViewScalarWhereWithAggregatesInput | Prisma.SubredditViewScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"SubredditView"> | string
   name?: Prisma.StringWithAggregatesFilter<"SubredditView"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"SubredditView"> | string
   insightPrompt?: Prisma.StringNullableWithAggregatesFilter<"SubredditView"> | string | null
   maxPosts?: Prisma.IntWithAggregatesFilter<"SubredditView"> | number
   includeNsfw?: Prisma.BoolWithAggregatesFilter<"SubredditView"> | boolean
@@ -388,6 +400,7 @@ export type SubredditViewScalarWhereWithAggregatesInput = {
 export type SubredditViewCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -413,6 +426,7 @@ export type SubredditViewAvgOrderByAggregateInput = {
 export type SubredditViewMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -430,6 +444,7 @@ export type SubredditViewMaxOrderByAggregateInput = {
 export type SubredditViewMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -457,6 +472,7 @@ export type SubredditViewSumOrderByAggregateInput = {
 export type SubredditViewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -476,6 +492,7 @@ export type SubredditViewSelect<ExtArgs extends runtime.Types.Extensions.Interna
 export type SubredditViewSelectScalar = {
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -490,7 +507,7 @@ export type SubredditViewSelectScalar = {
   totalDigestsAppearedIn?: boolean
 }
 
-export type SubredditViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "crawlIntervalMinutes" | "nextCrawlAt" | "createdAt" | "updatedAt" | "lastDigestDate" | "postsInLastDigest" | "totalPostsFetched" | "totalDigestsAppearedIn", ExtArgs["result"]["subredditView"]>
+export type SubredditViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "organizationId" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "crawlIntervalMinutes" | "nextCrawlAt" | "createdAt" | "updatedAt" | "lastDigestDate" | "postsInLastDigest" | "totalPostsFetched" | "totalDigestsAppearedIn", ExtArgs["result"]["subredditView"]>
 
 export type $SubredditViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SubredditView"
@@ -498,6 +515,7 @@ export type $SubredditViewPayload<ExtArgs extends runtime.Types.Extensions.Inter
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    organizationId: string
     insightPrompt: string | null
     maxPosts: number
     includeNsfw: boolean
@@ -770,6 +788,7 @@ export interface Prisma__SubredditViewClient<T, Null = never, ExtArgs extends ru
 export interface SubredditViewFieldRefs {
   readonly id: Prisma.FieldRef<"SubredditView", 'String'>
   readonly name: Prisma.FieldRef<"SubredditView", 'String'>
+  readonly organizationId: Prisma.FieldRef<"SubredditView", 'String'>
   readonly insightPrompt: Prisma.FieldRef<"SubredditView", 'String'>
   readonly maxPosts: Prisma.FieldRef<"SubredditView", 'Int'>
   readonly includeNsfw: Prisma.FieldRef<"SubredditView", 'Boolean'>

@@ -5,12 +5,15 @@ export const handleGetLlmMetrics: QueryHandler<"GetLlmMetrics"> = async (
   ctx,
 ) => {
   // Build where clause: scope to jobId, recent jobs, or all
+  // Always filter through job for tenant isolation
+  const orgJobFilter = { job: { organizationId: ctx.organizationId } };
   let where: Record<string, unknown> = {};
   if (params.jobId) {
-    where = { jobId: params.jobId };
+    where = { jobId: params.jobId, ...orgJobFilter };
   } else {
-    // Get recent distinct jobIds to scope aggregation
+    // Get recent distinct jobIds to scope aggregation (org-scoped)
     const recentJobs = await ctx.db.llmCall.findMany({
+      where: orgJobFilter,
       distinct: ["jobId"],
       orderBy: { createdAt: "desc" },
       take: params.limit ?? 10,

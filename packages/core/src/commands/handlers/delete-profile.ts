@@ -5,8 +5,8 @@ export const handleDeleteProfile: CommandHandler<"DeleteProfile"> = async (
   params,
   ctx,
 ) => {
-  const profile = await ctx.db.digestProfile.findUnique({
-    where: { id: params.profileId },
+  const profile = await ctx.db.digestProfile.findFirst({
+    where: { id: params.profileId, organizationId: ctx.organizationId },
     select: { id: true, name: true },
   });
   if (!profile) {

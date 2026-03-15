@@ -31,11 +31,14 @@ export const scheduledDigest = schedules.task({
         return { jobs: [], totalSubreddits: 0 };
       }
 
+      // TODO: Legacy path — default org. Multi-org scheduling needs per-org iteration.
+      const legacyOrgId = process.env.REDGEST_ORG_ID ?? "org_default";
       const job = await prisma.job.create({
         data: {
           status: "QUEUED",
           subreddits: subreddits.map((s) => s.id),
           lookback: "24h",
+          organizationId: legacyOrgId,
         },
       });
 
@@ -86,6 +89,7 @@ export const scheduledDigest = schedules.task({
           subreddits: subredditIds,
           lookback: `${profile.lookbackHours}h`,
           profileId: profile.id,
+          organizationId: profile.organizationId,
         },
       });
 

@@ -45,6 +45,12 @@ export const configSchema = z.object({
   DELIVERY_EMAIL: optionalEmail,
   TRIGGER_PROJECT_ID: optionalString,
 
+  // Auth (BetterAuth)
+  BETTER_AUTH_SECRET: optionalString,
+  BETTER_AUTH_URL: optionalUrl,
+  GITHUB_CLIENT_ID: optionalString,
+  GITHUB_CLIENT_SECRET: optionalString,
+
   // Defaults
   DIGEST_CRON: z.string().default("0 7 * * *"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

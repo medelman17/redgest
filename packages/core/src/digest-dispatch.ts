@@ -27,12 +27,14 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
     subredditIds: string[],
     forceRefresh?: boolean,
     maxPosts?: number,
+    organizationId?: string,
   ): Promise<void> {
     try {
       const deps = {
         ...pipelineDeps,
         ...(forceRefresh ? { forceRefresh: true as const } : {}),
         ...(maxPosts !== undefined ? { maxPosts } : {}),
+        ...(organizationId ? { organizationId } : {}),
       };
       await runDigestPipeline(jobId, subredditIds, deps);
     } catch (err) {
@@ -55,23 +57,21 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
 
   eventBus.on("DigestRequested", async (event) => {
     const { jobId, subredditIds, forceRefresh, maxPosts } = event.payload;
+    const organizationId = event.organizationId ?? undefined;
 
     if (triggerSecretKey) {
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
-        // Note: Trigger.dev path does NOT propagate forceRefresh/maxPosts.
-        // The worker task would need to accept them as payload fields.
-        // Deferred to when worker tests are added (TD-005).
-        await tasks.trigger("generate-digest", { jobId, subredditIds });
+        await tasks.trigger("generate-digest", { jobId, subredditIds, organizationId });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error(
           `[DigestRequested] Trigger.dev dispatch failed: ${message}, falling back to in-process`,
         );
-        await runInProcess(jobId, subredditIds, forceRefresh, maxPosts);
+        await runInProcess(jobId, subredditIds, forceRefresh, maxPosts, organizationId);
       }
     } else {
-      await runInProcess(jobId, subredditIds, forceRefresh, maxPosts);
+      await runInProcess(jobId, subredditIds, forceRefresh, maxPosts, organizationId);
     }
   });
 

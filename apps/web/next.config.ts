@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@redgest/db",
     "@redgest/config",
     "@redgest/reddit",
+    "@redgest/auth",
   ],
   reactStrictMode: true,
 

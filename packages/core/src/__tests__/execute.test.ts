@@ -55,6 +55,7 @@ describe("execute()", () => {
       db: mockDb,
       eventBus,
       config: stub<HandlerContext["config"]>(),
+      organizationId: "org_test",
     };
   });
 

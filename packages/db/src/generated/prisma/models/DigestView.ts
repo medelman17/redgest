@@ -37,6 +37,7 @@ export type DigestViewSumAggregateOutputType = {
 export type DigestViewMinAggregateOutputType = {
   digestId: string | null
   jobId: string | null
+  organizationId: string | null
   jobStatus: string | null
   startedAt: Date | null
   completedAt: Date | null
@@ -49,6 +50,7 @@ export type DigestViewMinAggregateOutputType = {
 export type DigestViewMaxAggregateOutputType = {
   digestId: string | null
   jobId: string | null
+  organizationId: string | null
   jobStatus: string | null
   startedAt: Date | null
   completedAt: Date | null
@@ -61,6 +63,7 @@ export type DigestViewMaxAggregateOutputType = {
 export type DigestViewCountAggregateOutputType = {
   digestId: number
   jobId: number
+  organizationId: number
   jobStatus: number
   startedAt: number
   completedAt: number
@@ -84,6 +87,7 @@ export type DigestViewSumAggregateInputType = {
 export type DigestViewMinAggregateInputType = {
   digestId?: true
   jobId?: true
+  organizationId?: true
   jobStatus?: true
   startedAt?: true
   completedAt?: true
@@ -96,6 +100,7 @@ export type DigestViewMinAggregateInputType = {
 export type DigestViewMaxAggregateInputType = {
   digestId?: true
   jobId?: true
+  organizationId?: true
   jobStatus?: true
   startedAt?: true
   completedAt?: true
@@ -108,6 +113,7 @@ export type DigestViewMaxAggregateInputType = {
 export type DigestViewCountAggregateInputType = {
   digestId?: true
   jobId?: true
+  organizationId?: true
   jobStatus?: true
   startedAt?: true
   completedAt?: true
@@ -208,6 +214,7 @@ export type DigestViewGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type DigestViewGroupByOutputType = {
   digestId: string
   jobId: string
+  organizationId: string
   jobStatus: string
   startedAt: Date | null
   completedAt: Date | null
@@ -244,6 +251,7 @@ export type DigestViewWhereInput = {
   NOT?: Prisma.DigestViewWhereInput | Prisma.DigestViewWhereInput[]
   digestId?: Prisma.StringFilter<"DigestView"> | string
   jobId?: Prisma.StringFilter<"DigestView"> | string
+  organizationId?: Prisma.StringFilter<"DigestView"> | string
   jobStatus?: Prisma.StringFilter<"DigestView"> | string
   startedAt?: Prisma.DateTimeNullableFilter<"DigestView"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"DigestView"> | Date | string | null
@@ -257,6 +265,7 @@ export type DigestViewWhereInput = {
 export type DigestViewOrderByWithRelationInput = {
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   jobStatus?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -273,6 +282,7 @@ export type DigestViewWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DigestViewWhereInput[]
   NOT?: Prisma.DigestViewWhereInput | Prisma.DigestViewWhereInput[]
   jobId?: Prisma.StringFilter<"DigestView"> | string
+  organizationId?: Prisma.StringFilter<"DigestView"> | string
   jobStatus?: Prisma.StringFilter<"DigestView"> | string
   startedAt?: Prisma.DateTimeNullableFilter<"DigestView"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"DigestView"> | Date | string | null
@@ -286,6 +296,7 @@ export type DigestViewWhereUniqueInput = Prisma.AtLeast<{
 export type DigestViewOrderByWithAggregationInput = {
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   jobStatus?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -307,6 +318,7 @@ export type DigestViewScalarWhereWithAggregatesInput = {
   NOT?: Prisma.DigestViewScalarWhereWithAggregatesInput | Prisma.DigestViewScalarWhereWithAggregatesInput[]
   digestId?: Prisma.StringWithAggregatesFilter<"DigestView"> | string
   jobId?: Prisma.StringWithAggregatesFilter<"DigestView"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"DigestView"> | string
   jobStatus?: Prisma.StringWithAggregatesFilter<"DigestView"> | string
   startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DigestView"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DigestView"> | Date | string | null
@@ -320,6 +332,7 @@ export type DigestViewScalarWhereWithAggregatesInput = {
 export type DigestViewCountOrderByAggregateInput = {
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   jobStatus?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -337,6 +350,7 @@ export type DigestViewAvgOrderByAggregateInput = {
 export type DigestViewMaxOrderByAggregateInput = {
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   jobStatus?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -349,6 +363,7 @@ export type DigestViewMaxOrderByAggregateInput = {
 export type DigestViewMinOrderByAggregateInput = {
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   jobStatus?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -367,6 +382,7 @@ export type DigestViewSumOrderByAggregateInput = {
 export type DigestViewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   digestId?: boolean
   jobId?: boolean
+  organizationId?: boolean
   jobStatus?: boolean
   startedAt?: boolean
   completedAt?: boolean
@@ -382,6 +398,7 @@ export type DigestViewSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type DigestViewSelectScalar = {
   digestId?: boolean
   jobId?: boolean
+  organizationId?: boolean
   jobStatus?: boolean
   startedAt?: boolean
   completedAt?: boolean
@@ -392,7 +409,7 @@ export type DigestViewSelectScalar = {
   createdAt?: boolean
 }
 
-export type DigestViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"digestId" | "jobId" | "jobStatus" | "startedAt" | "completedAt" | "subredditList" | "postCount" | "contentMarkdown" | "contentHtml" | "createdAt", ExtArgs["result"]["digestView"]>
+export type DigestViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"digestId" | "jobId" | "organizationId" | "jobStatus" | "startedAt" | "completedAt" | "subredditList" | "postCount" | "contentMarkdown" | "contentHtml" | "createdAt", ExtArgs["result"]["digestView"]>
 
 export type $DigestViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "DigestView"
@@ -400,6 +417,7 @@ export type $DigestViewPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     digestId: string
     jobId: string
+    organizationId: string
     jobStatus: string
     startedAt: Date | null
     completedAt: Date | null
@@ -668,6 +686,7 @@ export interface Prisma__DigestViewClient<T, Null = never, ExtArgs extends runti
 export interface DigestViewFieldRefs {
   readonly digestId: Prisma.FieldRef<"DigestView", 'String'>
   readonly jobId: Prisma.FieldRef<"DigestView", 'String'>
+  readonly organizationId: Prisma.FieldRef<"DigestView", 'String'>
   readonly jobStatus: Prisma.FieldRef<"DigestView", 'String'>
   readonly startedAt: Prisma.FieldRef<"DigestView", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"DigestView", 'DateTime'>

@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@redgest/auth": "workspace:*",
     "@redgest/config": "workspace:*",
     "@redgest/core": "workspace:*",
     "@redgest/db": "workspace:*",
     "@redgest/reddit": "workspace:*",
+    "better-auth": "^1.2.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query": "^5.90.21",

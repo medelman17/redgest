@@ -3,6 +3,8 @@ import { RedgestError } from "../../errors.js";
 import { parseDuration } from "../../utils/duration.js";
 import type { SearchOptions } from "../../search/types.js";
 
+// TODO: Add organizationId to SearchOptions and pass ctx.organizationId
+// so the raw SQL search service can filter through the job table for tenant isolation.
 export const handleSearchPosts: QueryHandler<"SearchPosts"> = async (
   params,
   ctx,

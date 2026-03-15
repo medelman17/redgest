@@ -3,12 +3,14 @@ import type { QueryHandler } from "../types.js";
 export const handleGetSubredditStats: QueryHandler<
   "GetSubredditStats"
 > = async (params, ctx) => {
+  const where: Record<string, unknown> = {
+    organizationId: ctx.organizationId,
+  };
   if (params.name) {
-    const result = await ctx.db.subredditView.findMany({
-      where: { name: params.name },
-      orderBy: { name: "asc" },
-    });
-    return result;
+    where.name = params.name;
   }
-  return ctx.db.subredditView.findMany({ orderBy: { name: "asc" } });
+  return ctx.db.subredditView.findMany({
+    where,
+    orderBy: { name: "asc" },
+  });
 };

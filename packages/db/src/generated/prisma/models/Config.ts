@@ -38,6 +38,7 @@ export type ConfigSumAggregateOutputType = {
 
 export type ConfigMinAggregateOutputType = {
   id: number | null
+  organizationId: string | null
   globalInsightPrompt: string | null
   defaultLookback: string | null
   defaultDelivery: $Enums.DeliveryChannel | null
@@ -50,6 +51,7 @@ export type ConfigMinAggregateOutputType = {
 
 export type ConfigMaxAggregateOutputType = {
   id: number | null
+  organizationId: string | null
   globalInsightPrompt: string | null
   defaultLookback: string | null
   defaultDelivery: $Enums.DeliveryChannel | null
@@ -62,6 +64,7 @@ export type ConfigMaxAggregateOutputType = {
 
 export type ConfigCountAggregateOutputType = {
   id: number
+  organizationId: number
   globalInsightPrompt: number
   defaultLookback: number
   defaultDelivery: number
@@ -86,6 +89,7 @@ export type ConfigSumAggregateInputType = {
 
 export type ConfigMinAggregateInputType = {
   id?: true
+  organizationId?: true
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
@@ -98,6 +102,7 @@ export type ConfigMinAggregateInputType = {
 
 export type ConfigMaxAggregateInputType = {
   id?: true
+  organizationId?: true
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
@@ -110,6 +115,7 @@ export type ConfigMaxAggregateInputType = {
 
 export type ConfigCountAggregateInputType = {
   id?: true
+  organizationId?: true
   globalInsightPrompt?: true
   defaultLookback?: true
   defaultDelivery?: true
@@ -209,6 +215,7 @@ export type ConfigGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type ConfigGroupByOutputType = {
   id: number
+  organizationId: string
   globalInsightPrompt: string
   defaultLookback: string
   defaultDelivery: $Enums.DeliveryChannel
@@ -244,6 +251,7 @@ export type ConfigWhereInput = {
   OR?: Prisma.ConfigWhereInput[]
   NOT?: Prisma.ConfigWhereInput | Prisma.ConfigWhereInput[]
   id?: Prisma.IntFilter<"Config"> | number
+  organizationId?: Prisma.StringFilter<"Config"> | string
   globalInsightPrompt?: Prisma.StringFilter<"Config"> | string
   defaultLookback?: Prisma.StringFilter<"Config"> | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFilter<"Config"> | $Enums.DeliveryChannel
@@ -252,10 +260,12 @@ export type ConfigWhereInput = {
   llmModel?: Prisma.StringFilter<"Config"> | string
   schedule?: Prisma.StringNullableFilter<"Config"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"Config"> | Date | string
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type ConfigOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
@@ -264,10 +274,12 @@ export type ConfigOrderByWithRelationInput = {
   llmModel?: Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  organization?: Prisma.OrganizationOrderByWithRelationInput
 }
 
 export type ConfigWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  organizationId?: string
   AND?: Prisma.ConfigWhereInput | Prisma.ConfigWhereInput[]
   OR?: Prisma.ConfigWhereInput[]
   NOT?: Prisma.ConfigWhereInput | Prisma.ConfigWhereInput[]
@@ -279,10 +291,12 @@ export type ConfigWhereUniqueInput = Prisma.AtLeast<{
   llmModel?: Prisma.StringFilter<"Config"> | string
   schedule?: Prisma.StringNullableFilter<"Config"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"Config"> | Date | string
-}, "id">
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+}, "id" | "organizationId">
 
 export type ConfigOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
@@ -303,6 +317,7 @@ export type ConfigScalarWhereWithAggregatesInput = {
   OR?: Prisma.ConfigScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ConfigScalarWhereWithAggregatesInput | Prisma.ConfigScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Config"> | number
+  organizationId?: Prisma.StringWithAggregatesFilter<"Config"> | string
   globalInsightPrompt?: Prisma.StringWithAggregatesFilter<"Config"> | string
   defaultLookback?: Prisma.StringWithAggregatesFilter<"Config"> | string
   defaultDelivery?: Prisma.EnumDeliveryChannelWithAggregatesFilter<"Config"> | $Enums.DeliveryChannel
@@ -314,7 +329,6 @@ export type ConfigScalarWhereWithAggregatesInput = {
 }
 
 export type ConfigCreateInput = {
-  id: number
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
@@ -323,10 +337,12 @@ export type ConfigCreateInput = {
   llmModel: string
   schedule?: string | null
   updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutConfigsInput
 }
 
 export type ConfigUncheckedCreateInput = {
-  id: number
+  id?: number
+  organizationId: string
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
@@ -338,7 +354,6 @@ export type ConfigUncheckedCreateInput = {
 }
 
 export type ConfigUpdateInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
@@ -347,10 +362,12 @@ export type ConfigUpdateInput = {
   llmModel?: Prisma.StringFieldUpdateOperationsInput | string
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutConfigsNestedInput
 }
 
 export type ConfigUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
@@ -362,7 +379,8 @@ export type ConfigUncheckedUpdateInput = {
 }
 
 export type ConfigCreateManyInput = {
-  id: number
+  id?: number
+  organizationId: string
   globalInsightPrompt: string
   defaultLookback?: string
   defaultDelivery?: $Enums.DeliveryChannel
@@ -374,7 +392,6 @@ export type ConfigCreateManyInput = {
 }
 
 export type ConfigUpdateManyMutationInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
@@ -387,6 +404,7 @@ export type ConfigUpdateManyMutationInput = {
 
 export type ConfigUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
@@ -397,8 +415,19 @@ export type ConfigUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type ConfigListRelationFilter = {
+  every?: Prisma.ConfigWhereInput
+  some?: Prisma.ConfigWhereInput
+  none?: Prisma.ConfigWhereInput
+}
+
+export type ConfigOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type ConfigCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
@@ -416,6 +445,7 @@ export type ConfigAvgOrderByAggregateInput = {
 
 export type ConfigMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
@@ -428,6 +458,7 @@ export type ConfigMaxOrderByAggregateInput = {
 
 export type ConfigMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   globalInsightPrompt?: Prisma.SortOrder
   defaultLookback?: Prisma.SortOrder
   defaultDelivery?: Prisma.SortOrder
@@ -443,10 +474,165 @@ export type ConfigSumOrderByAggregateInput = {
   maxDigestPosts?: Prisma.SortOrder
 }
 
+export type ConfigCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput> | Prisma.ConfigCreateWithoutOrganizationInput[] | Prisma.ConfigUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ConfigCreateOrConnectWithoutOrganizationInput | Prisma.ConfigCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.ConfigCreateManyOrganizationInputEnvelope
+  connect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+}
+
+export type ConfigUncheckedCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput> | Prisma.ConfigCreateWithoutOrganizationInput[] | Prisma.ConfigUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ConfigCreateOrConnectWithoutOrganizationInput | Prisma.ConfigCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.ConfigCreateManyOrganizationInputEnvelope
+  connect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+}
+
+export type ConfigUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput> | Prisma.ConfigCreateWithoutOrganizationInput[] | Prisma.ConfigUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ConfigCreateOrConnectWithoutOrganizationInput | Prisma.ConfigCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.ConfigUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.ConfigUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.ConfigCreateManyOrganizationInputEnvelope
+  set?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  disconnect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  delete?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  connect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  update?: Prisma.ConfigUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.ConfigUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.ConfigUpdateManyWithWhereWithoutOrganizationInput | Prisma.ConfigUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.ConfigScalarWhereInput | Prisma.ConfigScalarWhereInput[]
+}
+
+export type ConfigUncheckedUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput> | Prisma.ConfigCreateWithoutOrganizationInput[] | Prisma.ConfigUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ConfigCreateOrConnectWithoutOrganizationInput | Prisma.ConfigCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.ConfigUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.ConfigUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.ConfigCreateManyOrganizationInputEnvelope
+  set?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  disconnect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  delete?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  connect?: Prisma.ConfigWhereUniqueInput | Prisma.ConfigWhereUniqueInput[]
+  update?: Prisma.ConfigUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.ConfigUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.ConfigUpdateManyWithWhereWithoutOrganizationInput | Prisma.ConfigUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.ConfigScalarWhereInput | Prisma.ConfigScalarWhereInput[]
+}
+
+export type ConfigCreateWithoutOrganizationInput = {
+  globalInsightPrompt: string
+  defaultLookback?: string
+  defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
+  llmProvider: string
+  llmModel: string
+  schedule?: string | null
+  updatedAt?: Date | string
+}
+
+export type ConfigUncheckedCreateWithoutOrganizationInput = {
+  id?: number
+  globalInsightPrompt: string
+  defaultLookback?: string
+  defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
+  llmProvider: string
+  llmModel: string
+  schedule?: string | null
+  updatedAt?: Date | string
+}
+
+export type ConfigCreateOrConnectWithoutOrganizationInput = {
+  where: Prisma.ConfigWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput>
+}
+
+export type ConfigCreateManyOrganizationInputEnvelope = {
+  data: Prisma.ConfigCreateManyOrganizationInput | Prisma.ConfigCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
+}
+
+export type ConfigUpsertWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.ConfigWhereUniqueInput
+  update: Prisma.XOR<Prisma.ConfigUpdateWithoutOrganizationInput, Prisma.ConfigUncheckedUpdateWithoutOrganizationInput>
+  create: Prisma.XOR<Prisma.ConfigCreateWithoutOrganizationInput, Prisma.ConfigUncheckedCreateWithoutOrganizationInput>
+}
+
+export type ConfigUpdateWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.ConfigWhereUniqueInput
+  data: Prisma.XOR<Prisma.ConfigUpdateWithoutOrganizationInput, Prisma.ConfigUncheckedUpdateWithoutOrganizationInput>
+}
+
+export type ConfigUpdateManyWithWhereWithoutOrganizationInput = {
+  where: Prisma.ConfigScalarWhereInput
+  data: Prisma.XOR<Prisma.ConfigUpdateManyMutationInput, Prisma.ConfigUncheckedUpdateManyWithoutOrganizationInput>
+}
+
+export type ConfigScalarWhereInput = {
+  AND?: Prisma.ConfigScalarWhereInput | Prisma.ConfigScalarWhereInput[]
+  OR?: Prisma.ConfigScalarWhereInput[]
+  NOT?: Prisma.ConfigScalarWhereInput | Prisma.ConfigScalarWhereInput[]
+  id?: Prisma.IntFilter<"Config"> | number
+  organizationId?: Prisma.StringFilter<"Config"> | string
+  globalInsightPrompt?: Prisma.StringFilter<"Config"> | string
+  defaultLookback?: Prisma.StringFilter<"Config"> | string
+  defaultDelivery?: Prisma.EnumDeliveryChannelFilter<"Config"> | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFilter<"Config"> | number
+  llmProvider?: Prisma.StringFilter<"Config"> | string
+  llmModel?: Prisma.StringFilter<"Config"> | string
+  schedule?: Prisma.StringNullableFilter<"Config"> | string | null
+  updatedAt?: Prisma.DateTimeFilter<"Config"> | Date | string
+}
+
+export type ConfigCreateManyOrganizationInput = {
+  id?: number
+  globalInsightPrompt: string
+  defaultLookback?: string
+  defaultDelivery?: $Enums.DeliveryChannel
+  maxDigestPosts?: number
+  llmProvider: string
+  llmModel: string
+  schedule?: string | null
+  updatedAt?: Date | string
+}
+
+export type ConfigUpdateWithoutOrganizationInput = {
+  globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  llmModel?: Prisma.StringFieldUpdateOperationsInput | string
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConfigUncheckedUpdateWithoutOrganizationInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  llmModel?: Prisma.StringFieldUpdateOperationsInput | string
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConfigUncheckedUpdateManyWithoutOrganizationInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  globalInsightPrompt?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultLookback?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultDelivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  maxDigestPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  llmProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  llmModel?: Prisma.StringFieldUpdateOperationsInput | string
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 
 
 export type ConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  organizationId?: boolean
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
@@ -455,10 +641,12 @@ export type ConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   llmModel?: boolean
   schedule?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["config"]>
 
 export type ConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  organizationId?: boolean
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
@@ -467,10 +655,12 @@ export type ConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   llmModel?: boolean
   schedule?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["config"]>
 
 export type ConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  organizationId?: boolean
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
@@ -479,10 +669,12 @@ export type ConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   llmModel?: boolean
   schedule?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["config"]>
 
 export type ConfigSelectScalar = {
   id?: boolean
+  organizationId?: boolean
   globalInsightPrompt?: boolean
   defaultLookback?: boolean
   defaultDelivery?: boolean
@@ -493,13 +685,25 @@ export type ConfigSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "globalInsightPrompt" | "defaultLookback" | "defaultDelivery" | "maxDigestPosts" | "llmProvider" | "llmModel" | "schedule" | "updatedAt", ExtArgs["result"]["config"]>
+export type ConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "globalInsightPrompt" | "defaultLookback" | "defaultDelivery" | "maxDigestPosts" | "llmProvider" | "llmModel" | "schedule" | "updatedAt", ExtArgs["result"]["config"]>
+export type ConfigInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
+export type ConfigIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
+export type ConfigIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
 
 export type $ConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Config"
-  objects: {}
+  objects: {
+    organization: Prisma.$OrganizationPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    organizationId: string
     globalInsightPrompt: string
     defaultLookback: string
     defaultDelivery: $Enums.DeliveryChannel
@@ -902,6 +1106,7 @@ readonly fields: ConfigFieldRefs;
  */
 export interface Prisma__ConfigClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -932,6 +1137,7 @@ export interface Prisma__ConfigClient<T, Null = never, ExtArgs extends runtime.T
  */
 export interface ConfigFieldRefs {
   readonly id: Prisma.FieldRef<"Config", 'Int'>
+  readonly organizationId: Prisma.FieldRef<"Config", 'String'>
   readonly globalInsightPrompt: Prisma.FieldRef<"Config", 'String'>
   readonly defaultLookback: Prisma.FieldRef<"Config", 'String'>
   readonly defaultDelivery: Prisma.FieldRef<"Config", 'DeliveryChannel'>
@@ -957,6 +1163,10 @@ export type ConfigFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
+  /**
    * Filter, which Config to fetch.
    */
   where: Prisma.ConfigWhereUniqueInput
@@ -975,6 +1185,10 @@ export type ConfigFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
+  /**
    * Filter, which Config to fetch.
    */
   where: Prisma.ConfigWhereUniqueInput
@@ -992,6 +1206,10 @@ export type ConfigFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Config
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
   /**
    * Filter, which Config to fetch.
    */
@@ -1041,6 +1259,10 @@ export type ConfigFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
+  /**
    * Filter, which Config to fetch.
    */
   where?: Prisma.ConfigWhereInput
@@ -1089,6 +1311,10 @@ export type ConfigFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
+  /**
    * Filter, which Configs to fetch.
    */
   where?: Prisma.ConfigWhereInput
@@ -1132,6 +1358,10 @@ export type ConfigCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
+  /**
    * The data needed to create a Config.
    */
   data: Prisma.XOR<Prisma.ConfigCreateInput, Prisma.ConfigUncheckedCreateInput>
@@ -1165,6 +1395,10 @@ export type ConfigCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    */
   data: Prisma.ConfigCreateManyInput | Prisma.ConfigCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1179,6 +1413,10 @@ export type ConfigUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Config
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
   /**
    * The data needed to update a Config.
    */
@@ -1231,6 +1469,10 @@ export type ConfigUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many Configs to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1245,6 +1487,10 @@ export type ConfigUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Config
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
   /**
    * The filter to search for the Config to update in case it exists.
    */
@@ -1271,6 +1517,10 @@ export type ConfigDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Config
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
   /**
    * Filter which Config to delete.
    */
@@ -1303,4 +1553,8 @@ export type ConfigDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Config
    */
   omit?: Prisma.ConfigOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfigInclude<ExtArgs> | null
 }

@@ -44,12 +44,15 @@ async function getBootstrap(): Promise<BootstrapResult> {
   // Runtime db is always PrismaClient which satisfies both; cast needed
   // because Prisma's $transaction overloads don't structurally match
   // TransactableClient (same pattern as mcp-server/tools.ts:execCtx)
+  // TODO: Read organizationId from auth session once auth UI is wired
+  const organizationId = process.env.REDGEST_ORG_ID ?? "org_default";
   const executeCtx: ExecuteContext = {
     db: db as unknown as ExecuteContext["db"],
     eventBus,
     config,
+    organizationId,
   };
-  const queryCtx: HandlerContext = { db, eventBus, config };
+  const queryCtx: HandlerContext = { db, eventBus, config, organizationId };
 
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);

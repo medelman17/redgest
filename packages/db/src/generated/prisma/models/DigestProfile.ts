@@ -39,6 +39,7 @@ export type DigestProfileSumAggregateOutputType = {
 export type DigestProfileMinAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number | null
@@ -52,6 +53,7 @@ export type DigestProfileMinAggregateOutputType = {
 export type DigestProfileMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number | null
@@ -65,6 +67,7 @@ export type DigestProfileMaxAggregateOutputType = {
 export type DigestProfileCountAggregateOutputType = {
   id: number
   name: number
+  organizationId: number
   insightPrompt: number
   schedule: number
   lookbackHours: number
@@ -91,6 +94,7 @@ export type DigestProfileSumAggregateInputType = {
 export type DigestProfileMinAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -104,6 +108,7 @@ export type DigestProfileMinAggregateInputType = {
 export type DigestProfileMaxAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -117,6 +122,7 @@ export type DigestProfileMaxAggregateInputType = {
 export type DigestProfileCountAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   schedule?: true
   lookbackHours?: true
@@ -218,6 +224,7 @@ export type DigestProfileGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type DigestProfileGroupByOutputType = {
   id: string
   name: string
+  organizationId: string
   insightPrompt: string | null
   schedule: string | null
   lookbackHours: number
@@ -255,6 +262,7 @@ export type DigestProfileWhereInput = {
   NOT?: Prisma.DigestProfileWhereInput | Prisma.DigestProfileWhereInput[]
   id?: Prisma.StringFilter<"DigestProfile"> | string
   name?: Prisma.StringFilter<"DigestProfile"> | string
+  organizationId?: Prisma.StringFilter<"DigestProfile"> | string
   insightPrompt?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
   schedule?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
   lookbackHours?: Prisma.IntFilter<"DigestProfile"> | number
@@ -264,6 +272,7 @@ export type DigestProfileWhereInput = {
   filters?: Prisma.JsonNullableFilter<"DigestProfile">
   createdAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   subreddits?: Prisma.DigestProfileSubredditListRelationFilter
   jobs?: Prisma.JobListRelationFilter
 }
@@ -271,6 +280,7 @@ export type DigestProfileWhereInput = {
 export type DigestProfileOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -280,16 +290,19 @@ export type DigestProfileOrderByWithRelationInput = {
   filters?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   subreddits?: Prisma.DigestProfileSubredditOrderByRelationAggregateInput
   jobs?: Prisma.JobOrderByRelationAggregateInput
 }
 
 export type DigestProfileWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  name?: string
+  name_organizationId?: Prisma.DigestProfileNameOrganizationIdCompoundUniqueInput
   AND?: Prisma.DigestProfileWhereInput | Prisma.DigestProfileWhereInput[]
   OR?: Prisma.DigestProfileWhereInput[]
   NOT?: Prisma.DigestProfileWhereInput | Prisma.DigestProfileWhereInput[]
+  name?: Prisma.StringFilter<"DigestProfile"> | string
+  organizationId?: Prisma.StringFilter<"DigestProfile"> | string
   insightPrompt?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
   schedule?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
   lookbackHours?: Prisma.IntFilter<"DigestProfile"> | number
@@ -299,13 +312,15 @@ export type DigestProfileWhereUniqueInput = Prisma.AtLeast<{
   filters?: Prisma.JsonNullableFilter<"DigestProfile">
   createdAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   subreddits?: Prisma.DigestProfileSubredditListRelationFilter
   jobs?: Prisma.JobListRelationFilter
-}, "id" | "name">
+}, "id" | "name_organizationId">
 
 export type DigestProfileOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -328,6 +343,7 @@ export type DigestProfileScalarWhereWithAggregatesInput = {
   NOT?: Prisma.DigestProfileScalarWhereWithAggregatesInput | Prisma.DigestProfileScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"DigestProfile"> | string
   name?: Prisma.StringWithAggregatesFilter<"DigestProfile"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"DigestProfile"> | string
   insightPrompt?: Prisma.StringNullableWithAggregatesFilter<"DigestProfile"> | string | null
   schedule?: Prisma.StringNullableWithAggregatesFilter<"DigestProfile"> | string | null
   lookbackHours?: Prisma.IntWithAggregatesFilter<"DigestProfile"> | number
@@ -351,6 +367,7 @@ export type DigestProfileCreateInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutProfilesInput
   subreddits?: Prisma.DigestProfileSubredditCreateNestedManyWithoutProfileInput
   jobs?: Prisma.JobCreateNestedManyWithoutProfileInput
 }
@@ -358,6 +375,7 @@ export type DigestProfileCreateInput = {
 export type DigestProfileUncheckedCreateInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   schedule?: string | null
   lookbackHours?: number
@@ -383,6 +401,7 @@ export type DigestProfileUpdateInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProfilesNestedInput
   subreddits?: Prisma.DigestProfileSubredditUpdateManyWithoutProfileNestedInput
   jobs?: Prisma.JobUpdateManyWithoutProfileNestedInput
 }
@@ -390,6 +409,7 @@ export type DigestProfileUpdateInput = {
 export type DigestProfileUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
@@ -406,6 +426,7 @@ export type DigestProfileUncheckedUpdateInput = {
 export type DigestProfileCreateManyInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   schedule?: string | null
   lookbackHours?: number
@@ -434,6 +455,7 @@ export type DigestProfileUpdateManyMutationInput = {
 export type DigestProfileUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
@@ -445,9 +467,25 @@ export type DigestProfileUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type DigestProfileListRelationFilter = {
+  every?: Prisma.DigestProfileWhereInput
+  some?: Prisma.DigestProfileWhereInput
+  none?: Prisma.DigestProfileWhereInput
+}
+
+export type DigestProfileOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type DigestProfileNameOrganizationIdCompoundUniqueInput = {
+  name: string
+  organizationId: string
+}
+
 export type DigestProfileCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -467,6 +505,7 @@ export type DigestProfileAvgOrderByAggregateInput = {
 export type DigestProfileMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -480,6 +519,7 @@ export type DigestProfileMaxOrderByAggregateInput = {
 export type DigestProfileMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   schedule?: Prisma.SortOrder
   lookbackHours?: Prisma.SortOrder
@@ -503,6 +543,48 @@ export type DigestProfileScalarRelationFilter = {
 export type DigestProfileNullableScalarRelationFilter = {
   is?: Prisma.DigestProfileWhereInput | null
   isNot?: Prisma.DigestProfileWhereInput | null
+}
+
+export type DigestProfileCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput> | Prisma.DigestProfileCreateWithoutOrganizationInput[] | Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput | Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.DigestProfileCreateManyOrganizationInputEnvelope
+  connect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+}
+
+export type DigestProfileUncheckedCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput> | Prisma.DigestProfileCreateWithoutOrganizationInput[] | Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput | Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.DigestProfileCreateManyOrganizationInputEnvelope
+  connect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+}
+
+export type DigestProfileUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput> | Prisma.DigestProfileCreateWithoutOrganizationInput[] | Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput | Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.DigestProfileUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.DigestProfileUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.DigestProfileCreateManyOrganizationInputEnvelope
+  set?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  disconnect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  delete?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  connect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  update?: Prisma.DigestProfileUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.DigestProfileUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.DigestProfileUpdateManyWithWhereWithoutOrganizationInput | Prisma.DigestProfileUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.DigestProfileScalarWhereInput | Prisma.DigestProfileScalarWhereInput[]
+}
+
+export type DigestProfileUncheckedUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput> | Prisma.DigestProfileCreateWithoutOrganizationInput[] | Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput | Prisma.DigestProfileCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.DigestProfileUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.DigestProfileUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.DigestProfileCreateManyOrganizationInputEnvelope
+  set?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  disconnect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  delete?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  connect?: Prisma.DigestProfileWhereUniqueInput | Prisma.DigestProfileWhereUniqueInput[]
+  update?: Prisma.DigestProfileUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.DigestProfileUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.DigestProfileUpdateManyWithWhereWithoutOrganizationInput | Prisma.DigestProfileUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.DigestProfileScalarWhereInput | Prisma.DigestProfileScalarWhereInput[]
 }
 
 export type EnumDeliveryChannelFieldUpdateOperationsInput = {
@@ -539,6 +621,82 @@ export type DigestProfileUpdateOneWithoutJobsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DigestProfileUpdateToOneWithWhereWithoutJobsInput, Prisma.DigestProfileUpdateWithoutJobsInput>, Prisma.DigestProfileUncheckedUpdateWithoutJobsInput>
 }
 
+export type DigestProfileCreateWithoutOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  schedule?: string | null
+  lookbackHours?: number
+  maxPosts?: number
+  delivery?: $Enums.DeliveryChannel
+  isActive?: boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subreddits?: Prisma.DigestProfileSubredditCreateNestedManyWithoutProfileInput
+  jobs?: Prisma.JobCreateNestedManyWithoutProfileInput
+}
+
+export type DigestProfileUncheckedCreateWithoutOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  schedule?: string | null
+  lookbackHours?: number
+  maxPosts?: number
+  delivery?: $Enums.DeliveryChannel
+  isActive?: boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subreddits?: Prisma.DigestProfileSubredditUncheckedCreateNestedManyWithoutProfileInput
+  jobs?: Prisma.JobUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type DigestProfileCreateOrConnectWithoutOrganizationInput = {
+  where: Prisma.DigestProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput>
+}
+
+export type DigestProfileCreateManyOrganizationInputEnvelope = {
+  data: Prisma.DigestProfileCreateManyOrganizationInput | Prisma.DigestProfileCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
+}
+
+export type DigestProfileUpsertWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.DigestProfileWhereUniqueInput
+  update: Prisma.XOR<Prisma.DigestProfileUpdateWithoutOrganizationInput, Prisma.DigestProfileUncheckedUpdateWithoutOrganizationInput>
+  create: Prisma.XOR<Prisma.DigestProfileCreateWithoutOrganizationInput, Prisma.DigestProfileUncheckedCreateWithoutOrganizationInput>
+}
+
+export type DigestProfileUpdateWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.DigestProfileWhereUniqueInput
+  data: Prisma.XOR<Prisma.DigestProfileUpdateWithoutOrganizationInput, Prisma.DigestProfileUncheckedUpdateWithoutOrganizationInput>
+}
+
+export type DigestProfileUpdateManyWithWhereWithoutOrganizationInput = {
+  where: Prisma.DigestProfileScalarWhereInput
+  data: Prisma.XOR<Prisma.DigestProfileUpdateManyMutationInput, Prisma.DigestProfileUncheckedUpdateManyWithoutOrganizationInput>
+}
+
+export type DigestProfileScalarWhereInput = {
+  AND?: Prisma.DigestProfileScalarWhereInput | Prisma.DigestProfileScalarWhereInput[]
+  OR?: Prisma.DigestProfileScalarWhereInput[]
+  NOT?: Prisma.DigestProfileScalarWhereInput | Prisma.DigestProfileScalarWhereInput[]
+  id?: Prisma.StringFilter<"DigestProfile"> | string
+  name?: Prisma.StringFilter<"DigestProfile"> | string
+  organizationId?: Prisma.StringFilter<"DigestProfile"> | string
+  insightPrompt?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
+  schedule?: Prisma.StringNullableFilter<"DigestProfile"> | string | null
+  lookbackHours?: Prisma.IntFilter<"DigestProfile"> | number
+  maxPosts?: Prisma.IntFilter<"DigestProfile"> | number
+  delivery?: Prisma.EnumDeliveryChannelFilter<"DigestProfile"> | $Enums.DeliveryChannel
+  isActive?: Prisma.BoolFilter<"DigestProfile"> | boolean
+  filters?: Prisma.JsonNullableFilter<"DigestProfile">
+  createdAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"DigestProfile"> | Date | string
+}
+
 export type DigestProfileCreateWithoutSubredditsInput = {
   id?: string
   name: string
@@ -551,12 +709,14 @@ export type DigestProfileCreateWithoutSubredditsInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutProfilesInput
   jobs?: Prisma.JobCreateNestedManyWithoutProfileInput
 }
 
 export type DigestProfileUncheckedCreateWithoutSubredditsInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   schedule?: string | null
   lookbackHours?: number
@@ -597,12 +757,14 @@ export type DigestProfileUpdateWithoutSubredditsInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProfilesNestedInput
   jobs?: Prisma.JobUpdateManyWithoutProfileNestedInput
 }
 
 export type DigestProfileUncheckedUpdateWithoutSubredditsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
@@ -627,12 +789,14 @@ export type DigestProfileCreateWithoutJobsInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutProfilesInput
   subreddits?: Prisma.DigestProfileSubredditCreateNestedManyWithoutProfileInput
 }
 
 export type DigestProfileUncheckedCreateWithoutJobsInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   schedule?: string | null
   lookbackHours?: number
@@ -673,10 +837,57 @@ export type DigestProfileUpdateWithoutJobsInput = {
   filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProfilesNestedInput
   subreddits?: Prisma.DigestProfileSubredditUpdateManyWithoutProfileNestedInput
 }
 
 export type DigestProfileUncheckedUpdateWithoutJobsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  delivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subreddits?: Prisma.DigestProfileSubredditUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type DigestProfileCreateManyOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  schedule?: string | null
+  lookbackHours?: number
+  maxPosts?: number
+  delivery?: $Enums.DeliveryChannel
+  isActive?: boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type DigestProfileUpdateWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  delivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subreddits?: Prisma.DigestProfileSubredditUpdateManyWithoutProfileNestedInput
+  jobs?: Prisma.JobUpdateManyWithoutProfileNestedInput
+}
+
+export type DigestProfileUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -689,6 +900,21 @@ export type DigestProfileUncheckedUpdateWithoutJobsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   subreddits?: Prisma.DigestProfileSubredditUncheckedUpdateManyWithoutProfileNestedInput
+  jobs?: Prisma.JobUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type DigestProfileUncheckedUpdateManyWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schedule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookbackHours?: Prisma.IntFieldUpdateOperationsInput | number
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  delivery?: Prisma.EnumDeliveryChannelFieldUpdateOperationsInput | $Enums.DeliveryChannel
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  filters?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -734,6 +960,7 @@ export type DigestProfileCountOutputTypeCountJobsArgs<ExtArgs extends runtime.Ty
 export type DigestProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -743,6 +970,7 @@ export type DigestProfileSelect<ExtArgs extends runtime.Types.Extensions.Interna
   filters?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   subreddits?: boolean | Prisma.DigestProfile$subredditsArgs<ExtArgs>
   jobs?: boolean | Prisma.DigestProfile$jobsArgs<ExtArgs>
   _count?: boolean | Prisma.DigestProfileCountOutputTypeDefaultArgs<ExtArgs>
@@ -751,6 +979,7 @@ export type DigestProfileSelect<ExtArgs extends runtime.Types.Extensions.Interna
 export type DigestProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -760,11 +989,13 @@ export type DigestProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   filters?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["digestProfile"]>
 
 export type DigestProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -774,11 +1005,13 @@ export type DigestProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   filters?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["digestProfile"]>
 
 export type DigestProfileSelectScalar = {
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   schedule?: boolean
   lookbackHours?: boolean
@@ -790,24 +1023,31 @@ export type DigestProfileSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DigestProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "schedule" | "lookbackHours" | "maxPosts" | "delivery" | "isActive" | "filters" | "createdAt" | "updatedAt", ExtArgs["result"]["digestProfile"]>
+export type DigestProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "organizationId" | "insightPrompt" | "schedule" | "lookbackHours" | "maxPosts" | "delivery" | "isActive" | "filters" | "createdAt" | "updatedAt", ExtArgs["result"]["digestProfile"]>
 export type DigestProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   subreddits?: boolean | Prisma.DigestProfile$subredditsArgs<ExtArgs>
   jobs?: boolean | Prisma.DigestProfile$jobsArgs<ExtArgs>
   _count?: boolean | Prisma.DigestProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type DigestProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type DigestProfileIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type DigestProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
+export type DigestProfileIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
 
 export type $DigestProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "DigestProfile"
   objects: {
+    organization: Prisma.$OrganizationPayload<ExtArgs>
     subreddits: Prisma.$DigestProfileSubredditPayload<ExtArgs>[]
     jobs: Prisma.$JobPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    organizationId: string
     insightPrompt: string | null
     schedule: string | null
     lookbackHours: number
@@ -1211,6 +1451,7 @@ readonly fields: DigestProfileFieldRefs;
  */
 export interface Prisma__DigestProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   subreddits<T extends Prisma.DigestProfile$subredditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DigestProfile$subredditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DigestProfileSubredditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   jobs<T extends Prisma.DigestProfile$jobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DigestProfile$jobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1244,6 +1485,7 @@ export interface Prisma__DigestProfileClient<T, Null = never, ExtArgs extends ru
 export interface DigestProfileFieldRefs {
   readonly id: Prisma.FieldRef<"DigestProfile", 'String'>
   readonly name: Prisma.FieldRef<"DigestProfile", 'String'>
+  readonly organizationId: Prisma.FieldRef<"DigestProfile", 'String'>
   readonly insightPrompt: Prisma.FieldRef<"DigestProfile", 'String'>
   readonly schedule: Prisma.FieldRef<"DigestProfile", 'String'>
   readonly lookbackHours: Prisma.FieldRef<"DigestProfile", 'Int'>
@@ -1502,6 +1744,10 @@ export type DigestProfileCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    */
   data: Prisma.DigestProfileCreateManyInput | Prisma.DigestProfileCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DigestProfileIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1572,6 +1818,10 @@ export type DigestProfileUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * Limit how many DigestProfiles to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DigestProfileIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
