@@ -37,6 +37,19 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
+  account: {
+    encryptOAuthTokens: true,
+  },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      "/api/auth/sign-in/email": { window: 60, max: 5 },
+      "/api/auth/sign-up/email": { window: 60, max: 3 },
+      "/api/auth/forgot-password": { window: 60, max: 3 },
+    },
+  },
   plugins: [
     organization({
       organizationLimit: 5,
