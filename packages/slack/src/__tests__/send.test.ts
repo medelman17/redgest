@@ -1,23 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { DigestDeliveryData } from "@redgest/email";
+import type { FormattedDigest } from "@redgest/email";
 import { sendDigestSlack } from "../send.js";
 
-function makeDigest(): DigestDeliveryData {
+function makeDigest(): FormattedDigest {
   return {
-    digestId: "digest-001",
     createdAt: new Date("2026-03-10T12:00:00Z"),
-    subreddits: [
+    headline: "Test headline.",
+    sections: [
       {
-        name: "typescript",
+        subreddit: "typescript",
+        body: "Test body prose.",
         posts: [
           {
             title: "Test Post",
             permalink: "/r/typescript/comments/abc/test",
             score: 100,
-            summary: "A test post summary.",
-            keyTakeaways: ["takeaway"],
-            insightNotes: "notes",
-            commentHighlights: [],
           },
         ],
       },

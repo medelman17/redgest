@@ -19,6 +19,7 @@
     "@redgest/core": "workspace:*",
     "@redgest/db": "workspace:*",
     "@redgest/email": "workspace:*",
+    "@redgest/llm": "workspace:*",
     "@redgest/reddit": "workspace:*",
     "@redgest/slack": "workspace:*",
     "@trigger.dev/sdk": "^4.4.3"

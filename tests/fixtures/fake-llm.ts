@@ -4,6 +4,9 @@ import type {
   PostSummary,
   SummarizationPost,
   SummarizationComment,
+  DeliveryProse,
+  DeliveryDigestInput,
+  DeliveryChannel,
 } from "@redgest/llm";
 import type { LanguageModel } from "ai";
 
@@ -55,6 +58,26 @@ export async function fakeGeneratePostSummary(
       relevanceScore: 7,
       contentType: "text",
       notableLinks: [],
+    },
+    log: null,
+  };
+}
+
+/**
+ * Fake delivery prose: returns deterministic prose based on input subreddits.
+ */
+export async function fakeGenerateDeliveryProse(
+  input: DeliveryDigestInput,
+  _channel: DeliveryChannel,
+  _model?: LanguageModel,
+): Promise<{ data: DeliveryProse; log: null }> {
+  return {
+    data: {
+      headline: `This digest covers ${input.subreddits.length} subreddit${input.subreddits.length === 1 ? "" : "s"} with the latest curated posts.`,
+      sections: input.subreddits.map((sub) => ({
+        subreddit: sub.name,
+        body: `r/${sub.name} featured ${sub.posts.length} post${sub.posts.length === 1 ? "" : "s"}${sub.posts.length > 0 ? `, including "${sub.posts[0]?.title}"` : ""}.`,
+      })),
     },
     log: null,
   };

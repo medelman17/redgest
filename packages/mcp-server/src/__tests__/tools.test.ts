@@ -5,14 +5,27 @@ import type { BootstrapResult } from "../bootstrap.js";
 import type { ToolResult } from "../envelope.js";
 import { createToolHandlers, createToolServer, type ToolHandler } from "../tools.js";
 
-// Mock email rendering (preview_digest uses renderDigestHtml)
+// Mock email rendering (preview_digest uses renderDigestHtml + buildFormattedDigest)
 vi.mock("@redgest/email", () => ({
   buildDeliveryData: vi.fn().mockReturnValue({
     digestId: "d1",
     createdAt: new Date("2026-03-10"),
     subreddits: [{ name: "test", posts: [{ title: "Post", permalink: "/r/test/1", score: 10, summary: "Sum", keyTakeaways: [], insightNotes: "", commentHighlights: [] }] }],
   }),
+  buildFormattedDigest: vi.fn().mockReturnValue({
+    createdAt: new Date("2026-03-10"),
+    headline: "Test headline.",
+    sections: [{ subreddit: "test", body: "Test body.", posts: [{ title: "Post", permalink: "/r/test/1", score: 10 }] }],
+  }),
   renderDigestHtml: vi.fn().mockResolvedValue("<html>preview</html>"),
+}));
+
+// Mock LLM (preview_digest uses generateDeliveryProse)
+vi.mock("@redgest/llm", () => ({
+  generateDeliveryProse: vi.fn().mockResolvedValue({
+    data: { headline: "Test headline.", sections: [{ subreddit: "test", body: "Test body." }] },
+    log: null,
+  }),
 }));
 
 // Mock slack formatting (preview_digest uses formatDigestBlocks)

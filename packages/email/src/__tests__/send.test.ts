@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { DigestDeliveryData } from "../types.js";
+import type { FormattedDigest } from "../types.js";
 
 const mockSend = vi.fn();
 
@@ -21,22 +21,19 @@ vi.mock("../render.js", () => ({
   renderDigestHtml: vi.fn().mockResolvedValue("<html>rendered</html>"),
 }));
 
-function makeDigest(): DigestDeliveryData {
+function makeDigest(): FormattedDigest {
   return {
-    digestId: "digest-001",
     createdAt: new Date("2026-03-10T12:00:00Z"),
-    subreddits: [
+    headline: "Today's top posts across your subreddits.",
+    sections: [
       {
-        name: "typescript",
+        subreddit: "typescript",
+        body: "TypeScript community highlights.",
         posts: [
           {
             title: "Test Post",
             permalink: "/r/typescript/comments/abc/test",
             score: 100,
-            summary: "A test post.",
-            keyTakeaways: ["takeaway"],
-            insightNotes: "notes",
-            commentHighlights: [],
           },
         ],
       },
