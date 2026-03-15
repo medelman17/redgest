@@ -11,8 +11,8 @@ export const handleGenerateDigest: CommandHandler<"GenerateDigest"> = async (
 
   // If profileId provided, load profile settings as defaults
   if (params.profileId) {
-    const profile = await ctx.db.digestProfile.findUnique({
-      where: { id: params.profileId },
+    const profile = await ctx.db.digestProfile.findFirst({
+      where: { id: params.profileId, organizationId: ctx.organizationId },
       include: { subreddits: { select: { subredditId: true } } },
     });
     if (!profile) {
@@ -33,7 +33,7 @@ export const handleGenerateDigest: CommandHandler<"GenerateDigest"> = async (
   }
 
   const activeJob = await ctx.db.job.findFirst({
-    where: { status: { in: ["QUEUED", "RUNNING"] } },
+    where: { organizationId: ctx.organizationId, status: { in: ["QUEUED", "RUNNING"] } },
     select: { id: true, status: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
@@ -48,6 +48,7 @@ export const handleGenerateDigest: CommandHandler<"GenerateDigest"> = async (
 
   const job = await ctx.db.job.create({
     data: {
+      organizationId: ctx.organizationId,
       status: "QUEUED",
       subreddits: subredditIds,
       lookback,

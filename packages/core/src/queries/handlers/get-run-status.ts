@@ -112,6 +112,9 @@ export const handleGetRunStatus: QueryHandler<"GetRunStatus"> = async (
 
   if (!runView) return null;
 
+  // Tenant isolation: ensure the run belongs to the caller's organization
+  if (runView.organizationId !== ctx.organizationId) return null;
+
   // Fetch all pipeline events for this job, ordered chronologically
   const events = await ctx.db.event.findMany({
     where: {

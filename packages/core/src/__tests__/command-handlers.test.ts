@@ -25,6 +25,7 @@ function makeCtx(dbMock: Record<string, unknown>): HandlerContext {
     db: db as unknown as HandlerContext["db"],
     eventBus: new DomainEventBus(),
     config: stub<HandlerContext["config"]>(),
+    organizationId: "org_test",
   };
 }
 
@@ -49,6 +50,7 @@ describe("handleGenerateDigest", () => {
     });
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
+        organizationId: "org_test",
         status: "QUEUED",
         subreddits: ["sub-1", "sub-2"],
         lookback: "48h",
@@ -71,6 +73,7 @@ describe("handleGenerateDigest", () => {
     expect(result.event).toEqual({ jobId: "job-456", subredditIds: [] });
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
+        organizationId: "org_test",
         status: "QUEUED",
         subreddits: [],
         lookback: "24h",
@@ -121,6 +124,7 @@ describe("handleAddSubreddit", () => {
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
         name: "typescript",
+        organizationId: "org_test",
         insightPrompt: null,
         maxPosts: 5,
         includeNsfw: false,
@@ -151,6 +155,7 @@ describe("handleAddSubreddit", () => {
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
         name: "rust",
+        organizationId: "org_test",
         insightPrompt: "Focus on async patterns",
         maxPosts: 10,
         includeNsfw: true,
@@ -162,11 +167,12 @@ describe("handleAddSubreddit", () => {
 
 describe("handleRemoveSubreddit", () => {
   it("deletes the subreddit record and emits event", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-del" });
     const mockDelete = vi.fn().mockResolvedValue({
       id: "sub-del",
       name: "oldsubreddit",
     });
-    const ctx = makeCtx({ subreddit: { delete: mockDelete } });
+    const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, delete: mockDelete } });
 
     const result = await handleRemoveSubreddit(
       { subredditId: "sub-del" },
@@ -178,6 +184,10 @@ describe("handleRemoveSubreddit", () => {
       subredditId: "sub-del",
       name: "oldsubreddit",
     });
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { id: "sub-del", organizationId: "org_test" },
+      select: { id: true },
+    });
     expect(mockDelete).toHaveBeenCalledWith({
       where: { id: "sub-del" },
       select: { id: true, name: true },
@@ -187,8 +197,9 @@ describe("handleRemoveSubreddit", () => {
 
 describe("handleUpdateSubreddit", () => {
   it("updates provided fields and returns null event", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-upd" });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "sub-upd" });
-    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+    const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, update: mockUpdate } });
 
     const result = await handleUpdateSubreddit(
       { subredditId: "sub-upd", insightPrompt: "new prompt", maxPosts: 15 },
@@ -197,6 +208,10 @@ describe("handleUpdateSubreddit", () => {
 
     expect(result.data).toEqual({ subredditId: "sub-upd" });
     expect(result.event).toBeNull();
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { id: "sub-upd", organizationId: "org_test" },
+      select: { id: true },
+    });
     expect(mockUpdate).toHaveBeenCalledWith({
       where: { id: "sub-upd" },
       data: { insightPrompt: "new prompt", maxPosts: 15 },
@@ -204,8 +219,9 @@ describe("handleUpdateSubreddit", () => {
   });
 
   it("maps active param to isActive field", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-upd" });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "sub-upd" });
-    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+    const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, update: mockUpdate } });
 
     await handleUpdateSubreddit(
       { subredditId: "sub-upd", active: false },
@@ -219,8 +235,9 @@ describe("handleUpdateSubreddit", () => {
   });
 
   it("sends empty data object when no optional fields provided", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-upd" });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "sub-upd" });
-    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+    const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, update: mockUpdate } });
 
     await handleUpdateSubreddit({ subredditId: "sub-upd" }, ctx);
 
@@ -231,8 +248,9 @@ describe("handleUpdateSubreddit", () => {
   });
 
   it("maps crawlIntervalMinutes param", async () => {
+    const mockFindFirst = vi.fn().mockResolvedValue({ id: "sub-upd" });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "sub-upd" });
-    const ctx = makeCtx({ subreddit: { update: mockUpdate } });
+    const ctx = makeCtx({ subreddit: { findFirst: mockFindFirst, update: mockUpdate } });
 
     await handleUpdateSubreddit(
       { subredditId: "sub-upd", crawlIntervalMinutes: 60 },
@@ -261,10 +279,10 @@ describe("handleUpdateConfig", () => {
       changes: { globalInsightPrompt: "new prompt", llmModel: "gpt-4.1" },
     });
     expect(mockUpsert).toHaveBeenCalledWith({
-      where: { id: 1 },
+      where: { organizationId: "org_test" },
       update: { globalInsightPrompt: "new prompt", llmModel: "gpt-4.1" },
       create: expect.objectContaining({
-        id: 1,
+        organizationId: "org_test",
         globalInsightPrompt: "new prompt",
         llmProvider: "anthropic",
         llmModel: "gpt-4.1",
@@ -285,10 +303,10 @@ describe("handleUpdateConfig", () => {
       changes: { defaultLookback: "48h" },
     });
     expect(mockUpsert).toHaveBeenCalledWith({
-      where: { id: 1 },
+      where: { organizationId: "org_test" },
       update: { defaultLookback: "48h" },
       create: {
-        id: 1,
+        organizationId: "org_test",
         globalInsightPrompt: "",
         llmProvider: "anthropic",
         llmModel: "claude-sonnet-4-20250514",
@@ -304,10 +322,10 @@ describe("handleUpdateConfig", () => {
     await handleUpdateConfig({}, ctx);
 
     expect(mockUpsert).toHaveBeenCalledWith({
-      where: { id: 1 },
+      where: { organizationId: "org_test" },
       update: {},
       create: {
-        id: 1,
+        organizationId: "org_test",
         globalInsightPrompt: "",
         llmProvider: "anthropic",
         llmModel: "claude-sonnet-4-20250514",
@@ -328,10 +346,10 @@ describe("handleUpdateConfig", () => {
       changes: { defaultDelivery: "EMAIL" },
     });
     expect(mockUpsert).toHaveBeenCalledWith({
-      where: { id: 1 },
+      where: { organizationId: "org_test" },
       update: { defaultDelivery: "EMAIL" },
       create: expect.objectContaining({
-        id: 1,
+        organizationId: "org_test",
         defaultDelivery: "EMAIL",
       }),
     });
@@ -353,27 +371,31 @@ describe("handleUpdateConfig", () => {
     // Test null (disable schedule)
     await handleUpdateConfig({ schedule: null }, ctx);
     expect(mockUpsert).toHaveBeenLastCalledWith({
-      where: { id: 1 },
+      where: { organizationId: "org_test" },
       update: { schedule: null },
-      create: expect.objectContaining({ id: 1, schedule: null }),
+      create: expect.objectContaining({ organizationId: "org_test", schedule: null }),
     });
   });
 });
 
 describe("handleCancelRun", () => {
   it("cancels a QUEUED job", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-1",
       status: "QUEUED",
       triggerRunId: null,
     });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "job-1" });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique, update: mockUpdate } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst, update: mockUpdate } });
 
     const result = await handleCancelRun({ jobId: "job-1" }, ctx);
 
     expect(result.data).toEqual({ jobId: "job-1", status: "CANCELED" });
     expect(result.event).toEqual({ jobId: "job-1" });
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { id: "job-1", organizationId: "org_test" },
+      select: { id: true, status: true, triggerRunId: true },
+    });
     expect(mockUpdate).toHaveBeenCalledWith({
       where: { id: "job-1" },
       data: {
@@ -385,13 +407,13 @@ describe("handleCancelRun", () => {
   });
 
   it("cancels a RUNNING job", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-2",
       status: "RUNNING",
       triggerRunId: null,
     });
     const mockUpdate = vi.fn().mockResolvedValue({ id: "job-2" });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique, update: mockUpdate } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst, update: mockUpdate } });
 
     const result = await handleCancelRun({ jobId: "job-2" }, ctx);
 
@@ -400,8 +422,8 @@ describe("handleCancelRun", () => {
   });
 
   it("throws NOT_FOUND when job does not exist", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue(null);
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst } });
 
     await expect(
       handleCancelRun({ jobId: "nonexistent" }, ctx),
@@ -413,12 +435,12 @@ describe("handleCancelRun", () => {
   });
 
   it("throws CONFLICT when job is already COMPLETED", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-3",
       status: "COMPLETED",
       triggerRunId: null,
     });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst } });
 
     await expect(
       handleCancelRun({ jobId: "job-3" }, ctx),
@@ -430,12 +452,12 @@ describe("handleCancelRun", () => {
   });
 
   it("throws CONFLICT when job is already CANCELED", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-4",
       status: "CANCELED",
       triggerRunId: null,
     });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst } });
 
     await expect(
       handleCancelRun({ jobId: "job-4" }, ctx),
@@ -443,12 +465,12 @@ describe("handleCancelRun", () => {
   });
 
   it("throws CONFLICT when job is FAILED", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-5",
       status: "FAILED",
       triggerRunId: null,
     });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst } });
 
     await expect(
       handleCancelRun({ jobId: "job-5" }, ctx),
@@ -456,12 +478,12 @@ describe("handleCancelRun", () => {
   });
 
   it("throws CONFLICT when job is PARTIAL", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue({
+    const mockFindFirst = vi.fn().mockResolvedValue({
       id: "job-6",
       status: "PARTIAL",
       triggerRunId: null,
     });
-    const ctx = makeCtx({ job: { findUnique: mockFindUnique } });
+    const ctx = makeCtx({ job: { findFirst: mockFindFirst } });
 
     await expect(
       handleCancelRun({ jobId: "job-6" }, ctx),

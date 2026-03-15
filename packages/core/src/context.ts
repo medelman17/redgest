@@ -10,4 +10,5 @@ export type HandlerContext = {
   eventBus: DomainEventBus;
   config: RedgestConfig;
   searchService?: SearchService;
+  organizationId: string;
 };

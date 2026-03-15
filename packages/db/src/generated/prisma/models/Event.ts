@@ -42,6 +42,7 @@ export type EventMinAggregateOutputType = {
   aggregateId: string | null
   aggregateType: string | null
   version: number | null
+  organizationId: string | null
   correlationId: string | null
   causationId: string | null
   createdAt: Date | null
@@ -53,6 +54,7 @@ export type EventMaxAggregateOutputType = {
   aggregateId: string | null
   aggregateType: string | null
   version: number | null
+  organizationId: string | null
   correlationId: string | null
   causationId: string | null
   createdAt: Date | null
@@ -65,6 +67,7 @@ export type EventCountAggregateOutputType = {
   aggregateId: number
   aggregateType: number
   version: number
+  organizationId: number
   correlationId: number
   causationId: number
   metadata: number
@@ -89,6 +92,7 @@ export type EventMinAggregateInputType = {
   aggregateId?: true
   aggregateType?: true
   version?: true
+  organizationId?: true
   correlationId?: true
   causationId?: true
   createdAt?: true
@@ -100,6 +104,7 @@ export type EventMaxAggregateInputType = {
   aggregateId?: true
   aggregateType?: true
   version?: true
+  organizationId?: true
   correlationId?: true
   causationId?: true
   createdAt?: true
@@ -112,6 +117,7 @@ export type EventCountAggregateInputType = {
   aggregateId?: true
   aggregateType?: true
   version?: true
+  organizationId?: true
   correlationId?: true
   causationId?: true
   metadata?: true
@@ -212,6 +218,7 @@ export type EventGroupByOutputType = {
   aggregateId: string
   aggregateType: string
   version: number
+  organizationId: string | null
   correlationId: string | null
   causationId: string | null
   metadata: runtime.JsonValue
@@ -248,6 +255,7 @@ export type EventWhereInput = {
   aggregateId?: Prisma.StringFilter<"Event"> | string
   aggregateType?: Prisma.StringFilter<"Event"> | string
   version?: Prisma.IntFilter<"Event"> | number
+  organizationId?: Prisma.StringNullableFilter<"Event"> | string | null
   correlationId?: Prisma.StringNullableFilter<"Event"> | string | null
   causationId?: Prisma.StringNullableFilter<"Event"> | string | null
   metadata?: Prisma.JsonFilter<"Event">
@@ -261,6 +269,7 @@ export type EventOrderByWithRelationInput = {
   aggregateId?: Prisma.SortOrder
   aggregateType?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
   correlationId?: Prisma.SortOrderInput | Prisma.SortOrder
   causationId?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrder
@@ -277,6 +286,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   aggregateId?: Prisma.StringFilter<"Event"> | string
   aggregateType?: Prisma.StringFilter<"Event"> | string
   version?: Prisma.IntFilter<"Event"> | number
+  organizationId?: Prisma.StringNullableFilter<"Event"> | string | null
   correlationId?: Prisma.StringNullableFilter<"Event"> | string | null
   causationId?: Prisma.StringNullableFilter<"Event"> | string | null
   metadata?: Prisma.JsonFilter<"Event">
@@ -290,6 +300,7 @@ export type EventOrderByWithAggregationInput = {
   aggregateId?: Prisma.SortOrder
   aggregateType?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
   correlationId?: Prisma.SortOrderInput | Prisma.SortOrder
   causationId?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrder
@@ -311,6 +322,7 @@ export type EventScalarWhereWithAggregatesInput = {
   aggregateId?: Prisma.StringWithAggregatesFilter<"Event"> | string
   aggregateType?: Prisma.StringWithAggregatesFilter<"Event"> | string
   version?: Prisma.IntWithAggregatesFilter<"Event"> | number
+  organizationId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   correlationId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   causationId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   metadata?: Prisma.JsonWithAggregatesFilter<"Event">
@@ -324,6 +336,7 @@ export type EventCreateInput = {
   aggregateId: string
   aggregateType: string
   version: number
+  organizationId?: string | null
   correlationId?: string | null
   causationId?: string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -337,6 +350,7 @@ export type EventUncheckedCreateInput = {
   aggregateId: string
   aggregateType: string
   version: number
+  organizationId?: string | null
   correlationId?: string | null
   causationId?: string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -350,6 +364,7 @@ export type EventUpdateInput = {
   aggregateId?: Prisma.StringFieldUpdateOperationsInput | string
   aggregateType?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   correlationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -363,6 +378,7 @@ export type EventUncheckedUpdateInput = {
   aggregateId?: Prisma.StringFieldUpdateOperationsInput | string
   aggregateType?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   correlationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -376,6 +392,7 @@ export type EventCreateManyInput = {
   aggregateId: string
   aggregateType: string
   version: number
+  organizationId?: string | null
   correlationId?: string | null
   causationId?: string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -389,6 +406,7 @@ export type EventUpdateManyMutationInput = {
   aggregateId?: Prisma.StringFieldUpdateOperationsInput | string
   aggregateType?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   correlationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -402,6 +420,7 @@ export type EventUncheckedUpdateManyInput = {
   aggregateId?: Prisma.StringFieldUpdateOperationsInput | string
   aggregateType?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   correlationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   causationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -415,6 +434,7 @@ export type EventCountOrderByAggregateInput = {
   aggregateId?: Prisma.SortOrder
   aggregateType?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   correlationId?: Prisma.SortOrder
   causationId?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
@@ -432,6 +452,7 @@ export type EventMaxOrderByAggregateInput = {
   aggregateId?: Prisma.SortOrder
   aggregateType?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   correlationId?: Prisma.SortOrder
   causationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -443,6 +464,7 @@ export type EventMinOrderByAggregateInput = {
   aggregateId?: Prisma.SortOrder
   aggregateType?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   correlationId?: Prisma.SortOrder
   causationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -470,6 +492,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   aggregateId?: boolean
   aggregateType?: boolean
   version?: boolean
+  organizationId?: boolean
   correlationId?: boolean
   causationId?: boolean
   metadata?: boolean
@@ -483,6 +506,7 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   aggregateId?: boolean
   aggregateType?: boolean
   version?: boolean
+  organizationId?: boolean
   correlationId?: boolean
   causationId?: boolean
   metadata?: boolean
@@ -496,6 +520,7 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   aggregateId?: boolean
   aggregateType?: boolean
   version?: boolean
+  organizationId?: boolean
   correlationId?: boolean
   causationId?: boolean
   metadata?: boolean
@@ -509,13 +534,14 @@ export type EventSelectScalar = {
   aggregateId?: boolean
   aggregateType?: boolean
   version?: boolean
+  organizationId?: boolean
   correlationId?: boolean
   causationId?: boolean
   metadata?: boolean
   createdAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "payload" | "aggregateId" | "aggregateType" | "version" | "correlationId" | "causationId" | "metadata" | "createdAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "payload" | "aggregateId" | "aggregateType" | "version" | "organizationId" | "correlationId" | "causationId" | "metadata" | "createdAt", ExtArgs["result"]["event"]>
 
 export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Event"
@@ -527,6 +553,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     aggregateId: string
     aggregateType: string
     version: number
+    organizationId: string | null
     correlationId: string | null
     causationId: string | null
     metadata: runtime.JsonValue
@@ -960,6 +987,7 @@ export interface EventFieldRefs {
   readonly aggregateId: Prisma.FieldRef<"Event", 'String'>
   readonly aggregateType: Prisma.FieldRef<"Event", 'String'>
   readonly version: Prisma.FieldRef<"Event", 'Int'>
+  readonly organizationId: Prisma.FieldRef<"Event", 'String'>
   readonly correlationId: Prisma.FieldRef<"Event", 'String'>
   readonly causationId: Prisma.FieldRef<"Event", 'String'>
   readonly metadata: Prisma.FieldRef<"Event", 'Json'>

@@ -41,14 +41,21 @@ export const handleCompareDigests: QueryHandler<"CompareDigests"> = async (
   };
 
   const [rawA, rawB] = await Promise.all([
-    ctx.db.digest.findUnique({ where: { id: params.digestIdA }, include: includeShape }),
-    ctx.db.digest.findUnique({ where: { id: params.digestIdB }, include: includeShape }),
+    ctx.db.digest.findUnique({
+      where: { id: params.digestIdA },
+      include: { ...includeShape, job: { select: { organizationId: true } } },
+    }),
+    ctx.db.digest.findUnique({
+      where: { id: params.digestIdB },
+      include: { ...includeShape, job: { select: { organizationId: true } } },
+    }),
   ]);
 
-  if (!rawA) {
+  // Tenant isolation: verify both digests exist and belong to caller's organization
+  if (!rawA || rawA.job.organizationId !== ctx.organizationId) {
     throw new RedgestError("NOT_FOUND", `Digest ${params.digestIdA} not found`);
   }
-  if (!rawB) {
+  if (!rawB || rawB.job.organizationId !== ctx.organizationId) {
     throw new RedgestError("NOT_FOUND", `Digest ${params.digestIdB} not found`);
   }
 

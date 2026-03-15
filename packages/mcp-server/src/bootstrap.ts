@@ -41,7 +41,8 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const db = prisma;
   const eventBus = new DomainEventBus();
   const searchService = createSearchService(db);
-  const ctx: HandlerContext = { db, eventBus, config, searchService };
+  const organizationId = process.env.REDGEST_ORG_ID ?? "org_default";
+  const ctx: HandlerContext = { db, eventBus, config, searchService, organizationId };
 
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
@@ -63,6 +64,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
       contentSource: new contentMod.FakeContentSource() as PipelineDeps["contentSource"],
       config,
       searchService,
+      organizationId,
       generateTriage: llmMod.fakeGenerateTriageResult as PipelineDeps["generateTriage"],
       generateSummary: llmMod.fakeGeneratePostSummary as PipelineDeps["generateSummary"],
     };
@@ -73,7 +75,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
     });
 
     checkConnectivity = () => contentSource.checkConnectivity();
-    pipelineDeps = { db, eventBus, contentSource, config, searchService };
+    pipelineDeps = { db, eventBus, contentSource, config, searchService, organizationId };
   }
 
   // Build in-process delivery callback for when Trigger.dev is not configured.

@@ -29,12 +29,13 @@ function makeCtx(dbMock: Record<string, unknown>): HandlerContext {
     db: db as unknown as HandlerContext["db"],
     eventBus: new DomainEventBus(),
     config: stub<HandlerContext["config"]>(),
+    organizationId: "org_test",
   };
 }
 
 describe("handleGetDigest", () => {
   it("returns a digest view by digestId", async () => {
-    const mockDigest = { digestId: "d-1", contentMarkdown: "# Digest" };
+    const mockDigest = { digestId: "d-1", contentMarkdown: "# Digest", organizationId: "org_test" };
     const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
     const ctx = makeCtx({ digestView: { findUnique: mockFindUnique } });
 
@@ -66,7 +67,7 @@ describe("handleGetDigestByJobId", () => {
 
     expect(result).toEqual(fakeDigest);
     expect(mockFindFirst).toHaveBeenCalledWith({
-      where: { jobId: "j-1" },
+      where: { jobId: "j-1", organizationId: "org_test" },
     });
   });
 
@@ -95,6 +96,7 @@ describe("handleListDigests", () => {
     expect(result.hasMore).toBe(false);
     expect(result.nextCursor).toBeNull();
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 11,
     });
@@ -107,6 +109,7 @@ describe("handleListDigests", () => {
     await handleListDigests({}, ctx);
 
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 11,
     });
@@ -134,6 +137,7 @@ describe("handleListDigests", () => {
     await handleListDigests({ limit: 5, cursor: "d-prev" }, ctx);
 
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 6,
       cursor: { digestId: "d-prev" },
@@ -284,6 +288,7 @@ describe("handleGetRunStatus", () => {
       createdAt: new Date("2026-03-12T10:00:00Z"),
       progress: null,
       subreddits: ["s-1", "s-2"],
+      organizationId: "org_test",
     };
     const mockEvents = [
       {
@@ -373,6 +378,7 @@ describe("handleGetRunStatus", () => {
       createdAt: new Date(),
       progress: null,
       subreddits: ["s-1"],
+      organizationId: "org_test",
     };
     const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue([]);
@@ -404,6 +410,7 @@ describe("handleGetRunStatus", () => {
       createdAt: new Date(),
       progress: null,
       subreddits: ["s-1"],
+      organizationId: "org_test",
     };
     const mockEvents = [
       {
@@ -442,6 +449,7 @@ describe("handleGetRunStatus", () => {
       createdAt: new Date(),
       progress: null,
       subreddits: [],
+      organizationId: "org_test",
     };
     const mockFindUnique = vi.fn().mockResolvedValue(mockRun);
     const mockEventFindMany = vi.fn().mockResolvedValue([]);
@@ -488,6 +496,7 @@ describe("handleListRuns", () => {
     expect(result.hasMore).toBe(false);
     expect(result.nextCursor).toBeNull();
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 6,
     });
@@ -500,6 +509,7 @@ describe("handleListRuns", () => {
     await handleListRuns({}, ctx);
 
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 11,
     });
@@ -512,6 +522,7 @@ describe("handleListRuns", () => {
     await handleListRuns({ limit: 5, cursor: "j-prev" }, ctx);
 
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { createdAt: "desc" },
       take: 6,
       cursor: { jobId: "j-prev" },
@@ -534,6 +545,7 @@ describe("handleListSubreddits", () => {
 
     expect(result).toEqual(mockSubs);
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { name: "asc" },
     });
   });
@@ -559,7 +571,9 @@ describe("handleGetConfig", () => {
     const result = await handleGetConfig(emptyParams, ctx);
 
     expect(result).toEqual(mockConfig);
-    expect(mockFindFirst).toHaveBeenCalledWith();
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
+    });
   });
 
   it("returns null when no config exists", async () => {
@@ -738,6 +752,7 @@ describe("handleGetSubredditStats", () => {
 
     expect(result).toEqual(mockSubs);
     expect(mockFindMany).toHaveBeenCalledWith({
+      where: { organizationId: "org_test" },
       orderBy: { name: "asc" },
     });
   });
@@ -753,7 +768,7 @@ describe("handleGetSubredditStats", () => {
 
     expect(result).toEqual(mockSub);
     expect(mockFindMany).toHaveBeenCalledWith({
-      where: { name: "typescript" },
+      where: { organizationId: "org_test", name: "typescript" },
       orderBy: { name: "asc" },
     });
   });
@@ -778,6 +793,7 @@ describe("handleCompareDigests", () => {
     return {
       id,
       createdAt,
+      job: { organizationId: "org_test" },
       digestPosts: posts.map((p) => ({
         rank: p.rank,
         subreddit: p.subreddit,
@@ -981,6 +997,7 @@ describe("handleCompareDigests", () => {
           orderBy: { rank: "asc" },
           include: { post: true },
         },
+        job: { select: { organizationId: true } },
       },
     };
     expect(mockFindUnique).toHaveBeenCalledWith(expectedQuery);
@@ -993,7 +1010,7 @@ describe("handleCompareDigests", () => {
 
 describe("handleGetDeliveryStatus", () => {
   it("returns delivery status for a specific digest", async () => {
-    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1", job: { organizationId: "org_test" } };
     const mockDeliveries = [
       {
         deliveryId: "del-1",
@@ -1130,6 +1147,7 @@ describe("handleGetDeliveryStatus", () => {
     await handleGetDeliveryStatus({ limit: 50 }, ctx);
 
     expect(mockDigestFindMany).toHaveBeenCalledWith({
+      where: { job: { organizationId: "org_test" } },
       take: 20,
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, jobId: true },
@@ -1137,7 +1155,7 @@ describe("handleGetDeliveryStatus", () => {
   });
 
   it("returns empty channels for a digest with no deliveries", async () => {
-    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1", job: { organizationId: "org_test" } };
     const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({
@@ -1168,6 +1186,7 @@ describe("handleGetDeliveryStatus", () => {
     await handleGetDeliveryStatus({}, ctx);
 
     expect(mockDigestFindMany).toHaveBeenCalledWith({
+      where: { job: { organizationId: "org_test" } },
       take: 5,
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, jobId: true },

@@ -5,8 +5,8 @@ export const handleUpdateProfile: CommandHandler<"UpdateProfile"> = async (
   params,
   ctx,
 ) => {
-  const existing = await ctx.db.digestProfile.findUnique({
-    where: { id: params.profileId },
+  const existing = await ctx.db.digestProfile.findFirst({
+    where: { id: params.profileId, organizationId: ctx.organizationId },
     select: { id: true },
   });
   if (!existing) {

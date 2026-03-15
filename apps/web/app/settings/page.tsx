@@ -5,6 +5,7 @@ import { SettingsForm } from "@/components/settings-form";
 
 const DEFAULT_CONFIG: Omit<SerializedConfig, "updatedAt"> = {
   id: 1,
+  organizationId: "",
   globalInsightPrompt: "",
   defaultLookback: "24h",
   defaultDelivery: "NONE",

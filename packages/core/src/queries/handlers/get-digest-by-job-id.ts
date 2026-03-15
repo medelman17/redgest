@@ -4,5 +4,10 @@ export const handleGetDigestByJobId: QueryHandler<"GetDigestByJobId"> = async (
   params,
   ctx,
 ) => {
-  return ctx.db.digestView.findFirst({ where: { jobId: params.jobId } });
+  return ctx.db.digestView.findFirst({
+    where: {
+      jobId: params.jobId,
+      organizationId: ctx.organizationId,
+    },
+  });
 };

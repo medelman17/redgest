@@ -56,6 +56,7 @@ export type DomainEvent = {
     aggregateId: string;
     aggregateType: string;
     version: number;
+    organizationId?: string | null;
     correlationId: string | null;
     causationId: string | null;
     metadata: Record<string, unknown>;
