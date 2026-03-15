@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Redgest is a personal Reddit digest engine. It monitors configured subreddits, uses an LLM pipeline to identify and curate relevant posts based on user-defined "insight prompts," generates summaries, and delivers digests. The system is MCP-first — Claude is the primary consumer via 32 MCP tools.
 
-**Current state:** Phase 1 + Phase 2 + Phase 3 complete. Core pipeline, CQRS, MCP server, Trigger.dev integration, email/Slack delivery, Next.js config UI, full-text + vector search, digest profiles, and decoupled crawling are all implemented (577+ tests, 207 commits). Fully operational for local deployment.
+**Current state:** Phase 1–4 complete. Core pipeline, CQRS, MCP server, Trigger.dev integration, email/Slack delivery with LLM-generated editorial prose, Next.js config UI, full-text + vector search, digest profiles, and decoupled crawling are all implemented (627 tests across 60 files, 218 commits). Fully operational for local deployment.
 
 ## Architecture
 
 **CQRS without event sourcing.** Commands mutate state and emit domain events to an append-only Postgres event log. Queries read from optimized SQL views. Events trigger async jobs via Trigger.dev but are not used to rebuild state.
 
-**Two-pass LLM pipeline:**
+**Three-pass LLM pipeline:**
 1. **Triage** — Global cross-subreddit triage: post metadata + insight prompts → ranked selection of top N posts across all subreddits (~8K tokens total)
 2. **Summarization** — Full post content + top comments → structured summaries (~27.5K tokens/sub)
+3. **Delivery Prose** — Per-channel (email/Slack) editorial prose generation from digest summaries → headline + per-subreddit narrative
 
 **Agent-first MCP API:** Tools named as verbs (`generate_digest`, not `digest_generation`). Consistent response envelope: `{ ok, data, error? }`. Composable primitives — `generate_digest` returns a jobId, poll with `get_run_status`, fetch with `get_digest`.
 
@@ -56,7 +57,7 @@ redgest/
 └── turbo.json
 ```
 
-**Dependency graph:** `mcp-server` → `core` → `db`, `reddit`, `llm`. `worker` → `core`, `reddit`, `email`, `slack`. `email` and `slack` are leaf deps. No circular dependencies.
+**Dependency graph:** `mcp-server` → `core` → `db`, `reddit`, `llm`. `worker` → `core`, `reddit`, `llm`, `email`, `slack`. `email` and `slack` are leaf deps. No circular dependencies.
 
 ## Build & Dev Commands
 
@@ -109,7 +110,7 @@ UUID v7 for all IDs (time-sortable). Summaries linked to both post AND job. Jobs
 1. **Phase 1 (MVP):** Core pipeline + MCP server + manual trigger. Trigger.dev Cloud. **COMPLETE.**
 2. **Phase 2:** Scheduling, email/Slack delivery, config UI. **COMPLETE.**
 3. **Phase 3:** Full-text + vector search, conversational history, trending topics, delivery tracking, digest comparison, fetch caching. **COMPLETE.**
-4. **Phase 4 (in progress):** Digest profiles, decoupled crawling, global cross-subreddit triage. **IN PROGRESS (PR #45).**
+4. **Phase 4:** Digest profiles, decoupled crawling, global cross-subreddit triage, LLM delivery prose. **COMPLETE.**
 5. **Phase 5 (optional):** Self-hosted Trigger.dev, event bus extraction, MCP rate limiting.
 
 ## Key Design Decisions
@@ -154,16 +155,18 @@ Profiles group subreddits with their own schedule, lookback, maxPosts, and deliv
 Three tasks in `apps/worker/src/trigger/`:
 
 - **`generate-digest`** — Wraps `runDigestPipeline()`. On completion, triggers `deliver-digest` with idempotency key. Retry: 2 attempts.
-- **`deliver-digest`** — Loads digest with relations, builds `DigestDeliveryData`, dispatches to configured email/Slack channels via `Promise.allSettled`. Retry: 3 attempts.
+- **`deliver-digest`** — Loads digest with relations, builds `DigestDeliveryData`, generates per-channel LLM editorial prose via `generateDeliveryProse()`, merges with `buildFormattedDigest()`, dispatches to configured email/Slack channels via `Promise.allSettled`. Retry: 3 attempts.
 - **`scheduled-digest`** — Cron task (`DIGEST_CRON` env, default `0 7 * * *`). Finds active subreddits, creates Job record, triggers `generate-digest`.
 
 **Dispatch flow:** MCP `generate_digest` tool → `GenerateDigestHandler` → `DigestRequested` event → `bootstrap.ts` event handler → `tasks.trigger("generate-digest")` or in-process fallback.
 
 ## Delivery Channels
 
+Each channel receives LLM-generated editorial prose tailored to its format (email gets detailed multi-paragraph narratives, Slack gets concise summaries). Prose is generated per-channel via `generateDeliveryProse()` from `@redgest/llm`, then merged with structured data via `buildFormattedDigest()`.
+
 - **Email:** `@redgest/email` — `DigestEmail` React Email component + `sendDigestEmail()` via Resend. Requires `RESEND_API_KEY` + `DELIVERY_EMAIL`.
 - **Slack:** `@redgest/slack` — `formatDigestBlocks()` Block Kit formatter + `sendDigestSlack()` via webhook. Requires `SLACK_WEBHOOK_URL`.
-- **Shared type:** `DigestDeliveryData` (defined in `@redgest/email`, reused by `@redgest/slack`).
+- **Shared types:** `DigestDeliveryData` (raw structured data), `FormattedDigest` (data + prose). Both defined in `@redgest/email`, reused by `@redgest/slack`.
 
 ## Crawl System
 

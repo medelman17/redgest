@@ -1,6 +1,6 @@
 # Redgest
 
-A personal Reddit digest engine. Monitors configured subreddits, uses a two-pass LLM pipeline to identify and curate relevant posts based on custom "insight prompts," generates structured summaries, and delivers curated digests via email, Slack, or MCP.
+A personal Reddit digest engine. Monitors configured subreddits, uses a three-pass LLM pipeline to identify and curate relevant posts based on custom "insight prompts," generates structured summaries with channel-specific editorial prose, and delivers curated digests via email, Slack, or MCP.
 
 **MCP-first architecture** — Claude (or any MCP client) is the primary consumer via 32 tools. Full-text and vector search, trending topic tracking, digest profiles, and delivery channel management are all built in.
 
@@ -13,7 +13,8 @@ A personal Reddit digest engine. Monitors configured subreddits, uses a two-pass
    ├── Triage: LLM ranks all posts across subreddits by relevance
    ├── Summarize: LLM generates structured summaries per selected post
    └── Assemble: persist digest, extract topics, generate embeddings
-3. Read the digest, search history, track trends
+3. Deliver via email/Slack (LLM generates channel-specific editorial prose)
+4. Read the digest, search history, track trends
 ```
 
 Global cross-subreddit triage — posts from all subreddits compete in a single ranking pass, so the best content surfaces regardless of source. Two-pass LLM pipeline with token budgeting, deduplication across runs, and per-post error recovery.
@@ -171,7 +172,7 @@ apps/
   worker/       # Trigger.dev tasks (generate-digest, deliver-digest, scheduled runs)
 ```
 
-**Dependency graph:** `mcp-server` → `core` → `db`, `reddit`, `llm`. `worker` → `core`, `email`, `slack`. No circular dependencies.
+**Dependency graph:** `mcp-server` → `core` → `db`, `reddit`, `llm`. `worker` → `core`, `llm`, `email`, `slack`. No circular dependencies.
 
 ### Data Model (15 tables, 6 views)
 
@@ -189,10 +190,11 @@ apps/
 
 ### LLM Pipeline
 
-Two-pass with token budgeting and global triage:
+Three-pass with token budgeting and global triage:
 
 1. **Triage** (~8K tokens) — Post metadata + insight prompts → LLM ranks all posts across all subreddits in a single pass, selects top N by relevance
 2. **Summarization** (~9.7K tokens/post) — Full content + comments → structured summary with key takeaways, insight notes, sentiment, and comment highlights
+3. **Delivery Prose** — Per-channel editorial prose generation (email gets detailed narratives, Slack gets concise summaries) with headline + per-subreddit body
 
 Features:
 - Global cross-subreddit ranking (best posts surface regardless of source)
@@ -205,8 +207,10 @@ Features:
 
 ### Delivery Channels
 
-- **Email** — React Email templates + Resend. Requires `RESEND_API_KEY` + `DELIVERY_EMAIL`.
-- **Slack** — Block Kit formatting + webhook. Requires `SLACK_WEBHOOK_URL`.
+Each channel receives LLM-generated editorial prose tailored to its format via `generateDeliveryProse()`, then merged with structured data via `buildFormattedDigest()`.
+
+- **Email** — React Email templates + Resend. Detailed multi-paragraph narratives. Requires `RESEND_API_KEY` + `DELIVERY_EMAIL`.
+- **Slack** — Block Kit formatting + webhook. Concise editorial summaries. Requires `SLACK_WEBHOOK_URL`.
 - **MCP** — Read digests directly via `get_digest` / `search_digests` / `ask_history`.
 
 Delivery is tracked per-digest in the `deliveries` table. Check status with `get_delivery_status`.
@@ -224,7 +228,7 @@ create_profile("AI Research", subreddits: ["MachineLearning", "LocalLLaMA"],
 
 Three async tasks:
 - **`generate-digest`** — Wraps the full pipeline. Retry: 2 attempts.
-- **`deliver-digest`** — Dispatches to configured email/Slack channels. Retry: 3 attempts.
+- **`deliver-digest`** — Generates per-channel LLM prose, merges with structured data, dispatches to email/Slack. Retry: 3 attempts.
 - **`scheduled-digest`** — Cron-based (`DIGEST_CRON`, default `0 7 * * *`).
 
 **Conditional dispatch:** If `TRIGGER_SECRET_KEY` is set, jobs dispatch to Trigger.dev Cloud. Otherwise, the pipeline runs in-process — no external dependencies needed for local use.
@@ -238,7 +242,7 @@ pnpm install
 # Generate Prisma client (must run before build/dev)
 pnpm turbo db:generate
 
-# Run all tests (577+ across 55 test files)
+# Run all tests (627 across 60 test files)
 pnpm test
 
 # Lint + typecheck + test (all packages)
@@ -274,7 +278,7 @@ pnpm --filter @redgest/db exec prisma migrate deploy    # CI: apply pending
 | Email | React Email + Resend |
 | Slack | Block Kit + webhook |
 | Cache | Redis 7 (optional, for LLM response caching) |
-| Testing | Vitest 4 (577+ tests across 55 files) |
+| Testing | Vitest 4 (627 tests across 60 files) |
 
 ## Environment Variables
 
