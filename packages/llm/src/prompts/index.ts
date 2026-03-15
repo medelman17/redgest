@@ -3,3 +3,5 @@ export type { TriagePostCandidate } from "./triage.js";
 export { buildSummarizationSystemPrompt, buildSummarizationUserPrompt } from "./summarization.js";
 export type { SummarizationPost, SummarizationComment } from "./summarization.js";
 export { sanitizeForPrompt } from "./sanitize.js";
+export { buildDeliverySystemPrompt, buildDeliveryUserPrompt } from "./delivery.js";
+export type { DeliveryDigestInput, DeliveryChannel } from "./delivery.js";

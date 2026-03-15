@@ -18,3 +18,13 @@ export interface DigestDeliveryData {
     }>;
   }>;
 }
+
+export interface FormattedDigest {
+  createdAt: Date;
+  headline: string;
+  sections: Array<{
+    subreddit: string;
+    body: string;
+    posts: Array<{ title: string; permalink: string; score: number }>;
+  }>;
+}

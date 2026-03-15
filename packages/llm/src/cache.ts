@@ -38,6 +38,8 @@ export function hashKey(prefix: string, data: unknown): string {
 const TTL = {
   triage: 2 * 60 * 60, // 2 hours
   summary: 7 * 24 * 60 * 60, // 7 days
+  "delivery-email": 7 * 24 * 60 * 60, // 7 days
+  "delivery-slack": 7 * 24 * 60 * 60, // 7 days
 } as const;
 
 export interface CacheResult<T> {

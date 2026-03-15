@@ -74,3 +74,27 @@ export const PostSummarySchema = z.object({
 });
 
 export type PostSummary = z.infer<typeof PostSummarySchema>;
+
+export const DeliveryProseSchema = z.object({
+  headline: z
+    .string()
+    .describe(
+      "Opening paragraph covering the most noteworthy findings across all subreddits. Engaging, flowing prose.",
+    ),
+  sections: z
+    .array(
+      z.object({
+        subreddit: z
+          .string()
+          .describe("Subreddit name without r/ prefix"),
+        body: z
+          .string()
+          .describe(
+            "Prose paragraph covering this subreddit's posts. Mention post titles naturally within the text.",
+          ),
+      }),
+    )
+    .describe("One section per subreddit, ordered as provided"),
+});
+
+export type DeliveryProse = z.infer<typeof DeliveryProseSchema>;
