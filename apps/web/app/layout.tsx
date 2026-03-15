@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, IBM_Plex_Sans } from "next/font/google";
+import { mono, sans } from "@/lib/fonts";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -7,17 +7,6 @@ import { Providers } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Toaster } from "@/components/ui/sonner";
 import "@/globals.css";
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
-
-const sans = IBM_Plex_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
 
 export const metadata: Metadata = {
   title: "Redgest",
