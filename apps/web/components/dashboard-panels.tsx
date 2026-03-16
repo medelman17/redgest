@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { formatRelativeTime } from "@/lib/utils";
 import type { TrendingTopic, LlmMetrics, CrawlStatusItem } from "@redgest/core";
-import { parseSubredditList, type SerializedRun } from "@/lib/types";
+import { type SerializedRun } from "@/lib/types";
 
 interface DashboardPanelsProps {
   topics: TrendingTopic[];
@@ -270,7 +270,7 @@ export function DashboardPanels({
             ) : (
               <ul className="space-y-2">
                 {recentRuns.map((run) => {
-                  const subCount = parseSubredditList(run.subreddits).length;
+                  const subCount = Array.isArray(run.subreddits) ? run.subreddits.length : 0;
                   return (
                     <li
                       key={run.jobId}

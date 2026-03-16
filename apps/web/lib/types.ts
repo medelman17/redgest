@@ -86,10 +86,19 @@ export function parseSubredditList(value: unknown): SubredditListItem[] {
   );
 }
 
-/** Format subreddit list items as "r/foo, r/bar". Returns "—" if empty. */
+/** Format subreddit list as "r/foo, r/bar". Handles both {id,name} objects and plain strings. Returns "—" if empty. */
 export function formatSubredditNames(value: unknown): string {
-  const items = parseSubredditList(value);
-  return items.length > 0 ? items.map((s) => `r/${s.name}`).join(", ") : "—";
+  if (!Array.isArray(value) || value.length === 0) return "—";
+  // Profile views return {id, name} objects; digest views return plain name strings
+  const names: string[] = [];
+  for (const item of value) {
+    if (typeof item === "string") {
+      names.push(item);
+    } else if (item !== null && typeof item === "object" && "name" in item && typeof (item as SubredditListItem).name === "string") {
+      names.push((item as SubredditListItem).name);
+    }
+  }
+  return names.length > 0 ? names.map((n) => `r/${n}`).join(", ") : "—";
 }
 
 export type SerializedSearchResult = Serialized<SearchResult>;
