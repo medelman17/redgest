@@ -7,7 +7,7 @@ vi.mock("../bootstrap.js", () => ({
     query: vi.fn(),
     ctx: {
       db: {},
-      eventBus: { on: vi.fn(), emitEvent: vi.fn() },
+      eventBus: { subscribe: vi.fn(), unsubscribe: vi.fn(), publish: vi.fn().mockResolvedValue(undefined), close: vi.fn().mockResolvedValue(undefined) },
       config: {},
     },
     config: {

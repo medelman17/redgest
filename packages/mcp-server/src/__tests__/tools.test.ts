@@ -79,10 +79,10 @@ function createMockDeps(): MockDeps {
   } as unknown as BootstrapResult["db"];
 
   const eventBus = {
-    on: vi.fn(),
-    off: vi.fn(),
-    emit: vi.fn(),
-    emitEvent: vi.fn(),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+    publish: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
   } as unknown as BootstrapResult["ctx"]["eventBus"];
 
   const config = {

@@ -9,7 +9,7 @@ const {
   mockQuery,
   mockCreateQuery,
   mockEventBusInstance,
-  MockDomainEventBus,
+  mockCreateEventBus,
   mockWireDigestDispatch,
   mockWireCrawlDispatch,
   mockCommandHandlers,
@@ -33,15 +33,12 @@ const {
   const mockCreateQuery = vi.fn().mockReturnValue(mockQuery);
 
   const mockEventBusInstance = {
-    on: vi.fn(),
-    off: vi.fn(),
-    emit: vi.fn(),
-    emitEvent: vi.fn(),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+    publish: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
   };
-  // Use function keyword so it can be called with `new`
-  const MockDomainEventBus = vi.fn(function () {
-    return mockEventBusInstance;
-  });
+  const mockCreateEventBus = vi.fn().mockResolvedValue(mockEventBusInstance);
 
   const mockWireDigestDispatch = vi.fn();
   const mockWireCrawlDispatch = vi.fn();
@@ -67,7 +64,7 @@ const {
     mockQuery,
     mockCreateQuery,
     mockEventBusInstance,
-    MockDomainEventBus,
+    mockCreateEventBus,
     mockWireDigestDispatch,
     mockWireCrawlDispatch,
     mockCommandHandlers,
@@ -93,7 +90,7 @@ vi.mock("@redgest/core", () => ({
   createExecute: mockCreateExecute,
   createQuery: mockCreateQuery,
   createSearchService: mockCreateSearchService,
-  DomainEventBus: MockDomainEventBus,
+  createEventBus: mockCreateEventBus,
   wireDigestDispatch: mockWireDigestDispatch,
   wireCrawlDispatch: mockWireCrawlDispatch,
   recordDeliveryPending: vi.fn(),
@@ -132,9 +129,9 @@ describe("bootstrap()", () => {
     expect(mockLoadConfig).toHaveBeenCalledOnce();
   });
 
-  it("creates a DomainEventBus", async () => {
+  it("creates an EventBus via createEventBus", async () => {
     await bootstrap();
-    expect(MockDomainEventBus).toHaveBeenCalledOnce();
+    expect(mockCreateEventBus).toHaveBeenCalledOnce();
   });
 
   it("creates command dispatcher from commandHandlers registry", async () => {

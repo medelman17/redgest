@@ -45,6 +45,7 @@ if (isMainModule) {
     if (shuttingDown) return;
     shuttingDown = true;
     try {
+      await deps.ctx.eventBus.close();
       await deps.db.$disconnect();
     } catch (err) {
       console.error("Error during shutdown:", err);

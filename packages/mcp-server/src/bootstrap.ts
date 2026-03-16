@@ -1,7 +1,8 @@
 import { loadConfig, DEFAULT_ORGANIZATION_ID, type RedgestConfig } from "@redgest/config";
 import { prisma, type PrismaClient } from "@redgest/db";
 import {
-  DomainEventBus,
+  createEventBus,
+  type EventBusTransport,
   createExecute,
   createQuery,
   createSearchService,
@@ -39,7 +40,11 @@ export interface BootstrapResult {
 export async function bootstrap(): Promise<BootstrapResult> {
   const config = loadConfig();
   const db = prisma;
-  const eventBus = new DomainEventBus();
+  const eventBus = await createEventBus({
+    transport: config.EVENT_BUS_TRANSPORT as EventBusTransport,
+    databaseUrl: config.DATABASE_URL,
+    redisUrl: config.REDIS_URL,
+  });
   const searchService = createSearchService(db);
   const organizationId = process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
   const ctx: HandlerContext = { db, eventBus, config, searchService, organizationId };
