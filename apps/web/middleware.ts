@@ -1,13 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isPublicPath } from "./lib/route-matching";
+import { isPublicPath, isAuthOnlyPath } from "./lib/route-matching";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Allow public paths
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
-  }
 
   // Check for session cookie — BetterAuth sets "better-auth.session_token"
   // (or "__Secure-better-auth.session_token" in production)
@@ -15,6 +10,17 @@ export async function middleware(request: NextRequest) {
     request.cookies.get("better-auth.session_token") ??
     request.cookies.get("__Secure-better-auth.session_token");
 
+  // Redirect authenticated users away from login/signup/forgot-password
+  if (sessionCookie && isAuthOnlyPath(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Allow public paths (includes auth pages for unauthenticated users)
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Unauthenticated users on protected pages → redirect to login
   if (!sessionCookie) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
