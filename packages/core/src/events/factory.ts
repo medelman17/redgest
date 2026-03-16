@@ -1,6 +1,7 @@
+import type { RedgestConfig } from "@redgest/config";
 import type { EventBus } from "./bus.js";
 
-export type EventBusTransport = "memory" | "pg-notify" | "redis";
+export type EventBusTransport = RedgestConfig["EVENT_BUS_TRANSPORT"];
 
 export interface EventBusOptions {
   transport?: EventBusTransport;
