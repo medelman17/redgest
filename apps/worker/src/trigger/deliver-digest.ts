@@ -13,7 +13,7 @@ import { sendDigestSlack } from "@redgest/slack";
 export const deliverDigest = task({
   id: "deliver-digest",
   retry: { maxAttempts: 3 },
-  run: async (payload: { digestId: string }) => {
+  run: async (payload: { digestId: string; organizationId?: string }) => {
     const config = loadConfig();
 
     // Load digest with related data

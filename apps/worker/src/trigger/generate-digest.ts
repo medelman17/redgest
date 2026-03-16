@@ -73,7 +73,10 @@ export const generateDigest = task({
         try {
           const { deliverDigest } = await import("./deliver-digest.js");
           await deliverDigest.trigger(
-            { digestId: result.digestId },
+            {
+              digestId: result.digestId,
+              organizationId: payload.organizationId,
+            },
             {
               idempotencyKey: await idempotencyKeys.create(
                 `deliver-${result.digestId}`,
