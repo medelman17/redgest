@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "npx trigger.dev@latest dev --config ../../trigger.config.ts",
     "build": "tsc",
+    "test": "vitest run --passWithNoTests --exclude 'dist/**'",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
   },
@@ -19,8 +20,12 @@
     "@redgest/core": "workspace:*",
     "@redgest/db": "workspace:*",
     "@redgest/email": "workspace:*",
+    "@redgest/llm": "workspace:*",
     "@redgest/reddit": "workspace:*",
     "@redgest/slack": "workspace:*",
     "@trigger.dev/sdk": "^4.4.3"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
   }
 }

@@ -2,7 +2,6 @@ import {
   schedules,
   logger,
   idempotencyKeys,
-  AbortTaskRunError,
 } from "@trigger.dev/sdk/v3";
 import { prisma } from "@redgest/db";
 import { generateDigest } from "./generate-digest.js";
@@ -20,10 +19,10 @@ export const scheduledDigest = schedules.task({
     });
 
     if (profiles.length === 0) {
-      // Fallback: legacy behavior — all active subreddits, no profile
+      // Fallback: legacy behavior — all active subreddits, grouped by org
       const subreddits = await prisma.subreddit.findMany({
         where: { isActive: true },
-        select: { id: true },
+        select: { id: true, organizationId: true },
       });
 
       if (subreddits.length === 0) {
@@ -31,47 +30,65 @@ export const scheduledDigest = schedules.task({
         return { jobs: [], totalSubreddits: 0 };
       }
 
-      // TODO: Legacy path — default org. Multi-org scheduling needs per-org iteration.
-      const { DEFAULT_ORGANIZATION_ID } = await import("@redgest/config");
-      const legacyOrgId = process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
-      const job = await prisma.job.create({
-        data: {
-          status: "QUEUED",
-          subreddits: subreddits.map((s) => s.id),
-          lookback: "24h",
-          organizationId: legacyOrgId,
-        },
-      });
-
-      const subredditIds = subreddits.map((s) => s.id);
-
-      logger.info("Triggering legacy scheduled digest (no profiles)", {
-        jobId: job.id,
-        subredditCount: subredditIds.length,
-      });
-
-      try {
-        await generateDigest.trigger(
-          { jobId: job.id, subredditIds },
-          {
-            idempotencyKey: await idempotencyKeys.create(`generate-${job.id}`),
-          },
-        );
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        logger.error(`Trigger dispatch failed for job ${job.id}`, {
-          error: message,
-        });
-        await prisma.job.update({
-          where: { id: job.id },
-          data: { status: "FAILED", completedAt: new Date(), error: message },
-        });
-        throw new AbortTaskRunError(
-          `Trigger dispatch failed for job ${job.id}: ${message}`,
-        );
+      // Group subreddits by organizationId and create one job per org
+      const byOrg = new Map<string, string[]>();
+      for (const sub of subreddits) {
+        const orgId = sub.organizationId;
+        const existing = byOrg.get(orgId);
+        if (existing) {
+          existing.push(sub.id);
+        } else {
+          byOrg.set(orgId, [sub.id]);
+        }
       }
 
-      return { jobs: [{ jobId: job.id, subredditCount: subredditIds.length }], totalSubreddits: subredditIds.length };
+      const legacyJobs: Array<{ jobId: string; subredditCount: number }> = [];
+
+      for (const [orgId, subredditIds] of byOrg) {
+        let job: { id: string };
+        try {
+          job = await prisma.job.create({
+            data: {
+              status: "QUEUED",
+              subreddits: subredditIds,
+              lookback: "24h",
+              organizationId: orgId,
+            },
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.error(`Failed to create job for org ${orgId}`, { error: message });
+          continue;
+        }
+
+        logger.info("Triggering legacy scheduled digest (no profiles)", {
+          jobId: job.id,
+          organizationId: orgId,
+          subredditCount: subredditIds.length,
+        });
+
+        try {
+          await generateDigest.trigger(
+            { jobId: job.id, subredditIds, organizationId: orgId },
+            {
+              idempotencyKey: await idempotencyKeys.create(`generate-${job.id}`),
+            },
+          );
+          legacyJobs.push({ jobId: job.id, subredditCount: subredditIds.length });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.error(`Trigger dispatch failed for job ${job.id}`, {
+            error: message,
+          });
+          await prisma.job.update({
+            where: { id: job.id },
+            data: { status: "FAILED", completedAt: new Date(), error: message },
+          });
+          // Continue with other orgs instead of aborting
+        }
+      }
+
+      return { jobs: legacyJobs, totalSubreddits: legacyJobs.reduce((sum, j) => sum + j.subredditCount, 0) };
     }
 
     // Profile-based scheduling
