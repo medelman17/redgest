@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 
+
 export const metadata: Metadata = {
   title: "Redgest — Sign In",
   description: "Sign in to your Redgest account",
 };
+
+
+export const dynamic = "force-dynamic";
 
 export default function AuthLayout({
   children,

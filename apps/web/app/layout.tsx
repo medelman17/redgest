@@ -4,9 +4,6 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import "@/globals.css";
 
-// All pages require runtime context (auth, DB, config) — no static prerendering
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Redgest",
   description: "Personal Reddit digest engine",

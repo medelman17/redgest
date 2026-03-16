@@ -4,6 +4,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { OrgSwitcher } from "@/components/org-switcher";
 
+
+
+export const dynamic = "force-dynamic";
+
 export default function DashboardLayout({
   children,
 }: {
