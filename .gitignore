@@ -19,5 +19,6 @@ coverage/
 .superpowers/
 .worktrees/
 .mcp.json
+.playwright-mcp/
 test-results/
 playwright-report/
