@@ -1,5 +1,6 @@
 import type { QueryHandler } from "../types.js";
 import { parseDuration } from "../../utils/duration.js";
+import { STOP_WORDS } from "../../pipeline/topic-step.js";
 
 export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async (
   params,
@@ -8,7 +9,10 @@ export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async 
   const limit = params.limit ?? 10;
 
   // Build where clause for topics
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = {
+    // Exclude stop words that were stored before the extraction filter was added
+    name: { notIn: Array.from(STOP_WORDS) },
+  };
 
   if (params.since) {
     const sinceDate = new Date(Date.now() - parseDuration(params.since));
