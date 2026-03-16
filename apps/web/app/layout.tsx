@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { OrgSwitcher } from "@/components/org-switcher";
 import { Toaster } from "@/components/ui/sonner";
 import "@/globals.css";
 
@@ -28,6 +29,7 @@ export default function RootLayout({
               <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
+                <OrgSwitcher />
                 <ThemeToggle className="ml-auto" />
               </header>
               <main className="flex-1 p-4 sm:p-6">
