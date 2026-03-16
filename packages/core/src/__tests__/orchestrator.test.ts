@@ -189,7 +189,7 @@ let mockDb: {
     findMany: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
-  config: { findFirst: ReturnType<typeof vi.fn> };
+  config: { findUnique: ReturnType<typeof vi.fn> };
 };
 
 let mockEventBus: { emitEvent: ReturnType<typeof vi.fn> };
@@ -210,7 +210,7 @@ beforeEach(() => {
       update: vi.fn().mockResolvedValue({}),
     },
     config: {
-      findFirst: vi
+      findUnique: vi
         .fn()
         .mockResolvedValue({ globalInsightPrompt: "global test prompt" }),
     },
@@ -226,6 +226,7 @@ beforeEach(() => {
     eventBus: mockEventBus as unknown as DomainEventBus,
     contentSource: mockContentSource,
     config: mockConfig,
+    organizationId: "org_test",
   };
 
   // Default mock returns for happy path
@@ -253,7 +254,7 @@ describe("runDigestPipeline", () => {
     await runDigestPipeline("job-1", [], deps);
 
     expect(mockDb.subreddit.findMany).toHaveBeenCalledWith({
-      where: { isActive: true },
+      where: { isActive: true, organizationId: "org_test" },
     });
   });
 
@@ -261,7 +262,7 @@ describe("runDigestPipeline", () => {
     await runDigestPipeline("job-1", ["sub-1", "sub-2"], deps);
 
     expect(mockDb.subreddit.findMany).toHaveBeenCalledWith({
-      where: { id: { in: ["sub-1", "sub-2"] }, isActive: true },
+      where: { id: { in: ["sub-1", "sub-2"] }, isActive: true, organizationId: "org_test" },
     });
   });
 
@@ -422,7 +423,7 @@ describe("runDigestPipeline", () => {
   });
 
   it("filters empty insight prompts", async () => {
-    mockDb.config.findFirst.mockResolvedValue({ globalInsightPrompt: "" });
+    mockDb.config.findUnique.mockResolvedValue({ globalInsightPrompt: "" });
     mockDb.subreddit.findMany.mockResolvedValue([
       makeSubreddit({ insightPrompt: null }),
     ]);
@@ -672,8 +673,8 @@ describe("error recovery - unhandled exceptions (issue #3)", () => {
     expect(String(lastData["error"])).toContain("Connection refused");
   });
 
-  it("marks job as FAILED when config.findFirst throws", async () => {
-    mockDb.config.findFirst.mockRejectedValue(new Error("Config table gone"));
+  it("marks job as FAILED when config.findUnique throws", async () => {
+    mockDb.config.findUnique.mockRejectedValue(new Error("Config table gone"));
 
     const result = await runDigestPipeline("job-1", [], deps);
 
@@ -1021,7 +1022,7 @@ describe("global cross-subreddit triage", () => {
   });
 
   it("uses config.maxDigestPosts as triage target count", async () => {
-    mockDb.config.findFirst.mockResolvedValue({
+    mockDb.config.findUnique.mockResolvedValue({
       globalInsightPrompt: "test",
       maxDigestPosts: 3,
     });
@@ -1034,7 +1035,7 @@ describe("global cross-subreddit triage", () => {
   });
 
   it("uses deps.maxPosts override over config.maxDigestPosts", async () => {
-    mockDb.config.findFirst.mockResolvedValue({
+    mockDb.config.findUnique.mockResolvedValue({
       globalInsightPrompt: "test",
       maxDigestPosts: 3,
     });

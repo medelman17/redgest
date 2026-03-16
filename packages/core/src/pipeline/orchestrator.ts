@@ -107,6 +107,7 @@ export async function runDigestPipeline(
         { jobId, error: message },
         jobId,
         "job",
+        deps.organizationId,
       );
     } catch {
       // Event persistence may fail — swallow
@@ -139,17 +140,17 @@ async function runPipelineBody(
 ): Promise<PipelineResult> {
   const { contentSource } = deps;
 
-  // 2. Load subreddits
+  // 2. Load subreddits (scoped to organization)
   const subreddits = await db.subreddit.findMany({
     where:
       subredditIds.length > 0
-        ? { id: { in: subredditIds }, isActive: true }
-        : { isActive: true },
+        ? { id: { in: subredditIds }, isActive: true, organizationId: deps.organizationId }
+        : { isActive: true, organizationId: deps.organizationId },
   });
 
   // 3. Load config + job profile in parallel (independent queries)
   const [dbConfig, job] = await Promise.all([
-    db.config.findFirst(),
+    db.config.findUnique({ where: { organizationId: deps.organizationId } }),
     db.job.findUnique({
       where: { id: jobId },
       select: { profileId: true },
@@ -242,6 +243,7 @@ async function runPipelineBody(
         { jobId, subreddit: sub.name, count: fetchResult.posts.length },
         jobId,
         "job",
+        deps.organizationId,
       );
 
       // Dedup
@@ -314,7 +316,7 @@ async function runPipelineBody(
       where: { id: jobId },
       data: { status: "FAILED", completedAt: new Date(), error: errorMessage },
     });
-    await emitDomainEvent(db, eventBus, "DigestFailed", { jobId, error: errorMessage }, jobId, "job");
+    await emitDomainEvent(db, eventBus, "DigestFailed", { jobId, error: errorMessage }, jobId, "job", deps.organizationId);
     return { jobId, status: "FAILED", subredditResults, errors };
   }
 
@@ -354,6 +356,7 @@ async function runPipelineBody(
     { jobId, selectedCount: triageResult.selected.length, subreddits: triageSubreddits },
     jobId,
     "job",
+    deps.organizationId,
   );
 
   // ─── PHASE 3: SUMMARIZE selected posts (per-post error recovery) ───
@@ -496,6 +499,7 @@ async function runPipelineBody(
     { jobId, summaryCount: summarizedPosts.length },
     jobId,
     "job",
+    deps.organizationId,
   );
 
   // ─── PHASE 4: GROUP results by subreddit + ASSEMBLE ───
@@ -561,6 +565,7 @@ async function runPipelineBody(
       { jobId, error: errorMessage },
       jobId,
       "job",
+      deps.organizationId,
     );
 
     return { jobId, status: "FAILED", subredditResults, errors };
@@ -590,6 +595,7 @@ async function runPipelineBody(
     },
     jobId,
     "job",
+    deps.organizationId,
   );
 
   return {

@@ -40,9 +40,16 @@ export const handleCompareDigests: QueryHandler<"CompareDigests"> = async (
     },
   };
 
+  // Push-down org filter via job relation (digest doesn't have organizationId directly)
   const [rawA, rawB] = await Promise.all([
-    ctx.db.digest.findUnique({ where: { id: params.digestIdA }, include: includeShape }),
-    ctx.db.digest.findUnique({ where: { id: params.digestIdB }, include: includeShape }),
+    ctx.db.digest.findFirst({
+      where: { id: params.digestIdA, job: { organizationId: ctx.organizationId } },
+      include: includeShape,
+    }),
+    ctx.db.digest.findFirst({
+      where: { id: params.digestIdB, job: { organizationId: ctx.organizationId } },
+      include: includeShape,
+    }),
   ]);
 
   if (!rawA) {

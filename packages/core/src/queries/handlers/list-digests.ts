@@ -7,6 +7,7 @@ export const handleListDigests: QueryHandler<"ListDigests"> = async (
 ) => {
   const limit = params.limit ?? DEFAULT_PAGE_SIZE;
   const items = await ctx.db.digestView.findMany({
+    where: { organizationId: ctx.organizationId },
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     ...(params.cursor

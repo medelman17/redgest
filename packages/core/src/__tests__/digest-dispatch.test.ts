@@ -88,6 +88,7 @@ describe("wireDigestDispatch", () => {
       expect(mockTasksTrigger).toHaveBeenCalledWith("generate-digest", {
         jobId: "job-1",
         subredditIds: ["sub-1"],
+        organizationId: undefined,
       });
       expect(mockRunDigestPipeline).not.toHaveBeenCalled();
     });

@@ -29,9 +29,9 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
   let digests: DigestRow[];
 
   if (params.digestId) {
-    // Specific digest lookup
-    const raw = await ctx.db.digest.findUnique({
-      where: { id: params.digestId },
+    // Specific digest lookup — scope through job for tenant isolation
+    const raw = await ctx.db.digest.findFirst({
+      where: { id: params.digestId, job: { organizationId: ctx.organizationId } },
       select: { id: true, createdAt: true, jobId: true },
     });
     if (!raw) {
@@ -39,9 +39,10 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
     }
     digests = [raw as DigestRow];
   } else {
-    // Recent digests
+    // Recent digests — scope through job for tenant isolation
     const limit = Math.min(params.limit ?? 5, 20);
     const raw = await ctx.db.digest.findMany({
+      where: { job: { organizationId: ctx.organizationId } },
       take: limit,
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, jobId: true },
@@ -56,7 +57,7 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
   // Fetch delivery rows for all digest IDs
   const digestIds = digests.map((d) => d.id);
   const rawDeliveries = await ctx.db.deliveryView.findMany({
-    where: { digestId: { in: digestIds } },
+    where: { digestId: { in: digestIds }, organizationId: ctx.organizationId },
     orderBy: { createdAt: "asc" },
   });
   const deliveries = rawDeliveries as DeliveryViewRow[];

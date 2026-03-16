@@ -1,12 +1,21 @@
 import type { CommandHandler } from "../types.js";
+import { RedgestError } from "../../errors.js";
 
 export const handleRemoveSubreddit: CommandHandler<"RemoveSubreddit"> = async (
   params,
   ctx,
 ) => {
-  const sub = await ctx.db.subreddit.delete({
-    where: { id: params.subredditId },
+  // Atomic org-scoped lookup + deletion (avoids TOCTOU)
+  const sub = await ctx.db.subreddit.findFirst({
+    where: { id: params.subredditId, organizationId: ctx.organizationId },
     select: { id: true, name: true },
+  });
+  if (!sub) {
+    throw new RedgestError("NOT_FOUND", "Subreddit not found");
+  }
+
+  await ctx.db.subreddit.delete({
+    where: { id: sub.id },
   });
 
   return {

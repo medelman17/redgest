@@ -94,6 +94,9 @@ export interface PipelineDeps {
   config: RedgestConfig;
   model?: ModelConfig;
 
+  /** Organization ID for tenant scoping. */
+  organizationId: string;
+
   /** Skip fetch cache — always fetch fresh from Reddit. */
   forceRefresh?: boolean;
 

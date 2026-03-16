@@ -30,6 +30,11 @@ function toSearchResult(row: z.infer<typeof RawSearchRowSchema>): SearchResult {
 
 function buildWhereClause(options: SearchOptions): Prisma.Sql[] {
   const clauses: Prisma.Sql[] = [];
+  if (options.organizationId) {
+    clauses.push(
+      Prisma.sql`EXISTS (SELECT 1 FROM subreddits sub WHERE sub.name = p.subreddit AND sub.organization_id = ${options.organizationId})`,
+    );
+  }
   if (options.subreddit) {
     clauses.push(Prisma.sql`p.subreddit = ${options.subreddit}`);
   }
@@ -147,6 +152,19 @@ export function createSearchService(db: PrismaClient): SearchService {
       options: SearchOptions = {},
     ): Promise<SearchResult[]> {
       const limit = options.limit ?? 5;
+
+      // Guard: verify source post belongs to the org before computing similarity
+      if (options.organizationId) {
+        const sourceOrgCheck = await db.$queryRaw<Array<{ in_org: boolean }>>`
+          SELECT EXISTS(
+            SELECT 1 FROM subreddits sub
+            WHERE sub.name = (SELECT subreddit FROM posts WHERE id = ${postId})
+            AND sub.organization_id = ${options.organizationId}
+          ) AS in_org
+        `;
+        const orgCheck = sourceOrgCheck[0];
+        if (!orgCheck || !orgCheck.in_org) return [];
+      }
 
       // Guard: verify source post has an embedding before computing similarity
       const sourceCheck = await db.$queryRaw<Array<{ has_embedding: boolean }>>`

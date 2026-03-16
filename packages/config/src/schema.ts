@@ -45,10 +45,34 @@ export const configSchema = z.object({
   DELIVERY_EMAIL: optionalEmail,
   TRIGGER_PROJECT_ID: optionalString,
 
+  // Auth (BetterAuth)
+  BETTER_AUTH_SECRET: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters").optional(),
+  ),
+  BETTER_AUTH_URL: optionalUrl,
+  BETTER_AUTH_TRUSTED_ORIGINS: optionalString,
+  GITHUB_CLIENT_ID: optionalString,
+  GITHUB_CLIENT_SECRET: optionalString,
+
   // Defaults
   DIGEST_CRON: z.string().default("0 7 * * *"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+
+  // Organization
+  REDGEST_ORG_ID: optionalString,
+}).superRefine((data, ctx) => {
+  if (data.NODE_ENV === "production" && !data.BETTER_AUTH_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "BETTER_AUTH_SECRET is required in production",
+      path: ["BETTER_AUTH_SECRET"],
+    });
+  }
 });
 
 export type RedgestConfig = z.infer<typeof configSchema>;
+
+/** Sentinel organization ID used when auth is not yet wired (single-tenant fallback). */
+export const DEFAULT_ORGANIZATION_ID = "org_default";

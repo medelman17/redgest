@@ -40,7 +40,6 @@ vi.mock("../generate-digest.js", () => ({
 import { scheduledDigest } from "../scheduled-digest.js";
 import { prisma } from "@redgest/db";
 import { generateDigest } from "../generate-digest.js";
-import { AbortTaskRunError } from "@trigger.dev/sdk/v3";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -65,7 +64,7 @@ function mockJobCreateOnce(id: string) {
   );
 }
 
-function mockSubreddits(subs: Array<{ id: string }>) {
+function mockSubreddits(subs: Array<{ id: string; organizationId: string }>) {
   return vi.mocked(prisma.subreddit.findMany).mockResolvedValue(
     subs as Awaited<ReturnType<typeof prisma.subreddit.findMany>>,
   );
@@ -110,10 +109,13 @@ describe("scheduled-digest", () => {
       expect(generateDigest.trigger).not.toHaveBeenCalled();
     });
 
-    it("creates one job and triggers generate-digest for all active subreddits", async () => {
+    it("creates one job per org and triggers generate-digest for each org group", async () => {
       vi.mocked(prisma.digestProfile.findMany).mockResolvedValue([]);
-      mockSubreddits([{ id: "sub-1" }, { id: "sub-2" }]);
-      mockJobCreate("job-legacy");
+      mockSubreddits([
+        { id: "sub-1", organizationId: "org-a" },
+        { id: "sub-2", organizationId: "org-a" },
+      ]);
+      mockJobCreate("job-org-a");
 
       const result = await runTask();
 
@@ -122,32 +124,67 @@ describe("scheduled-digest", () => {
           status: "QUEUED",
           subreddits: ["sub-1", "sub-2"],
           lookback: "24h",
+          organizationId: "org-a",
         },
       });
 
       expect(generateDigest.trigger).toHaveBeenCalledWith(
-        { jobId: "job-legacy", subredditIds: ["sub-1", "sub-2"] },
+        { jobId: "job-org-a", subredditIds: ["sub-1", "sub-2"], organizationId: "org-a" },
         { idempotencyKey: "test-key" },
       );
 
       expect(result).toEqual({
-        jobs: [{ jobId: "job-legacy", subredditCount: 2 }],
+        jobs: [{ jobId: "job-org-a", subredditCount: 2 }],
         totalSubreddits: 2,
       });
     });
 
-    it("marks job FAILED and throws AbortTaskRunError when trigger dispatch fails", async () => {
+    it("creates separate jobs for multiple orgs", async () => {
       vi.mocked(prisma.digestProfile.findMany).mockResolvedValue([]);
-      mockSubreddits([{ id: "sub-1" }]);
-      mockJobCreate("job-fail");
-      vi.mocked(generateDigest.trigger).mockRejectedValueOnce(
-        new Error("dispatch error"),
-      );
+      mockSubreddits([
+        { id: "sub-1", organizationId: "org-a" },
+        { id: "sub-2", organizationId: "org-b" },
+      ]);
+      mockJobCreateOnce("job-a");
+      mockJobCreateOnce("job-b");
 
-      await expect(runTask()).rejects.toThrow(AbortTaskRunError);
+      const result = await runTask();
 
+      expect(prisma.job.create).toHaveBeenCalledTimes(2);
+      expect(generateDigest.trigger).toHaveBeenCalledTimes(2);
+
+      const resultObj = result as { jobs: Array<{ jobId: string; subredditCount: number }>; totalSubreddits: number };
+      expect(resultObj.totalSubreddits).toBe(2);
+      expect(resultObj.jobs).toHaveLength(2);
+    });
+
+    it("continues on dispatch failure and marks job FAILED", async () => {
+      vi.mocked(prisma.digestProfile.findMany).mockResolvedValue([]);
+      mockSubreddits([
+        { id: "sub-1", organizationId: "org-a" },
+        { id: "sub-2", organizationId: "org-b" },
+      ]);
+      mockJobCreateOnce("job-a");
+      mockJobCreateOnce("job-b");
+
+      vi.mocked(generateDigest.trigger)
+        .mockRejectedValueOnce(new Error("dispatch error"))
+        .mockResolvedValueOnce(
+          Object.assign(Object.create(null), { id: "run-b" }) as Awaited<
+            ReturnType<typeof generateDigest.trigger>
+          >,
+        );
+
+      const result = await runTask();
+      const resultObj = result as { jobs: Array<{ jobId: string; subredditCount: number }>; totalSubreddits: number };
+
+      // Both triggers attempted, first failed → only second in result
+      expect(generateDigest.trigger).toHaveBeenCalledTimes(2);
+      expect(resultObj.jobs).toHaveLength(1);
+
+      // Failed job should be marked FAILED
       expect(prisma.job.update).toHaveBeenCalledWith({
-        where: { id: "job-fail" },
+        where: { id: "job-a" },
         data: {
           status: "FAILED",
           completedAt: expect.any(Date),
@@ -163,6 +200,7 @@ describe("scheduled-digest", () => {
       name?: string;
       subreddits?: Array<{ subredditId: string }>;
       lookbackHours?: number;
+      organizationId?: string;
     }) => ({
       id: overrides.id ?? "profile-1",
       name: overrides.name ?? "Test Profile",
@@ -170,6 +208,7 @@ describe("scheduled-digest", () => {
       schedule: "0 7 * * *",
       lookbackHours: overrides.lookbackHours ?? 24,
       subreddits: overrides.subreddits ?? [{ subredditId: "sub-1" }],
+      organizationId: overrides.organizationId ?? "org-default",
     });
 
     it("creates one job per active profile and triggers generate-digest for each", async () => {
@@ -178,12 +217,14 @@ describe("scheduled-digest", () => {
         name: "Morning Digest",
         subreddits: [{ subredditId: "sub-1" }, { subredditId: "sub-2" }],
         lookbackHours: 24,
+        organizationId: "org-a",
       });
       const profile2 = makeProfile({
         id: "profile-2",
         name: "Evening Digest",
         subreddits: [{ subredditId: "sub-3" }],
         lookbackHours: 12,
+        organizationId: "org-b",
       });
 
       mockProfiles([profile1, profile2]);
@@ -199,6 +240,7 @@ describe("scheduled-digest", () => {
           subreddits: ["sub-1", "sub-2"],
           lookback: "24h",
           profileId: "profile-1",
+          organizationId: "org-a",
         },
       });
       expect(prisma.job.create).toHaveBeenNthCalledWith(2, {
@@ -207,6 +249,7 @@ describe("scheduled-digest", () => {
           subreddits: ["sub-3"],
           lookback: "12h",
           profileId: "profile-2",
+          organizationId: "org-b",
         },
       });
 

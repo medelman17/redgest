@@ -17,6 +17,16 @@ export const handleComparePeriods: QueryHandler<"ComparePeriods"> = async (
   const periodBEnd = new Date(now - periodAMs);
   const periodBStart = new Date(now - periodAMs - periodBMs);
 
+  // Resolve org subreddits once (not per period)
+  let orgSubNames: string[] | undefined;
+  if (ctx.organizationId) {
+    const orgSubreddits = await ctx.db.subreddit.findMany({
+      where: { organizationId: ctx.organizationId },
+      select: { name: true },
+    });
+    orgSubNames = orgSubreddits.map((s) => s.name);
+  }
+
   const buildPeriodSummary = async (
     start: Date,
     end: Date,
@@ -24,8 +34,15 @@ export const handleComparePeriods: QueryHandler<"ComparePeriods"> = async (
     const wherePost: Record<string, unknown> = {
       fetchedAt: { gte: start, lt: end },
     };
-    if (params.subreddit) {
+    if (params.subreddit && orgSubNames) {
+      // Intersect: only allow the requested subreddit if it belongs to the org
+      wherePost.subreddit = orgSubNames.includes(params.subreddit)
+        ? params.subreddit
+        : "__no_match__";
+    } else if (params.subreddit) {
       wherePost.subreddit = params.subreddit;
+    } else if (orgSubNames) {
+      wherePost.subreddit = { in: orgSubNames };
     }
 
     const posts = await ctx.db.post.findMany({

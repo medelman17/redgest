@@ -8,10 +8,12 @@
     "build": "next build --webpack || echo 'Build warning: _global-error prerender failed (Next.js 16 bug, non-blocking)'",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude 'dist/**'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@redgest/auth": "workspace:*",
     "@redgest/config": "workspace:*",
     "@redgest/core": "workspace:*",
     "@redgest/db": "workspace:*",
@@ -21,6 +23,7 @@
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
     "@trigger.dev/sdk": "^4.4.3",
+    "better-auth": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
@@ -41,6 +44,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "vitest": "^4.0.18"
   }
 }

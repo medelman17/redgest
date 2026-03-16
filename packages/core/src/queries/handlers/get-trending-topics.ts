@@ -23,6 +23,26 @@ export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async 
     };
   }
 
+  if (ctx.organizationId) {
+    const orgSubreddits = await ctx.db.subreddit.findMany({
+      where: { organizationId: ctx.organizationId },
+      select: { name: true },
+    });
+    const orgSubNames = orgSubreddits.map((s) => s.name);
+    // Intersect org subreddits with specific subreddit filter if both present
+    const effectiveFilter =
+      params.subreddit && orgSubNames.includes(params.subreddit)
+        ? params.subreddit
+        : params.subreddit
+          ? "__no_match__"
+          : { in: orgSubNames };
+    where.posts = {
+      some: {
+        post: { subreddit: effectiveFilter },
+      },
+    };
+  }
+
   const topics = await ctx.db.topic.findMany({
     where,
     orderBy: [{ frequency: "desc" }, { lastSeen: "desc" }],

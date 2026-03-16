@@ -65,6 +65,7 @@ export function SubredditDialog({
           subreddit: {
             id: crypto.randomUUID(),
             name,
+            organizationId: "",
             insightPrompt: String(formData.get("insightPrompt") ?? "") || null,
             maxPosts: Number(formData.get("maxPosts")) || 5,
             includeNsfw: formData.get("nsfw") === "on",

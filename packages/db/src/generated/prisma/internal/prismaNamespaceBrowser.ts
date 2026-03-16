@@ -51,6 +51,13 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
+  Session: 'Session',
+  Account: 'Account',
+  Verification: 'Verification',
+  Organization: 'Organization',
+  Member: 'Member',
+  Invitation: 'Invitation',
   Subreddit: 'Subreddit',
   DigestProfile: 'DigestProfile',
   DigestProfileSubreddit: 'DigestProfileSubreddit',
@@ -90,9 +97,106 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  emailVerified: 'emailVerified',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const SessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  activeOrganizationId: 'activeOrganizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
+export const AccountScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  accountId: 'accountId',
+  providerId: 'providerId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  scope: 'scope',
+  idToken: 'idToken',
+  password: 'password',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const VerificationScalarFieldEnum = {
+  id: 'id',
+  identifier: 'identifier',
+  value: 'value',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
+
+
+export const OrganizationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  logo: 'logo',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const MemberScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt'
+} as const
+
+export type MemberScalarFieldEnum = (typeof MemberScalarFieldEnum)[keyof typeof MemberScalarFieldEnum]
+
+
+export const InvitationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  email: 'email',
+  role: 'role',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  inviterId: 'inviterId',
+  createdAt: 'createdAt'
+} as const
+
+export type InvitationScalarFieldEnum = (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum]
+
+
 export const SubredditScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  organizationId: 'organizationId',
   insightPrompt: 'insightPrompt',
   maxPosts: 'maxPosts',
   includeNsfw: 'includeNsfw',
@@ -110,6 +214,7 @@ export type SubredditScalarFieldEnum = (typeof SubredditScalarFieldEnum)[keyof t
 export const DigestProfileScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  organizationId: 'organizationId',
   insightPrompt: 'insightPrompt',
   schedule: 'schedule',
   lookbackHours: 'lookbackHours',
@@ -134,6 +239,7 @@ export type DigestProfileSubredditScalarFieldEnum = (typeof DigestProfileSubredd
 
 export const ConfigScalarFieldEnum = {
   id: 'id',
+  organizationId: 'organizationId',
   globalInsightPrompt: 'globalInsightPrompt',
   defaultLookback: 'defaultLookback',
   defaultDelivery: 'defaultDelivery',
@@ -149,6 +255,7 @@ export type ConfigScalarFieldEnum = (typeof ConfigScalarFieldEnum)[keyof typeof 
 
 export const JobScalarFieldEnum = {
   id: 'id',
+  organizationId: 'organizationId',
   status: 'status',
   subreddits: 'subreddits',
   lookback: 'lookback',
@@ -172,6 +279,7 @@ export const EventScalarFieldEnum = {
   aggregateId: 'aggregateId',
   aggregateType: 'aggregateType',
   version: 'version',
+  organizationId: 'organizationId',
   correlationId: 'correlationId',
   causationId: 'causationId',
   metadata: 'metadata',
@@ -312,6 +420,7 @@ export type PostTopicScalarFieldEnum = (typeof PostTopicScalarFieldEnum)[keyof t
 export const DigestViewScalarFieldEnum = {
   digestId: 'digestId',
   jobId: 'jobId',
+  organizationId: 'organizationId',
   jobStatus: 'jobStatus',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
@@ -353,6 +462,7 @@ export type PostViewScalarFieldEnum = (typeof PostViewScalarFieldEnum)[keyof typ
 
 export const RunViewScalarFieldEnum = {
   jobId: 'jobId',
+  organizationId: 'organizationId',
   status: 'status',
   progress: 'progress',
   subreddits: 'subreddits',
@@ -373,6 +483,7 @@ export type RunViewScalarFieldEnum = (typeof RunViewScalarFieldEnum)[keyof typeo
 export const SubredditViewScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  organizationId: 'organizationId',
   insightPrompt: 'insightPrompt',
   maxPosts: 'maxPosts',
   includeNsfw: 'includeNsfw',
@@ -393,6 +504,7 @@ export type SubredditViewScalarFieldEnum = (typeof SubredditViewScalarFieldEnum)
 export const ProfileViewScalarFieldEnum = {
   profileId: 'profileId',
   name: 'name',
+  organizationId: 'organizationId',
   insightPrompt: 'insightPrompt',
   schedule: 'schedule',
   lookbackHours: 'lookbackHours',
@@ -412,6 +524,7 @@ export const DeliveryViewScalarFieldEnum = {
   deliveryId: 'deliveryId',
   digestId: 'digestId',
   jobId: 'jobId',
+  organizationId: 'organizationId',
   channel: 'channel',
   status: 'status',
   error: 'error',

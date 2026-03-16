@@ -49,45 +49,176 @@ enum DeliveryStatus {
   @@map("delivery_status")
 }
 
+// ─── BetterAuth: User ────────────────────────────────────
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions Session[]
+  accounts Account[]
+  members  Member[]
+
+  @@map("user")
+}
+
+// ─── BetterAuth: Session ─────────────────────────────────
+
+model Session {
+  id                     String    @id
+  userId                 String    @map("user_id")
+  token                  String    @unique
+  expiresAt              DateTime  @map("expires_at")
+  ipAddress              String?   @map("ip_address")
+  userAgent              String?   @map("user_agent")
+  activeOrganizationId   String?   @map("active_organization_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+// ─── BetterAuth: Account ─────────────────────────────────
+
+model Account {
+  id                    String    @id
+  userId                String    @map("user_id")
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token") @db.Text
+  refreshToken          String?   @map("refresh_token") @db.Text
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  idToken               String?   @map("id_token") @db.Text
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+// ─── BetterAuth: Verification ────────────────────────────
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String    @db.Text
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("verification")
+}
+
+// ─── BetterAuth: Organization ────────────────────────────
+
+model Organization {
+  id        String    @id
+  name      String
+  slug      String?   @unique
+  logo      String?
+  metadata  String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  members     Member[]
+  invitations Invitation[]
+  subreddits  Subreddit[]
+  profiles    DigestProfile[]
+  configs     Config[]
+  jobs        Job[]
+
+  @@map("organization")
+}
+
+// ─── BetterAuth: Member ──────────────────────────────────
+
+model Member {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  userId         String   @map("user_id")
+  role           String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("member")
+}
+
+// ─── BetterAuth: Invitation ──────────────────────────────
+
+model Invitation {
+  id             String    @id
+  organizationId String    @map("organization_id")
+  email          String
+  role           String?
+  status         String    @default("pending")
+  expiresAt      DateTime  @map("expires_at")
+  inviterId      String    @map("inviter_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("invitation")
+}
+
 // ─── Subreddit (config table for tracked subs) ───────────
 
 model Subreddit {
-  id                   String   @id @default(uuid(7))
-  name                 String   @unique
-  insightPrompt        String?  @map("insight_prompt") @db.Text
-  maxPosts             Int      @default(5) @map("max_posts")
-  includeNsfw          Boolean  @default(false) @map("include_nsfw")
-  isActive             Boolean  @default(true) @map("is_active")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-  lastFetchedAt        DateTime? @map("last_fetched_at")
-  crawlIntervalMinutes Int      @default(30) @map("crawl_interval_minutes")
-  nextCrawlAt          DateTime? @map("next_crawl_at")
+  id                   String       @id @default(uuid(7))
+  name                 String
+  organizationId       String       @map("organization_id")
+  insightPrompt        String?      @map("insight_prompt") @db.Text
+  maxPosts             Int          @default(5) @map("max_posts")
+  includeNsfw          Boolean      @default(false) @map("include_nsfw")
+  isActive             Boolean      @default(true) @map("is_active")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  lastFetchedAt        DateTime?    @map("last_fetched_at")
+  crawlIntervalMinutes Int          @default(30) @map("crawl_interval_minutes")
+  nextCrawlAt          DateTime?    @map("next_crawl_at")
 
-  profiles DigestProfileSubreddit[]
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  profiles     DigestProfileSubreddit[]
 
+  @@unique([name, organizationId])
   @@index([isActive])
+  @@index([organizationId])
   @@map("subreddits")
 }
 
 // ─── DigestProfile (per-interest digest configuration) ───
 
 model DigestProfile {
-  id            String          @id @default(uuid(7))
-  name          String          @unique
-  insightPrompt String?         @map("insight_prompt") @db.Text
-  schedule      String?
-  lookbackHours Int             @default(24) @map("lookback_hours")
-  maxPosts      Int             @default(5) @map("max_posts")
-  delivery      DeliveryChannel @default(NONE)
-  isActive      Boolean         @default(true) @map("is_active")
-  filters       Json?
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
+  id             String          @id @default(uuid(7))
+  name           String
+  organizationId String          @map("organization_id")
+  insightPrompt  String?         @map("insight_prompt") @db.Text
+  schedule       String?
+  lookbackHours  Int             @default(24) @map("lookback_hours")
+  maxPosts       Int             @default(5) @map("max_posts")
+  delivery       DeliveryChannel @default(NONE)
+  isActive       Boolean         @default(true) @map("is_active")
+  filters        Json?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  subreddits DigestProfileSubreddit[]
-  jobs       Job[]
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subreddits   DigestProfileSubreddit[]
+  jobs         Job[]
 
+  @@unique([name, organizationId])
+  @@index([organizationId])
   @@map("digest_profiles")
 }
 
@@ -102,10 +233,11 @@ model DigestProfileSubreddit {
   @@map("digest_profile_subreddits")
 }
 
-// ─── Config (singleton settings row) ─────────────────────
+// ─── Config (per-org settings) ───────────────────────────
 
 model Config {
-  id                  Int             @id
+  id                  Int             @id @default(autoincrement())
+  organizationId      String          @unique @map("organization_id")
   globalInsightPrompt String          @map("global_insight_prompt") @db.Text
   defaultLookback     String          @default("24h") @map("default_lookback")
   defaultDelivery     DeliveryChannel @default(NONE) @map("default_delivery")
@@ -115,31 +247,36 @@ model Config {
   schedule            String?
   updatedAt           DateTime        @updatedAt @map("updated_at")
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
   @@map("config")
 }
 
 // ─── Job (digest run execution) ──────────────────────────
 
 model Job {
-  id           String          @id @default(uuid(7))
-  status       JobStatus       @default(QUEUED)
-  subreddits   Json
-  lookback     String
-  delivery     DeliveryChannel @default(NONE)
-  profileId    String?         @map("profile_id")
-  triggerRunId String?         @map("trigger_run_id")
-  progress     Json?
-  startedAt    DateTime?       @map("started_at")
-  completedAt  DateTime?       @map("completed_at")
-  error        String?         @db.Text
-  createdAt    DateTime        @default(now()) @map("created_at")
+  id             String          @id @default(uuid(7))
+  organizationId String          @map("organization_id")
+  status         JobStatus       @default(QUEUED)
+  subreddits     Json
+  lookback       String
+  delivery       DeliveryChannel @default(NONE)
+  profileId      String?         @map("profile_id")
+  triggerRunId   String?         @map("trigger_run_id")
+  progress       Json?
+  startedAt      DateTime?       @map("started_at")
+  completedAt    DateTime?       @map("completed_at")
+  error          String?         @db.Text
+  createdAt      DateTime        @default(now()) @map("created_at")
 
+  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   profile       DigestProfile?  @relation(fields: [profileId], references: [id])
   postSummaries PostSummary[]
   digest        Digest?
   llmCalls      LlmCall[]
   deliveries    Delivery[]
 
+  @@index([organizationId])
   @@index([status])
   @@index([createdAt])
   @@index([triggerRunId])
@@ -149,23 +286,25 @@ model Job {
 // ─── Event (append-only event store) ─────────────────────
 
 model Event {
-  id            BigInt   @id @default(autoincrement())
-  type          String
-  payload       Json
-  aggregateId   String   @map("aggregate_id")
-  aggregateType String   @map("aggregate_type")
-  version       Int
-  correlationId String?  @map("correlation_id")
-  causationId   String?  @map("causation_id")
-  metadata      Json     @default("{}")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id             BigInt   @id @default(autoincrement())
+  type           String
+  payload        Json
+  aggregateId    String   @map("aggregate_id")
+  aggregateType  String   @map("aggregate_type")
+  version        Int
+  organizationId String?  @map("organization_id")
+  correlationId  String?  @map("correlation_id")
+  causationId    String?  @map("causation_id")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   @@index([aggregateType, aggregateId, version])
   @@index([type, createdAt])
+  @@index([organizationId])
   @@map("events")
 }
 
-// ─── Post (fetched Reddit posts) ─────────────────────────
+// ─── Post (fetched Reddit posts — globally shared) ───────
 
 model Post {
   id           String                    @id @default(uuid(7))
@@ -350,6 +489,7 @@ model PostTopic {
 view DigestView {
   digestId        String    @unique @map("digest_id")
   jobId           String    @map("job_id")
+  organizationId  String    @map("organization_id")
   jobStatus       String    @map("job_status")
   startedAt       DateTime? @map("started_at")
   completedAt     DateTime? @map("completed_at")
@@ -389,6 +529,7 @@ view PostView {
 
 view RunView {
   jobId           String    @unique @map("job_id")
+  organizationId  String    @map("organization_id")
   status          String
   progress        Json?
   subreddits      Json
@@ -408,6 +549,7 @@ view RunView {
 view SubredditView {
   id                     String    @unique
   name                   String
+  organizationId         String    @map("organization_id")
   insightPrompt          String?   @map("insight_prompt")
   maxPosts               Int       @map("max_posts")
   includeNsfw            Boolean   @map("include_nsfw")
@@ -427,6 +569,7 @@ view SubredditView {
 view ProfileView {
   profileId      String    @unique @map("profile_id")
   name           String
+  organizationId String    @map("organization_id")
   insightPrompt  String?   @map("insight_prompt")
   schedule       String?
   lookbackHours  Int       @map("lookback_hours")
@@ -445,6 +588,7 @@ view DeliveryView {
   deliveryId      String    @unique @map("delivery_id")
   digestId        String    @map("digest_id")
   jobId           String    @map("job_id")
+  organizationId  String    @map("organization_id")
   channel         String
   status          String
   error           String?

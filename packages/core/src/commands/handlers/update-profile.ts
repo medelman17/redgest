@@ -5,8 +5,8 @@ export const handleUpdateProfile: CommandHandler<"UpdateProfile"> = async (
   params,
   ctx,
 ) => {
-  const existing = await ctx.db.digestProfile.findUnique({
-    where: { id: params.profileId },
+  const existing = await ctx.db.digestProfile.findFirst({
+    where: { id: params.profileId, organizationId: ctx.organizationId },
     select: { id: true },
   });
   if (!existing) {
@@ -16,7 +16,7 @@ export const handleUpdateProfile: CommandHandler<"UpdateProfile"> = async (
   // If subredditIds provided, replace the full set
   if (params.subredditIds !== undefined) {
     await ctx.db.digestProfileSubreddit.deleteMany({
-      where: { profileId: params.profileId },
+      where: { profileId: existing.id },
     });
     if (params.subredditIds.length > 0) {
       await ctx.db.digestProfileSubreddit.createMany({

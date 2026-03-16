@@ -78,7 +78,7 @@ import { deliverDigest as _deliverDigest } from "../deliver-digest.js";
 const deliverDigest = _deliverDigest as unknown as {
   id: string;
   retry: { maxAttempts: number };
-  run: (payload: { digestId: string }) => Promise<{ delivered: string[] }>;
+  run: (payload: { digestId: string; organizationId?: string }) => Promise<{ delivered: string[] }>;
 };
 
 // Default digest fixture
@@ -120,6 +120,15 @@ describe("deliver-digest task", () => {
     expect(mockSendDigestSlack).toHaveBeenCalledOnce();
     expect(result).toEqual({ delivered: ["email", "slack"] });
   });
+
+  it("accepts optional organizationId in payload", async () => {
+    const result = await deliverDigest.run({ digestId: "digest-1", organizationId: "org_123" });
+
+    expect(mockSendDigestEmail).toHaveBeenCalledOnce();
+    expect(mockSendDigestSlack).toHaveBeenCalledOnce();
+    expect(result).toEqual({ delivered: ["email", "slack"] });
+  });
+
 
   it("skips delivery when no channels configured", async () => {
     mockLoadConfig.mockReturnValue({

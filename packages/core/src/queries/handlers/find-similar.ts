@@ -10,6 +10,7 @@ export const handleFindSimilar: QueryHandler<"FindSimilar"> = async (
     throw new RedgestError("INTERNAL_ERROR", "SearchService not available");
   }
   const options: SearchOptions = {
+    organizationId: ctx.organizationId,
     limit: params.limit ?? 5,
     subreddit: params.subreddit,
   };

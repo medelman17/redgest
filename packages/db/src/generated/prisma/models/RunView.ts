@@ -38,6 +38,7 @@ export type RunViewSumAggregateOutputType = {
 
 export type RunViewMinAggregateOutputType = {
   jobId: string | null
+  organizationId: string | null
   status: string | null
   eventCount: number | null
   lastEventType: string | null
@@ -52,6 +53,7 @@ export type RunViewMinAggregateOutputType = {
 
 export type RunViewMaxAggregateOutputType = {
   jobId: string | null
+  organizationId: string | null
   status: string | null
   eventCount: number | null
   lastEventType: string | null
@@ -66,6 +68,7 @@ export type RunViewMaxAggregateOutputType = {
 
 export type RunViewCountAggregateOutputType = {
   jobId: number
+  organizationId: number
   status: number
   progress: number
   subreddits: number
@@ -94,6 +97,7 @@ export type RunViewSumAggregateInputType = {
 
 export type RunViewMinAggregateInputType = {
   jobId?: true
+  organizationId?: true
   status?: true
   eventCount?: true
   lastEventType?: true
@@ -108,6 +112,7 @@ export type RunViewMinAggregateInputType = {
 
 export type RunViewMaxAggregateInputType = {
   jobId?: true
+  organizationId?: true
   status?: true
   eventCount?: true
   lastEventType?: true
@@ -122,6 +127,7 @@ export type RunViewMaxAggregateInputType = {
 
 export type RunViewCountAggregateInputType = {
   jobId?: true
+  organizationId?: true
   status?: true
   progress?: true
   subreddits?: true
@@ -225,6 +231,7 @@ export type RunViewGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 
 export type RunViewGroupByOutputType = {
   jobId: string
+  organizationId: string
   status: string
   progress: runtime.JsonValue | null
   subreddits: runtime.JsonValue
@@ -264,6 +271,7 @@ export type RunViewWhereInput = {
   OR?: Prisma.RunViewWhereInput[]
   NOT?: Prisma.RunViewWhereInput | Prisma.RunViewWhereInput[]
   jobId?: Prisma.StringFilter<"RunView"> | string
+  organizationId?: Prisma.StringFilter<"RunView"> | string
   status?: Prisma.StringFilter<"RunView"> | string
   progress?: Prisma.JsonNullableFilter<"RunView">
   subreddits?: Prisma.JsonFilter<"RunView">
@@ -280,6 +288,7 @@ export type RunViewWhereInput = {
 
 export type RunViewOrderByWithRelationInput = {
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   progress?: Prisma.SortOrderInput | Prisma.SortOrder
   subreddits?: Prisma.SortOrder
@@ -299,6 +308,7 @@ export type RunViewWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.RunViewWhereInput | Prisma.RunViewWhereInput[]
   OR?: Prisma.RunViewWhereInput[]
   NOT?: Prisma.RunViewWhereInput | Prisma.RunViewWhereInput[]
+  organizationId?: Prisma.StringFilter<"RunView"> | string
   status?: Prisma.StringFilter<"RunView"> | string
   progress?: Prisma.JsonNullableFilter<"RunView">
   subreddits?: Prisma.JsonFilter<"RunView">
@@ -315,6 +325,7 @@ export type RunViewWhereUniqueInput = Prisma.AtLeast<{
 
 export type RunViewOrderByWithAggregationInput = {
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   progress?: Prisma.SortOrderInput | Prisma.SortOrder
   subreddits?: Prisma.SortOrder
@@ -339,6 +350,7 @@ export type RunViewScalarWhereWithAggregatesInput = {
   OR?: Prisma.RunViewScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RunViewScalarWhereWithAggregatesInput | Prisma.RunViewScalarWhereWithAggregatesInput[]
   jobId?: Prisma.StringWithAggregatesFilter<"RunView"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"RunView"> | string
   status?: Prisma.StringWithAggregatesFilter<"RunView"> | string
   progress?: Prisma.JsonNullableWithAggregatesFilter<"RunView">
   subreddits?: Prisma.JsonWithAggregatesFilter<"RunView">
@@ -355,6 +367,7 @@ export type RunViewScalarWhereWithAggregatesInput = {
 
 export type RunViewCountOrderByAggregateInput = {
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   progress?: Prisma.SortOrder
   subreddits?: Prisma.SortOrder
@@ -376,6 +389,7 @@ export type RunViewAvgOrderByAggregateInput = {
 
 export type RunViewMaxOrderByAggregateInput = {
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   eventCount?: Prisma.SortOrder
   lastEventType?: Prisma.SortOrder
@@ -390,6 +404,7 @@ export type RunViewMaxOrderByAggregateInput = {
 
 export type RunViewMinOrderByAggregateInput = {
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   eventCount?: Prisma.SortOrder
   lastEventType?: Prisma.SortOrder
@@ -411,6 +426,7 @@ export type RunViewSumOrderByAggregateInput = {
 
 export type RunViewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   jobId?: boolean
+  organizationId?: boolean
   status?: boolean
   progress?: boolean
   subreddits?: boolean
@@ -429,6 +445,7 @@ export type RunViewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 
 export type RunViewSelectScalar = {
   jobId?: boolean
+  organizationId?: boolean
   status?: boolean
   progress?: boolean
   subreddits?: boolean
@@ -443,13 +460,14 @@ export type RunViewSelectScalar = {
   createdAt?: boolean
 }
 
-export type RunViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"jobId" | "status" | "progress" | "subreddits" | "eventCount" | "lastEventType" | "lastEventAt" | "durationSeconds" | "triggerRunId" | "startedAt" | "completedAt" | "error" | "createdAt", ExtArgs["result"]["runView"]>
+export type RunViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"jobId" | "organizationId" | "status" | "progress" | "subreddits" | "eventCount" | "lastEventType" | "lastEventAt" | "durationSeconds" | "triggerRunId" | "startedAt" | "completedAt" | "error" | "createdAt", ExtArgs["result"]["runView"]>
 
 export type $RunViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RunView"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     jobId: string
+    organizationId: string
     status: string
     progress: runtime.JsonValue | null
     subreddits: runtime.JsonValue
@@ -721,6 +739,7 @@ export interface Prisma__RunViewClient<T, Null = never, ExtArgs extends runtime.
  */
 export interface RunViewFieldRefs {
   readonly jobId: Prisma.FieldRef<"RunView", 'String'>
+  readonly organizationId: Prisma.FieldRef<"RunView", 'String'>
   readonly status: Prisma.FieldRef<"RunView", 'String'>
   readonly progress: Prisma.FieldRef<"RunView", 'Json'>
   readonly subreddits: Prisma.FieldRef<"RunView", 'Json'>

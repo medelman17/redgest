@@ -28,6 +28,7 @@ export type DeliveryViewMinAggregateOutputType = {
   deliveryId: string | null
   digestId: string | null
   jobId: string | null
+  organizationId: string | null
   channel: string | null
   status: string | null
   error: string | null
@@ -43,6 +44,7 @@ export type DeliveryViewMaxAggregateOutputType = {
   deliveryId: string | null
   digestId: string | null
   jobId: string | null
+  organizationId: string | null
   channel: string | null
   status: string | null
   error: string | null
@@ -58,6 +60,7 @@ export type DeliveryViewCountAggregateOutputType = {
   deliveryId: number
   digestId: number
   jobId: number
+  organizationId: number
   channel: number
   status: number
   error: number
@@ -75,6 +78,7 @@ export type DeliveryViewMinAggregateInputType = {
   deliveryId?: true
   digestId?: true
   jobId?: true
+  organizationId?: true
   channel?: true
   status?: true
   error?: true
@@ -90,6 +94,7 @@ export type DeliveryViewMaxAggregateInputType = {
   deliveryId?: true
   digestId?: true
   jobId?: true
+  organizationId?: true
   channel?: true
   status?: true
   error?: true
@@ -105,6 +110,7 @@ export type DeliveryViewCountAggregateInputType = {
   deliveryId?: true
   digestId?: true
   jobId?: true
+  organizationId?: true
   channel?: true
   status?: true
   error?: true
@@ -193,6 +199,7 @@ export type DeliveryViewGroupByOutputType = {
   deliveryId: string
   digestId: string
   jobId: string
+  organizationId: string
   channel: string
   status: string
   error: string | null
@@ -229,6 +236,7 @@ export type DeliveryViewWhereInput = {
   deliveryId?: Prisma.StringFilter<"DeliveryView"> | string
   digestId?: Prisma.StringFilter<"DeliveryView"> | string
   jobId?: Prisma.StringFilter<"DeliveryView"> | string
+  organizationId?: Prisma.StringFilter<"DeliveryView"> | string
   channel?: Prisma.StringFilter<"DeliveryView"> | string
   status?: Prisma.StringFilter<"DeliveryView"> | string
   error?: Prisma.StringNullableFilter<"DeliveryView"> | string | null
@@ -244,6 +252,7 @@ export type DeliveryViewOrderByWithRelationInput = {
   deliveryId?: Prisma.SortOrder
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -262,6 +271,7 @@ export type DeliveryViewWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.DeliveryViewWhereInput | Prisma.DeliveryViewWhereInput[]
   digestId?: Prisma.StringFilter<"DeliveryView"> | string
   jobId?: Prisma.StringFilter<"DeliveryView"> | string
+  organizationId?: Prisma.StringFilter<"DeliveryView"> | string
   channel?: Prisma.StringFilter<"DeliveryView"> | string
   status?: Prisma.StringFilter<"DeliveryView"> | string
   error?: Prisma.StringNullableFilter<"DeliveryView"> | string | null
@@ -277,6 +287,7 @@ export type DeliveryViewOrderByWithAggregationInput = {
   deliveryId?: Prisma.SortOrder
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -298,6 +309,7 @@ export type DeliveryViewScalarWhereWithAggregatesInput = {
   deliveryId?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
   digestId?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
   jobId?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
   channel?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
   status?: Prisma.StringWithAggregatesFilter<"DeliveryView"> | string
   error?: Prisma.StringNullableWithAggregatesFilter<"DeliveryView"> | string | null
@@ -313,6 +325,7 @@ export type DeliveryViewCountOrderByAggregateInput = {
   deliveryId?: Prisma.SortOrder
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -328,6 +341,7 @@ export type DeliveryViewMaxOrderByAggregateInput = {
   deliveryId?: Prisma.SortOrder
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -343,6 +357,7 @@ export type DeliveryViewMinOrderByAggregateInput = {
   deliveryId?: Prisma.SortOrder
   digestId?: Prisma.SortOrder
   jobId?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -360,6 +375,7 @@ export type DeliveryViewSelect<ExtArgs extends runtime.Types.Extensions.Internal
   deliveryId?: boolean
   digestId?: boolean
   jobId?: boolean
+  organizationId?: boolean
   channel?: boolean
   status?: boolean
   error?: boolean
@@ -377,6 +393,7 @@ export type DeliveryViewSelectScalar = {
   deliveryId?: boolean
   digestId?: boolean
   jobId?: boolean
+  organizationId?: boolean
   channel?: boolean
   status?: boolean
   error?: boolean
@@ -388,7 +405,7 @@ export type DeliveryViewSelectScalar = {
   jobStatus?: boolean
 }
 
-export type DeliveryViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"deliveryId" | "digestId" | "jobId" | "channel" | "status" | "error" | "externalId" | "sentAt" | "createdAt" | "updatedAt" | "digestCreatedAt" | "jobStatus", ExtArgs["result"]["deliveryView"]>
+export type DeliveryViewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"deliveryId" | "digestId" | "jobId" | "organizationId" | "channel" | "status" | "error" | "externalId" | "sentAt" | "createdAt" | "updatedAt" | "digestCreatedAt" | "jobStatus", ExtArgs["result"]["deliveryView"]>
 
 export type $DeliveryViewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "DeliveryView"
@@ -397,6 +414,7 @@ export type $DeliveryViewPayload<ExtArgs extends runtime.Types.Extensions.Intern
     deliveryId: string
     digestId: string
     jobId: string
+    organizationId: string
     channel: string
     status: string
     error: string | null
@@ -667,6 +685,7 @@ export interface DeliveryViewFieldRefs {
   readonly deliveryId: Prisma.FieldRef<"DeliveryView", 'String'>
   readonly digestId: Prisma.FieldRef<"DeliveryView", 'String'>
   readonly jobId: Prisma.FieldRef<"DeliveryView", 'String'>
+  readonly organizationId: Prisma.FieldRef<"DeliveryView", 'String'>
   readonly channel: Prisma.FieldRef<"DeliveryView", 'String'>
   readonly status: Prisma.FieldRef<"DeliveryView", 'String'>
   readonly error: Prisma.FieldRef<"DeliveryView", 'String'>

@@ -86,6 +86,7 @@ export function ProfileDialog({
           profile: {
             profileId: crypto.randomUUID(),
             name,
+            organizationId: "",
             insightPrompt:
               String(formData.get("insightPrompt") ?? "") || null,
             schedule: String(formData.get("schedule") ?? "") || null,

@@ -14,6 +14,7 @@ describe("HandlerContext", () => {
       db: stub<HandlerContext["db"]>(),
       eventBus: stub<HandlerContext["eventBus"]>(),
       config: stub<HandlerContext["config"]>(),
+      organizationId: "org_test",
     };
 
     expect(ctx).toBeDefined();

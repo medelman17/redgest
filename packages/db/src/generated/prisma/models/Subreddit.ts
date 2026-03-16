@@ -39,6 +39,7 @@ export type SubredditSumAggregateOutputType = {
 export type SubredditMinAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   maxPosts: number | null
   includeNsfw: boolean | null
@@ -53,6 +54,7 @@ export type SubredditMinAggregateOutputType = {
 export type SubredditMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  organizationId: string | null
   insightPrompt: string | null
   maxPosts: number | null
   includeNsfw: boolean | null
@@ -67,6 +69,7 @@ export type SubredditMaxAggregateOutputType = {
 export type SubredditCountAggregateOutputType = {
   id: number
   name: number
+  organizationId: number
   insightPrompt: number
   maxPosts: number
   includeNsfw: number
@@ -93,6 +96,7 @@ export type SubredditSumAggregateInputType = {
 export type SubredditMinAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -107,6 +111,7 @@ export type SubredditMinAggregateInputType = {
 export type SubredditMaxAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -121,6 +126,7 @@ export type SubredditMaxAggregateInputType = {
 export type SubredditCountAggregateInputType = {
   id?: true
   name?: true
+  organizationId?: true
   insightPrompt?: true
   maxPosts?: true
   includeNsfw?: true
@@ -222,6 +228,7 @@ export type SubredditGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type SubredditGroupByOutputType = {
   id: string
   name: string
+  organizationId: string
   insightPrompt: string | null
   maxPosts: number
   includeNsfw: boolean
@@ -259,6 +266,7 @@ export type SubredditWhereInput = {
   NOT?: Prisma.SubredditWhereInput | Prisma.SubredditWhereInput[]
   id?: Prisma.StringFilter<"Subreddit"> | string
   name?: Prisma.StringFilter<"Subreddit"> | string
+  organizationId?: Prisma.StringFilter<"Subreddit"> | string
   insightPrompt?: Prisma.StringNullableFilter<"Subreddit"> | string | null
   maxPosts?: Prisma.IntFilter<"Subreddit"> | number
   includeNsfw?: Prisma.BoolFilter<"Subreddit"> | boolean
@@ -268,12 +276,14 @@ export type SubredditWhereInput = {
   lastFetchedAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
   crawlIntervalMinutes?: Prisma.IntFilter<"Subreddit"> | number
   nextCrawlAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   profiles?: Prisma.DigestProfileSubredditListRelationFilter
 }
 
 export type SubredditOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -283,15 +293,18 @@ export type SubredditOrderByWithRelationInput = {
   lastFetchedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   crawlIntervalMinutes?: Prisma.SortOrder
   nextCrawlAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   profiles?: Prisma.DigestProfileSubredditOrderByRelationAggregateInput
 }
 
 export type SubredditWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  name?: string
+  name_organizationId?: Prisma.SubredditNameOrganizationIdCompoundUniqueInput
   AND?: Prisma.SubredditWhereInput | Prisma.SubredditWhereInput[]
   OR?: Prisma.SubredditWhereInput[]
   NOT?: Prisma.SubredditWhereInput | Prisma.SubredditWhereInput[]
+  name?: Prisma.StringFilter<"Subreddit"> | string
+  organizationId?: Prisma.StringFilter<"Subreddit"> | string
   insightPrompt?: Prisma.StringNullableFilter<"Subreddit"> | string | null
   maxPosts?: Prisma.IntFilter<"Subreddit"> | number
   includeNsfw?: Prisma.BoolFilter<"Subreddit"> | boolean
@@ -301,12 +314,14 @@ export type SubredditWhereUniqueInput = Prisma.AtLeast<{
   lastFetchedAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
   crawlIntervalMinutes?: Prisma.IntFilter<"Subreddit"> | number
   nextCrawlAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   profiles?: Prisma.DigestProfileSubredditListRelationFilter
-}, "id" | "name">
+}, "id" | "name_organizationId">
 
 export type SubredditOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -329,6 +344,7 @@ export type SubredditScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SubredditScalarWhereWithAggregatesInput | Prisma.SubredditScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Subreddit"> | string
   name?: Prisma.StringWithAggregatesFilter<"Subreddit"> | string
+  organizationId?: Prisma.StringWithAggregatesFilter<"Subreddit"> | string
   insightPrompt?: Prisma.StringNullableWithAggregatesFilter<"Subreddit"> | string | null
   maxPosts?: Prisma.IntWithAggregatesFilter<"Subreddit"> | number
   includeNsfw?: Prisma.BoolWithAggregatesFilter<"Subreddit"> | boolean
@@ -352,12 +368,14 @@ export type SubredditCreateInput = {
   lastFetchedAt?: Date | string | null
   crawlIntervalMinutes?: number
   nextCrawlAt?: Date | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutSubredditsInput
   profiles?: Prisma.DigestProfileSubredditCreateNestedManyWithoutSubredditInput
 }
 
 export type SubredditUncheckedCreateInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   maxPosts?: number
   includeNsfw?: boolean
@@ -382,12 +400,14 @@ export type SubredditUpdateInput = {
   lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   crawlIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutSubredditsNestedInput
   profiles?: Prisma.DigestProfileSubredditUpdateManyWithoutSubredditNestedInput
 }
 
 export type SubredditUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
   includeNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -403,6 +423,7 @@ export type SubredditUncheckedUpdateInput = {
 export type SubredditCreateManyInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   maxPosts?: number
   includeNsfw?: boolean
@@ -431,6 +452,7 @@ export type SubredditUpdateManyMutationInput = {
 export type SubredditUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
   includeNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -442,9 +464,25 @@ export type SubredditUncheckedUpdateManyInput = {
   nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type SubredditListRelationFilter = {
+  every?: Prisma.SubredditWhereInput
+  some?: Prisma.SubredditWhereInput
+  none?: Prisma.SubredditWhereInput
+}
+
+export type SubredditOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type SubredditNameOrganizationIdCompoundUniqueInput = {
+  name: string
+  organizationId: string
+}
+
 export type SubredditCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -464,6 +502,7 @@ export type SubredditAvgOrderByAggregateInput = {
 export type SubredditMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -478,6 +517,7 @@ export type SubredditMaxOrderByAggregateInput = {
 export type SubredditMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
   insightPrompt?: Prisma.SortOrder
   maxPosts?: Prisma.SortOrder
   includeNsfw?: Prisma.SortOrder
@@ -499,12 +539,46 @@ export type SubredditScalarRelationFilter = {
   isNot?: Prisma.SubredditWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
+export type SubredditCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput> | Prisma.SubredditCreateWithoutOrganizationInput[] | Prisma.SubredditUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.SubredditCreateOrConnectWithoutOrganizationInput | Prisma.SubredditCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.SubredditCreateManyOrganizationInputEnvelope
+  connect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type SubredditUncheckedCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput> | Prisma.SubredditCreateWithoutOrganizationInput[] | Prisma.SubredditUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.SubredditCreateOrConnectWithoutOrganizationInput | Prisma.SubredditCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.SubredditCreateManyOrganizationInputEnvelope
+  connect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+}
+
+export type SubredditUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput> | Prisma.SubredditCreateWithoutOrganizationInput[] | Prisma.SubredditUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.SubredditCreateOrConnectWithoutOrganizationInput | Prisma.SubredditCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.SubredditUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.SubredditUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.SubredditCreateManyOrganizationInputEnvelope
+  set?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  disconnect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  delete?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  connect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  update?: Prisma.SubredditUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.SubredditUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.SubredditUpdateManyWithWhereWithoutOrganizationInput | Prisma.SubredditUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.SubredditScalarWhereInput | Prisma.SubredditScalarWhereInput[]
+}
+
+export type SubredditUncheckedUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput> | Prisma.SubredditCreateWithoutOrganizationInput[] | Prisma.SubredditUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.SubredditCreateOrConnectWithoutOrganizationInput | Prisma.SubredditCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.SubredditUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.SubredditUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.SubredditCreateManyOrganizationInputEnvelope
+  set?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  disconnect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  delete?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  connect?: Prisma.SubredditWhereUniqueInput | Prisma.SubredditWhereUniqueInput[]
+  update?: Prisma.SubredditUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.SubredditUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.SubredditUpdateManyWithWhereWithoutOrganizationInput | Prisma.SubredditUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.SubredditScalarWhereInput | Prisma.SubredditScalarWhereInput[]
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -513,18 +587,6 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
 }
 
 export type SubredditCreateNestedOneWithoutProfilesInput = {
@@ -541,6 +603,80 @@ export type SubredditUpdateOneRequiredWithoutProfilesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubredditUpdateToOneWithWhereWithoutProfilesInput, Prisma.SubredditUpdateWithoutProfilesInput>, Prisma.SubredditUncheckedUpdateWithoutProfilesInput>
 }
 
+export type SubredditCreateWithoutOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  maxPosts?: number
+  includeNsfw?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
+  crawlIntervalMinutes?: number
+  nextCrawlAt?: Date | string | null
+  profiles?: Prisma.DigestProfileSubredditCreateNestedManyWithoutSubredditInput
+}
+
+export type SubredditUncheckedCreateWithoutOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  maxPosts?: number
+  includeNsfw?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
+  crawlIntervalMinutes?: number
+  nextCrawlAt?: Date | string | null
+  profiles?: Prisma.DigestProfileSubredditUncheckedCreateNestedManyWithoutSubredditInput
+}
+
+export type SubredditCreateOrConnectWithoutOrganizationInput = {
+  where: Prisma.SubredditWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput>
+}
+
+export type SubredditCreateManyOrganizationInputEnvelope = {
+  data: Prisma.SubredditCreateManyOrganizationInput | Prisma.SubredditCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
+}
+
+export type SubredditUpsertWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.SubredditWhereUniqueInput
+  update: Prisma.XOR<Prisma.SubredditUpdateWithoutOrganizationInput, Prisma.SubredditUncheckedUpdateWithoutOrganizationInput>
+  create: Prisma.XOR<Prisma.SubredditCreateWithoutOrganizationInput, Prisma.SubredditUncheckedCreateWithoutOrganizationInput>
+}
+
+export type SubredditUpdateWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.SubredditWhereUniqueInput
+  data: Prisma.XOR<Prisma.SubredditUpdateWithoutOrganizationInput, Prisma.SubredditUncheckedUpdateWithoutOrganizationInput>
+}
+
+export type SubredditUpdateManyWithWhereWithoutOrganizationInput = {
+  where: Prisma.SubredditScalarWhereInput
+  data: Prisma.XOR<Prisma.SubredditUpdateManyMutationInput, Prisma.SubredditUncheckedUpdateManyWithoutOrganizationInput>
+}
+
+export type SubredditScalarWhereInput = {
+  AND?: Prisma.SubredditScalarWhereInput | Prisma.SubredditScalarWhereInput[]
+  OR?: Prisma.SubredditScalarWhereInput[]
+  NOT?: Prisma.SubredditScalarWhereInput | Prisma.SubredditScalarWhereInput[]
+  id?: Prisma.StringFilter<"Subreddit"> | string
+  name?: Prisma.StringFilter<"Subreddit"> | string
+  organizationId?: Prisma.StringFilter<"Subreddit"> | string
+  insightPrompt?: Prisma.StringNullableFilter<"Subreddit"> | string | null
+  maxPosts?: Prisma.IntFilter<"Subreddit"> | number
+  includeNsfw?: Prisma.BoolFilter<"Subreddit"> | boolean
+  isActive?: Prisma.BoolFilter<"Subreddit"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Subreddit"> | Date | string
+  lastFetchedAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
+  crawlIntervalMinutes?: Prisma.IntFilter<"Subreddit"> | number
+  nextCrawlAt?: Prisma.DateTimeNullableFilter<"Subreddit"> | Date | string | null
+}
+
 export type SubredditCreateWithoutProfilesInput = {
   id?: string
   name: string
@@ -553,11 +689,13 @@ export type SubredditCreateWithoutProfilesInput = {
   lastFetchedAt?: Date | string | null
   crawlIntervalMinutes?: number
   nextCrawlAt?: Date | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutSubredditsInput
 }
 
 export type SubredditUncheckedCreateWithoutProfilesInput = {
   id?: string
   name: string
+  organizationId: string
   insightPrompt?: string | null
   maxPosts?: number
   includeNsfw?: boolean
@@ -597,9 +735,69 @@ export type SubredditUpdateWithoutProfilesInput = {
   lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   crawlIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutSubredditsNestedInput
 }
 
 export type SubredditUncheckedUpdateWithoutProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  includeNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  crawlIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type SubredditCreateManyOrganizationInput = {
+  id?: string
+  name: string
+  insightPrompt?: string | null
+  maxPosts?: number
+  includeNsfw?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastFetchedAt?: Date | string | null
+  crawlIntervalMinutes?: number
+  nextCrawlAt?: Date | string | null
+}
+
+export type SubredditUpdateWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  includeNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  crawlIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profiles?: Prisma.DigestProfileSubredditUpdateManyWithoutSubredditNestedInput
+}
+
+export type SubredditUncheckedUpdateWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPosts?: Prisma.IntFieldUpdateOperationsInput | number
+  includeNsfw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastFetchedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  crawlIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  nextCrawlAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profiles?: Prisma.DigestProfileSubredditUncheckedUpdateManyWithoutSubredditNestedInput
+}
+
+export type SubredditUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   insightPrompt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -647,6 +845,7 @@ export type SubredditCountOutputTypeCountProfilesArgs<ExtArgs extends runtime.Ty
 export type SubredditSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -656,6 +855,7 @@ export type SubredditSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   lastFetchedAt?: boolean
   crawlIntervalMinutes?: boolean
   nextCrawlAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   profiles?: boolean | Prisma.Subreddit$profilesArgs<ExtArgs>
   _count?: boolean | Prisma.SubredditCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subreddit"]>
@@ -663,6 +863,7 @@ export type SubredditSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type SubredditSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -672,11 +873,13 @@ export type SubredditSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   lastFetchedAt?: boolean
   crawlIntervalMinutes?: boolean
   nextCrawlAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subreddit"]>
 
 export type SubredditSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -686,11 +889,13 @@ export type SubredditSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   lastFetchedAt?: boolean
   crawlIntervalMinutes?: boolean
   nextCrawlAt?: boolean
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subreddit"]>
 
 export type SubredditSelectScalar = {
   id?: boolean
   name?: boolean
+  organizationId?: boolean
   insightPrompt?: boolean
   maxPosts?: boolean
   includeNsfw?: boolean
@@ -702,22 +907,29 @@ export type SubredditSelectScalar = {
   nextCrawlAt?: boolean
 }
 
-export type SubredditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "createdAt" | "updatedAt" | "lastFetchedAt" | "crawlIntervalMinutes" | "nextCrawlAt", ExtArgs["result"]["subreddit"]>
+export type SubredditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "organizationId" | "insightPrompt" | "maxPosts" | "includeNsfw" | "isActive" | "createdAt" | "updatedAt" | "lastFetchedAt" | "crawlIntervalMinutes" | "nextCrawlAt", ExtArgs["result"]["subreddit"]>
 export type SubredditInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   profiles?: boolean | Prisma.Subreddit$profilesArgs<ExtArgs>
   _count?: boolean | Prisma.SubredditCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type SubredditIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type SubredditIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type SubredditIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
+export type SubredditIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+}
 
 export type $SubredditPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Subreddit"
   objects: {
+    organization: Prisma.$OrganizationPayload<ExtArgs>
     profiles: Prisma.$DigestProfileSubredditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    organizationId: string
     insightPrompt: string | null
     maxPosts: number
     includeNsfw: boolean
@@ -1121,6 +1333,7 @@ readonly fields: SubredditFieldRefs;
  */
 export interface Prisma__SubredditClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   profiles<T extends Prisma.Subreddit$profilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subreddit$profilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DigestProfileSubredditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1153,6 +1366,7 @@ export interface Prisma__SubredditClient<T, Null = never, ExtArgs extends runtim
 export interface SubredditFieldRefs {
   readonly id: Prisma.FieldRef<"Subreddit", 'String'>
   readonly name: Prisma.FieldRef<"Subreddit", 'String'>
+  readonly organizationId: Prisma.FieldRef<"Subreddit", 'String'>
   readonly insightPrompt: Prisma.FieldRef<"Subreddit", 'String'>
   readonly maxPosts: Prisma.FieldRef<"Subreddit", 'Int'>
   readonly includeNsfw: Prisma.FieldRef<"Subreddit", 'Boolean'>
@@ -1411,6 +1625,10 @@ export type SubredditCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    */
   data: Prisma.SubredditCreateManyInput | Prisma.SubredditCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubredditIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1481,6 +1699,10 @@ export type SubredditUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many Subreddits to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubredditIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

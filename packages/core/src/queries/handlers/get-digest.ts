@@ -4,5 +4,7 @@ export const handleGetDigest: QueryHandler<"GetDigest"> = async (
   params,
   ctx,
 ) => {
-  return ctx.db.digestView.findUnique({ where: { digestId: params.digestId } });
+  return ctx.db.digestView.findFirst({
+    where: { digestId: params.digestId, organizationId: ctx.organizationId },
+  });
 };

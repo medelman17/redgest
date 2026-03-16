@@ -17,7 +17,7 @@ import type { RedditApiClient } from "@redgest/reddit";
 export const generateDigest = task({
   id: "generate-digest",
   retry: { maxAttempts: 2 },
-  run: async (payload: { jobId: string; subredditIds: string[] }) => {
+  run: async (payload: { jobId: string; subredditIds: string[]; organizationId?: string }) => {
     try {
       const config = loadConfig();
       const eventBus = new DomainEventBus();
@@ -40,7 +40,14 @@ export const generateDigest = task({
 
       const contentSource = new RedditContentSource(redditClient, rateLimiter);
 
-      const deps: PipelineDeps = { db: prisma, eventBus, contentSource, config };
+      const { DEFAULT_ORGANIZATION_ID } = await import("@redgest/config");
+      const deps: PipelineDeps = {
+        db: prisma,
+        eventBus,
+        contentSource,
+        config,
+        organizationId: payload.organizationId ?? DEFAULT_ORGANIZATION_ID,
+      };
 
       logger.info("Starting digest pipeline", {
         jobId: payload.jobId,
@@ -66,7 +73,10 @@ export const generateDigest = task({
         try {
           const { deliverDigest } = await import("./deliver-digest.js");
           await deliverDigest.trigger(
-            { digestId: result.digestId },
+            {
+              digestId: result.digestId,
+              organizationId: payload.organizationId,
+            },
             {
               idempotencyKey: await idempotencyKeys.create(
                 `deliver-${result.digestId}`,

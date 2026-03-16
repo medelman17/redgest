@@ -53,6 +53,7 @@ describe("query()", () => {
       db: stub<HandlerContext["db"]>(),
       eventBus: stub<HandlerContext["eventBus"]>(),
       config: stub<HandlerContext["config"]>(),
+      organizationId: "org_test",
     };
 
     const result = await query("GetDigest", { digestId: "digest-1" }, ctx);
@@ -68,6 +69,7 @@ describe("query()", () => {
       db: stub<HandlerContext["db"]>(),
       eventBus: stub<HandlerContext["eventBus"]>(),
       config: stub<HandlerContext["config"]>(),
+      organizationId: "org_test",
     };
 
     await expect(
@@ -83,6 +85,7 @@ describe("query()", () => {
       db: stub<HandlerContext["db"]>(),
       eventBus: stub<HandlerContext["eventBus"]>(),
       config: stub<HandlerContext["config"]>(),
+      organizationId: "org_test",
     };
 
     await expect(

@@ -17,6 +17,7 @@ vi.mock("@redgest/config", () => ({
     REDDIT_CLIENT_ID: "test-client-id",
     REDDIT_CLIENT_SECRET: "test-client-secret",
   })),
+  DEFAULT_ORGANIZATION_ID: "org_default",
 }));
 
 vi.mock("@redgest/db", () => ({
@@ -59,7 +60,7 @@ import { logger } from "@trigger.dev/sdk/v3";
 const generateDigest = _generateDigest as unknown as {
   id: string;
   retry: { maxAttempts: number };
-  run: (payload: { jobId: string; subredditIds: string[] }) => Promise<{
+  run: (payload: { jobId: string; subredditIds: string[]; organizationId?: string }) => Promise<{
     jobId: string;
     status: string;
     digestId: string | undefined;
@@ -162,7 +163,18 @@ describe("generateDigest task", () => {
 
       expect(mockDeliverDigestTrigger).toHaveBeenCalledOnce();
       expect(mockDeliverDigestTrigger).toHaveBeenCalledWith(
-        { digestId: "digest-test-1" },
+        { digestId: "digest-test-1", organizationId: undefined },
+        expect.objectContaining({ idempotencyKey: "test-idempotency-key" }),
+      );
+    });
+
+    it("passes organizationId to deliver-digest when provided in payload", async () => {
+      mockRunDigestPipeline.mockResolvedValue(BASE_PIPELINE_RESULT);
+
+      await generateDigest.run({ ...BASE_PAYLOAD, organizationId: "org_123" });
+
+      expect(mockDeliverDigestTrigger).toHaveBeenCalledWith(
+        { digestId: "digest-test-1", organizationId: "org_123" },
         expect.objectContaining({ idempotencyKey: "test-idempotency-key" }),
       );
     });

@@ -106,8 +106,8 @@ export const handleGetRunStatus: QueryHandler<"GetRunStatus"> = async (
   params,
   ctx,
 ) => {
-  const runView = await ctx.db.runView.findUnique({
-    where: { jobId: params.jobId },
+  const runView = await ctx.db.runView.findFirst({
+    where: { jobId: params.jobId, organizationId: ctx.organizationId },
   });
 
   if (!runView) return null;

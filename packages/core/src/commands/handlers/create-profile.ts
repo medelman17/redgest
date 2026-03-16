@@ -5,9 +5,9 @@ export const handleCreateProfile: CommandHandler<"CreateProfile"> = async (
   params,
   ctx,
 ) => {
-  // Check for name collision
-  const existing = await ctx.db.digestProfile.findUnique({
-    where: { name: params.name },
+  // Check for name collision within the organization
+  const existing = await ctx.db.digestProfile.findFirst({
+    where: { name: params.name, organizationId: ctx.organizationId },
     select: { id: true },
   });
   if (existing) {
@@ -20,6 +20,7 @@ export const handleCreateProfile: CommandHandler<"CreateProfile"> = async (
   const profile = await ctx.db.digestProfile.create({
     data: {
       name: params.name,
+      organizationId: ctx.organizationId,
       insightPrompt: params.insightPrompt ?? null,
       schedule: params.schedule ?? null,
       lookbackHours: params.lookbackHours ?? 24,

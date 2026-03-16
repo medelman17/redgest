@@ -1,6 +1,6 @@
 import { configSchema, type RedgestConfig } from "./schema.js";
 
-export { configSchema, type RedgestConfig } from "./schema.js";
+export { configSchema, type RedgestConfig, DEFAULT_ORGANIZATION_ID } from "./schema.js";
 
 let _config: RedgestConfig | undefined;
 

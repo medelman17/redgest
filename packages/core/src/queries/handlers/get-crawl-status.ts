@@ -4,12 +4,11 @@ export const handleGetCrawlStatus: QueryHandler<"GetCrawlStatus"> = async (
   params,
   ctx,
 ) => {
-  const where = params.name
-    ? { name: { equals: params.name, mode: "insensitive" as const } }
-    : {};
-
   const subreddits = await ctx.db.subreddit.findMany({
-    where,
+    where: {
+      organizationId: ctx.organizationId,
+      ...(params.name ? { name: { equals: params.name, mode: "insensitive" as const } } : {}),
+    },
     orderBy: { name: "asc" },
     select: {
       id: true,

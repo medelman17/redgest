@@ -13,6 +13,7 @@ export interface EventCreateClient {
         aggregateId: string;
         aggregateType: string;
         version: number;
+        organizationId?: string | null;
         correlationId: string | null;
         causationId: string | null;
         metadata: unknown;
@@ -37,6 +38,7 @@ export async function persistEvent(
       aggregateId: event.aggregateId,
       aggregateType: event.aggregateType,
       version: event.version,
+      organizationId: event.organizationId ?? null,
       correlationId: event.correlationId,
       causationId: event.causationId,
       metadata: event.metadata,

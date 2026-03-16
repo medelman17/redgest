@@ -11,6 +11,7 @@ export const handleAskHistory: QueryHandler<"AskHistory"> = async (
     throw new RedgestError("INTERNAL_ERROR", "SearchService not available");
   }
   const options: SearchOptions = {
+    organizationId: ctx.organizationId,
     limit: params.limit ?? 10,
     subreddit: params.subreddit,
   };

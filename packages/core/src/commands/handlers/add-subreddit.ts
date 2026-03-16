@@ -7,6 +7,7 @@ export const handleAddSubreddit: CommandHandler<"AddSubreddit"> = async (
   const sub = await ctx.db.subreddit.create({
     data: {
       name: params.name,
+      organizationId: ctx.organizationId,
       insightPrompt: params.insightPrompt ?? null,
       maxPosts: params.maxPosts ?? 5,
       includeNsfw: params.nsfw ?? false,

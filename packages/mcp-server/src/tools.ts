@@ -100,6 +100,7 @@ function execCtx(deps: BootstrapResult): ExecuteContext {
     db: deps.db as unknown as ExecuteContext["db"],
     eventBus: deps.ctx.eventBus,
     config: deps.ctx.config,
+    organizationId: deps.ctx.organizationId,
   };
 }
 

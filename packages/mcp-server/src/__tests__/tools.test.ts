@@ -89,7 +89,7 @@ function createMockDeps(): MockDeps {
     DATABASE_URL: "test",
   } as unknown as BootstrapResult["config"];
 
-  const ctx: BootstrapResult["ctx"] = { db, eventBus, config };
+  const ctx: BootstrapResult["ctx"] = { db, eventBus, config, organizationId: "org_test" };
 
   const checkConnectivity = vi.fn();
 
