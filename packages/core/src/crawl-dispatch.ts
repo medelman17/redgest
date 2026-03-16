@@ -1,8 +1,8 @@
-import type { DomainEventBus } from "./events/bus.js";
+import type { EventBus } from "./events/bus.js";
 import { runCrawl, type CrawlDeps } from "./crawl-pipeline.js";
 
 export interface CrawlDispatchDeps {
-  eventBus: DomainEventBus;
+  eventBus: EventBus;
   crawlDeps: CrawlDeps;
   triggerSecretKey?: string;
 }
@@ -27,7 +27,7 @@ export function wireCrawlDispatch(deps: CrawlDispatchDeps): void {
   }
 
   // On SubredditAdded → trigger immediate crawl (backfill)
-  eventBus.on("SubredditAdded", async (event) => {
+  eventBus.subscribe("SubredditAdded", async (event) => {
     const { subredditId } = event.payload;
 
     if (triggerSecretKey) {

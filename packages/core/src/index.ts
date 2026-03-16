@@ -7,7 +7,13 @@ export type {
   DomainEventType,
   DomainEvent,
 } from "./events/types.js";
-export { DomainEventBus } from "./events/bus.js";
+export type { EventBus } from "./events/bus.js";
+export { InProcessEventBus } from "./events/transports/in-process.js";
+export {
+  createEventBus,
+  type EventBusTransport,
+  type EventBusOptions,
+} from "./events/factory.js";
 export { persistEvent, type EventCreateClient } from "./events/persist.js";
 export { emitDomainEvent } from "./events/emit.js";
 export { eventPayloadSchemas, parseEventPayload } from "./events/schemas.js";

@@ -1,9 +1,9 @@
-import type { DomainEventBus } from "./events/bus.js";
+import type { EventBus } from "./events/bus.js";
 import type { PipelineDeps } from "./pipeline/types.js";
 import { runDigestPipeline } from "./pipeline/orchestrator.js";
 
 export interface DigestDispatchDeps {
-  eventBus: DomainEventBus;
+  eventBus: EventBus;
   pipelineDeps: PipelineDeps;
   triggerSecretKey?: string;
   /** Injected delivery function — called on DigestCompleted when Trigger.dev is not configured. */
@@ -55,7 +55,7 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
     }
   }
 
-  eventBus.on("DigestRequested", async (event) => {
+  eventBus.subscribe("DigestRequested", async (event) => {
     const { jobId, subredditIds, forceRefresh, maxPosts } = event.payload;
     const organizationId = event.organizationId ?? undefined;
 
@@ -77,7 +77,7 @@ export function wireDigestDispatch(deps: DigestDispatchDeps): void {
 
   // In-process delivery on DigestCompleted (when Trigger.dev not available)
   if (!triggerSecretKey && deliverDigest) {
-    eventBus.on("DigestCompleted", async (event) => {
+    eventBus.subscribe("DigestCompleted", async (event) => {
       const { jobId, digestId } = event.payload;
       try {
         await deliverDigest(digestId, jobId);

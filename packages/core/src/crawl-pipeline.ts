@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@redgest/db";
 import { sanitizeContent } from "@redgest/reddit";
-import type { DomainEventBus } from "./events/bus.js";
+import type { EventBus } from "./events/bus.js";
 import { emitDomainEvent } from "./events/emit.js";
 import type { ContentSource } from "./pipeline/types.js";
 
@@ -14,7 +14,7 @@ export interface CrawlResult {
 
 export interface CrawlDeps {
   db: PrismaClient;
-  eventBus: DomainEventBus;
+  eventBus: EventBus;
   contentSource: ContentSource;
 }
 

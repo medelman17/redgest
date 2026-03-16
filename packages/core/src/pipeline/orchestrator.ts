@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
-import type { DomainEventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus.js";
 import { emitDomainEvent } from "../events/emit.js";
 import { getModel } from "@redgest/llm";
 import type { TriagePostCandidate, SummarizationComment } from "@redgest/llm";
@@ -136,7 +136,7 @@ async function runPipelineBody(
   subredditIds: string[],
   deps: PipelineDeps,
   db: PrismaClient,
-  eventBus: DomainEventBus,
+  eventBus: EventBus,
 ): Promise<PipelineResult> {
   const { contentSource } = deps;
 

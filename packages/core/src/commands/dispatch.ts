@@ -131,9 +131,15 @@ export function createExecute(handlers: HandlerRegistry) {
       },
     );
 
-    // Emit AFTER transaction commits
+    // Emit AFTER transaction commits — best-effort notification
     if (eventPayload) {
-      ctx.eventBus.emitEvent(eventPayload);
+      try {
+        await ctx.eventBus.publish(eventPayload);
+      } catch (err) {
+        console.warn(
+          `[execute] Event publish failed for ${eventPayload.type}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
     }
 
     return data;

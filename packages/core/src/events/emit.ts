@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
-import type { DomainEventBus } from "./bus.js";
+import type { EventBus } from "./bus.js";
 import type { DomainEvent, DomainEventType, DomainEventMap } from "./types.js";
 import { persistEvent, type EventCreateClient } from "./persist.js";
 
@@ -15,7 +15,7 @@ import { persistEvent, type EventCreateClient } from "./persist.js";
  */
 export async function emitDomainEvent<K extends DomainEventType>(
   db: PrismaClient,
-  eventBus: DomainEventBus,
+  eventBus: EventBus,
   type: K,
   payload: DomainEventMap[K],
   aggregateId: string,
@@ -39,5 +39,5 @@ export async function emitDomainEvent<K extends DomainEventType>(
   // PrismaClient satisfies EventCreateClient at runtime (TD-004 pattern)
   const client = db as unknown as EventCreateClient;
   await persistEvent(client, event);
-  eventBus.emitEvent(event);
+  await eventBus.publish(event);
 }

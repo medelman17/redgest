@@ -1,4 +1,4 @@
-import type { DomainEventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus.js";
 import type { RedgestConfig } from "@redgest/config";
 import type { PrismaClient } from "@redgest/db";
 import type { SearchService } from "../search/types.js";
@@ -88,7 +88,7 @@ export interface ContentSource {
 /** All external dependencies the pipeline needs — injected, not imported. */
 export interface PipelineDeps {
   db: PrismaClient;
-  eventBus: DomainEventBus;
+  eventBus: EventBus;
   /** Content source for live fetching. Optional when using decoupled crawling (selectPostsStep). */
   contentSource?: ContentSource;
   config: RedgestConfig;
