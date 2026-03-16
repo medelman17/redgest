@@ -41,12 +41,17 @@ export default function OnboardingPage() {
       }
 
       if (result.data?.id) {
-        await authClient.organization.setActive({
+        const setResult = await authClient.organization.setActive({
           organizationId: result.data.id,
         });
+        if (setResult.error) {
+          setError(setResult.error.message ?? "Failed to activate organization");
+          return;
+        }
       }
 
       router.push("/subreddits");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
