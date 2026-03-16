@@ -27,9 +27,9 @@ vi.mock("@redgest/db", () => ({
 }));
 
 vi.mock("@redgest/core", () => ({
-  // Must use `function` (not arrow) so `new DomainEventBus()` works
-  DomainEventBus: vi.fn(function () {
-    return { on: vi.fn(), emit: vi.fn(), emitEvent: vi.fn() };
+  // Must use `function` (not arrow) so `new InProcessEventBus()` works
+  InProcessEventBus: vi.fn(function () {
+    return { subscribe: vi.fn(), unsubscribe: vi.fn(), publish: vi.fn().mockResolvedValue(undefined), close: vi.fn().mockResolvedValue(undefined) };
   }),
   runDigestPipeline: vi.fn(),
 }));

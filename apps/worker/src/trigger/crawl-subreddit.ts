@@ -1,7 +1,7 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { loadConfig } from "@redgest/config";
 import { prisma } from "@redgest/db";
-import { DomainEventBus, runCrawl } from "@redgest/core";
+import { InProcessEventBus, runCrawl } from "@redgest/core";
 import {
   RedditClient,
   PublicRedditClient,
@@ -15,7 +15,7 @@ export const crawlSubreddit = task({
   retry: { maxAttempts: 3, factor: 2, minTimeoutInMs: 2000 },
   run: async (payload: { subredditId: string }) => {
     const config = loadConfig();
-    const eventBus = new DomainEventBus();
+    const eventBus = new InProcessEventBus();
 
     let redditClient: RedditApiClient;
     let rateLimiter: TokenBucket;

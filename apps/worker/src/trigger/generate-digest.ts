@@ -2,7 +2,7 @@ import { task, logger, idempotencyKeys } from "@trigger.dev/sdk/v3";
 import { loadConfig } from "@redgest/config";
 import { prisma } from "@redgest/db";
 import {
-  DomainEventBus,
+  InProcessEventBus,
   runDigestPipeline,
   type PipelineDeps,
 } from "@redgest/core";
@@ -20,7 +20,7 @@ export const generateDigest = task({
   run: async (payload: { jobId: string; subredditIds: string[]; organizationId?: string }) => {
     try {
       const config = loadConfig();
-      const eventBus = new DomainEventBus();
+      const eventBus = new InProcessEventBus();
 
       let redditClient: RedditApiClient;
       let rateLimiter: TokenBucket;
