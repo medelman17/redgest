@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@redgest/db";
-import type { DomainEventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus.js";
 import type { RedgestConfig } from "@redgest/config";
 import { runDigestPipeline } from "../pipeline/orchestrator.js";
 import type {
@@ -144,11 +144,11 @@ function getPersistedEventTypes(): string[] {
   });
 }
 
-/** Extract event type names from eventBus.emitEvent mock calls. */
+/** Extract event type names from eventBus.publish mock calls. */
 function getEmittedEventTypes(
-  bus: { emitEvent: ReturnType<typeof vi.fn> },
+  bus: { publish: ReturnType<typeof vi.fn> },
 ): string[] {
-  return bus.emitEvent.mock.calls.map((call: unknown[]) => {
+  return bus.publish.mock.calls.map((call: unknown[]) => {
     const event = call[0] as unknown as Record<string, unknown>;
     return event["type"] as string;
   });
@@ -192,7 +192,7 @@ let mockDb: {
   config: { findUnique: ReturnType<typeof vi.fn> };
 };
 
-let mockEventBus: { emitEvent: ReturnType<typeof vi.fn> };
+let mockEventBus: { publish: ReturnType<typeof vi.fn> };
 let mockContentSource: ContentSource;
 let mockConfig: RedgestConfig;
 let deps: PipelineDeps;
@@ -216,14 +216,14 @@ beforeEach(() => {
     },
   };
 
-  mockEventBus = { emitEvent: vi.fn() };
+  mockEventBus = { publish: vi.fn().mockResolvedValue(undefined) };
   mockContentSource = { fetchContent: vi.fn() };
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test mock
   mockConfig = {} as RedgestConfig;
 
   deps = {
     db: mockDb as unknown as PrismaClient,
-    eventBus: mockEventBus as unknown as DomainEventBus,
+    eventBus: mockEventBus as unknown as EventBus,
     contentSource: mockContentSource,
     config: mockConfig,
     organizationId: "org_test",

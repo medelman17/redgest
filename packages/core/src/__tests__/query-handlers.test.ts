@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { DomainEventBus } from "../events/bus.js";
+import { InProcessEventBus } from "../events/transports/in-process.js";
 import type { HandlerContext } from "../context.js";
 import { handleGetDigest } from "../queries/handlers/get-digest.js";
 import { handleGetDigestByJobId } from "../queries/handlers/get-digest-by-job-id.js";
@@ -27,7 +27,7 @@ function makeCtx(dbMock: Record<string, unknown>): HandlerContext {
   const db = dbMock;
   return {
     db: db as unknown as HandlerContext["db"],
-    eventBus: new DomainEventBus(),
+    eventBus: new InProcessEventBus(),
     config: stub<HandlerContext["config"]>(),
     organizationId: "org_test",
   };

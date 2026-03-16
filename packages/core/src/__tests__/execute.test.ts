@@ -5,7 +5,7 @@ import type {
   TransactableClient,
   TransactionArg,
 } from "../commands/dispatch.js";
-import { DomainEventBus } from "../events/bus.js";
+import { InProcessEventBus } from "../events/transports/in-process.js";
 import type { CommandHandler } from "../commands/types.js";
 import type { HandlerContext } from "../context.js";
 
@@ -42,13 +42,13 @@ function createMockDb(tx: TransactionArg): TransactableClient {
 }
 
 describe("execute()", () => {
-  let eventBus: DomainEventBus;
+  let eventBus: InProcessEventBus;
   let mockTx: ReturnType<typeof createMockTx>;
   let mockDb: TransactableClient;
   let ctx: ExecuteContext;
 
   beforeEach(() => {
-    eventBus = new DomainEventBus();
+    eventBus = new InProcessEventBus();
     mockTx = createMockTx();
     mockDb = createMockDb(mockTx);
     ctx = {
@@ -115,7 +115,7 @@ describe("execute()", () => {
 
   it("emits event on bus AFTER transaction", async () => {
     const emitted: string[] = [];
-    eventBus.on("DigestRequested", () => {
+    eventBus.subscribe("DigestRequested", () => {
       emitted.push("DigestRequested");
     });
 
@@ -139,7 +139,7 @@ describe("execute()", () => {
     });
 
     const emitted: string[] = [];
-    eventBus.on("SubredditAdded", () => {
+    eventBus.subscribe("SubredditAdded", () => {
       emitted.push("fired");
     });
 

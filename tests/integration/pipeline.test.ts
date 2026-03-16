@@ -7,7 +7,7 @@ import {
 } from "../fixtures/fake-llm.js";
 import {
   runDigestPipeline,
-  DomainEventBus,
+  InProcessEventBus,
   type PipelineDeps,
   type ContentSource,
   type FetchedContent,
@@ -25,7 +25,7 @@ let db: PrismaClient;
 function makeDeps(overrides?: Partial<PipelineDeps>): PipelineDeps {
   return {
     db,
-    eventBus: new DomainEventBus(),
+    eventBus: new InProcessEventBus(),
     contentSource: new FakeContentSource(),
     config: {} as PipelineDeps["config"],
     generateTriage: fakeGenerateTriageResult,

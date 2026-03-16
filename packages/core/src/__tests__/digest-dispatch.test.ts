@@ -17,7 +17,7 @@ vi.mock("@trigger.dev/sdk/v3", () => ({
 }));
 
 import { wireDigestDispatch } from "../digest-dispatch.js";
-import type { DomainEventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus.js";
 import type { PipelineDeps } from "../pipeline/types.js";
 
 function createMockDeps(triggerSecretKey?: string) {
@@ -28,13 +28,13 @@ function createMockDeps(triggerSecretKey?: string) {
   type EventHandler = (...args: unknown[]) => unknown;
   const handlers = new Map<string, EventHandler>();
   const mockEventBus = {
-    on: vi.fn((event: string, handler: EventHandler) => {
+    subscribe: vi.fn((event: string, handler: EventHandler) => {
       handlers.set(event, handler);
     }),
-    off: vi.fn(),
-    emit: vi.fn(),
-    emitEvent: vi.fn(),
-  } as unknown as DomainEventBus;
+    unsubscribe: vi.fn(),
+    publish: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
+  } as unknown as EventBus;
 
   const mockPipelineDeps = {
     db: mockDb,
@@ -64,7 +64,7 @@ describe("wireDigestDispatch", () => {
     const { mockEventBus, mockPipelineDeps } = createMockDeps();
     wireDigestDispatch({ eventBus: mockEventBus, pipelineDeps: mockPipelineDeps });
 
-    expect(mockEventBus.on).toHaveBeenCalledWith(
+    expect(mockEventBus.subscribe).toHaveBeenCalledWith(
       "DigestRequested",
       expect.any(Function),
     );

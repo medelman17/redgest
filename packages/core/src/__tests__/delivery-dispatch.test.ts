@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DomainEventBus } from "../events/bus.js";
+import { InProcessEventBus } from "../events/transports/in-process.js";
 import { wireDigestDispatch } from "../digest-dispatch.js";
 import type { PipelineDeps } from "../pipeline/types.js";
 
@@ -14,8 +14,8 @@ describe("wireDigestDispatch — delivery", () => {
   });
 
   it("registers DigestCompleted handler when deliverDigest callback provided", () => {
-    const eventBus = new DomainEventBus();
-    const onSpy = vi.spyOn(eventBus, "on");
+    const eventBus = new InProcessEventBus();
+    const onSpy = vi.spyOn(eventBus, "subscribe");
     const pipelineDeps = stub<PipelineDeps>();
 
     wireDigestDispatch({
@@ -29,8 +29,8 @@ describe("wireDigestDispatch — delivery", () => {
   });
 
   it("does NOT register DigestCompleted handler when triggerSecretKey is set", () => {
-    const eventBus = new DomainEventBus();
-    const onSpy = vi.spyOn(eventBus, "on");
+    const eventBus = new InProcessEventBus();
+    const onSpy = vi.spyOn(eventBus, "subscribe");
     const pipelineDeps = stub<PipelineDeps>();
 
     wireDigestDispatch({
@@ -47,7 +47,7 @@ describe("wireDigestDispatch — delivery", () => {
   });
 
   it("calls deliverDigest with digestId and jobId on DigestCompleted event", async () => {
-    const eventBus = new DomainEventBus();
+    const eventBus = new InProcessEventBus();
     const pipelineDeps = stub<PipelineDeps>();
     const deliverDigest = vi.fn().mockResolvedValue(undefined);
 
@@ -57,27 +57,25 @@ describe("wireDigestDispatch — delivery", () => {
       deliverDigest,
     });
 
-    eventBus.emit("DigestCompleted", {
+    await eventBus.publish({
       type: "DigestCompleted",
       payload: { jobId: "job-1", digestId: "digest-1" },
       aggregateId: "job-1",
       aggregateType: "Job",
       version: 1,
+      organizationId: null,
       correlationId: null,
       causationId: null,
       metadata: {},
       occurredAt: new Date(),
     });
 
-    // Allow async handler to settle
-    await vi.waitFor(() => {
-      expect(deliverDigest).toHaveBeenCalledWith("digest-1", "job-1");
-    });
+    expect(deliverDigest).toHaveBeenCalledWith("digest-1", "job-1");
   });
 
   it("logs error but does not throw when deliverDigest fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const eventBus = new DomainEventBus();
+    const eventBus = new InProcessEventBus();
     const pipelineDeps = stub<PipelineDeps>();
     const deliverDigest = vi.fn().mockRejectedValue(new Error("delivery boom"));
 
@@ -87,30 +85,29 @@ describe("wireDigestDispatch — delivery", () => {
       deliverDigest,
     });
 
-    eventBus.emit("DigestCompleted", {
+    await eventBus.publish({
       type: "DigestCompleted",
       payload: { jobId: "job-2", digestId: "digest-2" },
       aggregateId: "job-2",
       aggregateType: "Job",
       version: 1,
+      organizationId: null,
       correlationId: null,
       causationId: null,
       metadata: {},
       occurredAt: new Date(),
     });
 
-    await vi.waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("delivery boom"),
-      );
-    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("delivery boom"),
+    );
 
     consoleSpy.mockRestore();
   });
 
   it("does NOT register DigestCompleted handler when no deliverDigest provided", () => {
-    const eventBus = new DomainEventBus();
-    const onSpy = vi.spyOn(eventBus, "on");
+    const eventBus = new InProcessEventBus();
+    const onSpy = vi.spyOn(eventBus, "subscribe");
     const pipelineDeps = stub<PipelineDeps>();
 
     wireDigestDispatch({
