@@ -1,14 +1,14 @@
-import { EventEmitter } from "node:events";
 import type { DomainEvent, DomainEventType } from "../types.js";
 import type { EventBus } from "../bus.js";
 
+type Handler = (event: DomainEvent) => void | Promise<void>;
+
 /**
- * In-process event bus using Node.js EventEmitter.
+ * In-process event bus backed by a simple Map of handler sets.
  * Default transport — zero dependencies, single-process only.
  */
 export class InProcessEventBus implements EventBus {
-  private emitter = new EventEmitter();
-  private handlers = new Map<string, Set<(...args: unknown[]) => void>>();
+  private handlers = new Map<string, Set<Handler>>();
 
   async publish(event: DomainEvent): Promise<void> {
     const handlerSet = this.handlers.get(event.type);
@@ -30,31 +30,22 @@ export class InProcessEventBus implements EventBus {
     type: K,
     handler: (event: DomainEvent & { type: K }) => void | Promise<void>,
   ): void {
-    const wrapped = handler as (...args: unknown[]) => void;
     let handlerSet = this.handlers.get(type);
     if (!handlerSet) {
       handlerSet = new Set();
       this.handlers.set(type, handlerSet);
     }
-    handlerSet.add(wrapped);
-    this.emitter.on(type, wrapped);
+    handlerSet.add(handler as Handler);
   }
 
   unsubscribe<K extends DomainEventType>(
     type: K,
     handler: (event: DomainEvent & { type: K }) => void | Promise<void>,
   ): void {
-    const wrapped = handler as (...args: unknown[]) => void;
-    this.handlers.get(type)?.delete(wrapped);
-    this.emitter.off(type, wrapped);
+    this.handlers.get(type)?.delete(handler as Handler);
   }
 
   async close(): Promise<void> {
-    for (const [type, handlerSet] of this.handlers) {
-      for (const handler of handlerSet) {
-        this.emitter.off(type, handler);
-      }
-    }
     this.handlers.clear();
   }
 }

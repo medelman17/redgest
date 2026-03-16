@@ -16,15 +16,19 @@ type Handler = (event: DomainEvent) => void | Promise<void>;
  */
 export class PgNotifyEventBus implements EventBus {
   private pool: pg.Pool;
+  private ownsPool: boolean;
   private listener: pg.Client | null;
   private connectionString: string;
   private handlers = new Map<string, Set<Handler>>();
   private closed = false;
+  private reconnecting = false;
   private reconnectDelay = 1000;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly maxReconnectDelay = 30000;
 
-  private constructor(pool: pg.Pool, listener: pg.Client, connectionString: string) {
+  private constructor(pool: pg.Pool, ownsPool: boolean, listener: pg.Client, connectionString: string) {
     this.pool = pool;
+    this.ownsPool = ownsPool;
     this.listener = listener;
     this.connectionString = connectionString;
     this.setupListenerEvents(listener);
@@ -69,42 +73,50 @@ export class PgNotifyEventBus implements EventBus {
   }
 
   private async reconnect(): Promise<void> {
-    if (this.closed) return;
+    if (this.closed || this.reconnecting) return;
+    this.reconnecting = true;
     this.listener = null;
 
-    while (!this.closed) {
-      try {
-        console.info(
-          `[PgNotifyEventBus] Reconnecting in ${this.reconnectDelay}ms...`,
-        );
-        await new Promise((r) => setTimeout(r, this.reconnectDelay));
-        if (this.closed) return;
+    try {
+      while (!this.closed) {
+        try {
+          console.info(
+            `[PgNotifyEventBus] Reconnecting in ${this.reconnectDelay}ms...`,
+          );
+          await new Promise<void>((r) => {
+            this.reconnectTimer = setTimeout(r, this.reconnectDelay);
+          });
+          this.reconnectTimer = null;
+          if (this.closed) return;
 
-        const newListener = new pg.Client({
-          connectionString: this.connectionString,
-        });
-        await newListener.connect();
+          const newListener = new pg.Client({
+            connectionString: this.connectionString,
+          });
+          await newListener.connect();
 
-        // Re-issue LISTEN for all active channels
-        for (const type of this.handlers.keys()) {
-          const channel = `${CHANNEL_PREFIX}${type}`;
-          await newListener.query(`LISTEN "${channel}"`);
+          // Re-issue LISTEN for all active channels
+          for (const type of this.handlers.keys()) {
+            const channel = `${CHANNEL_PREFIX}${type}`;
+            await newListener.query(`LISTEN "${channel}"`);
+          }
+
+          this.listener = newListener;
+          this.setupListenerEvents(newListener);
+          this.reconnectDelay = 1000; // Reset on success
+          console.info("[PgNotifyEventBus] Reconnected successfully");
+          return;
+        } catch (err) {
+          console.warn(
+            `[PgNotifyEventBus] Reconnect failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          this.reconnectDelay = Math.min(
+            this.reconnectDelay * 2,
+            this.maxReconnectDelay,
+          );
         }
-
-        this.listener = newListener;
-        this.setupListenerEvents(newListener);
-        this.reconnectDelay = 1000; // Reset on success
-        console.info("[PgNotifyEventBus] Reconnected successfully");
-        return;
-      } catch (err) {
-        console.warn(
-          `[PgNotifyEventBus] Reconnect failed: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        this.reconnectDelay = Math.min(
-          this.reconnectDelay * 2,
-          this.maxReconnectDelay,
-        );
       }
+    } finally {
+      this.reconnecting = false;
     }
   }
 
@@ -125,12 +137,13 @@ export class PgNotifyEventBus implements EventBus {
       );
     }
 
+    const ownsPool = !pool;
     const resolvedPool = pool ?? new pg.Pool({ connectionString: connString });
 
     const listener = new pg.Client({ connectionString: connString });
     await listener.connect();
 
-    return new PgNotifyEventBus(resolvedPool, listener, connString);
+    return new PgNotifyEventBus(resolvedPool, ownsPool, listener, connString);
   }
 
   async publish(event: DomainEvent): Promise<void> {
@@ -139,7 +152,7 @@ export class PgNotifyEventBus implements EventBus {
     const payload = serializeEvent(event);
     const client = await this.pool.connect();
     try {
-      await client.query(`NOTIFY "${channel}", '${payload.replace(/'/g, "''")}'`);
+      await client.query("SELECT pg_notify($1, $2)", [channel, payload]);
     } finally {
       client.release();
     }
@@ -187,10 +200,17 @@ export class PgNotifyEventBus implements EventBus {
     if (this.closed) return;
     this.closed = true;
     this.handlers.clear();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     try {
       if (this.listener) {
         await this.listener.query("UNLISTEN *");
         await this.listener.end();
+      }
+      if (this.ownsPool) {
+        await this.pool.end();
       }
     } catch {
       // Best-effort cleanup

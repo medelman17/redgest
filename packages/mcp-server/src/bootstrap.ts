@@ -2,7 +2,6 @@ import { loadConfig, DEFAULT_ORGANIZATION_ID, type RedgestConfig } from "@redges
 import { prisma, type PrismaClient } from "@redgest/db";
 import {
   createEventBus,
-  type EventBusTransport,
   createExecute,
   createQuery,
   createSearchService,
@@ -41,7 +40,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
   const config = loadConfig();
   const db = prisma;
   const eventBus = await createEventBus({
-    transport: config.EVENT_BUS_TRANSPORT as EventBusTransport,
+    transport: config.EVENT_BUS_TRANSPORT,
     databaseUrl: config.DATABASE_URL,
     redisUrl: config.REDIS_URL,
   });
