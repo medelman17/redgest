@@ -55,6 +55,9 @@ export const configSchema = z.object({
   GITHUB_CLIENT_ID: optionalString,
   GITHUB_CLIENT_SECRET: optionalString,
 
+  // Event bus transport
+  EVENT_BUS_TRANSPORT: z.enum(["memory", "pg-notify", "redis"]).default("memory"),
+
   // Defaults
   DIGEST_CRON: z.string().default("0 7 * * *"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
@@ -68,6 +71,13 @@ export const configSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: "BETTER_AUTH_SECRET is required in production",
       path: ["BETTER_AUTH_SECRET"],
+    });
+  }
+  if (data.EVENT_BUS_TRANSPORT === "redis" && !data.REDIS_URL) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "REDIS_URL is required when EVENT_BUS_TRANSPORT is 'redis'",
+      path: ["REDIS_URL"],
     });
   }
 });

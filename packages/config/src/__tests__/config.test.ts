@@ -271,6 +271,38 @@ describe("configSchema", () => {
       expect(result.data.REDGEST_ORG_ID).toBeUndefined();
     }
   });
+
+  it("defaults EVENT_BUS_TRANSPORT to memory", () => {
+    const result = configSchema.safeParse(validEnv);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.EVENT_BUS_TRANSPORT).toBe("memory");
+    }
+  });
+
+  it("rejects EVENT_BUS_TRANSPORT=redis without REDIS_URL", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      EVENT_BUS_TRANSPORT: "redis",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths).toContain("REDIS_URL");
+    }
+  });
+
+  it("accepts EVENT_BUS_TRANSPORT=redis with REDIS_URL", () => {
+    const result = configSchema.safeParse({
+      ...validEnv,
+      EVENT_BUS_TRANSPORT: "redis",
+      REDIS_URL: "redis://localhost:6379",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.EVENT_BUS_TRANSPORT).toBe("redis");
+    }
+  });
 });
 
 describe("loadConfig", () => {
