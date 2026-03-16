@@ -80,6 +80,15 @@ export function LoginForm({ githubEnabled }: LoginFormProps) {
           />
         </div>
 
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
         {error && (
           <p className="text-sm text-destructive">{error}</p>
         )}

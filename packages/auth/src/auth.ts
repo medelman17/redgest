@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { organization } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@redgest/db";
-import { sendVerificationEmail } from "./emails.js";
+import { sendVerificationEmail, sendResetPasswordEmail } from "./emails.js";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 
@@ -21,6 +21,10 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     maxPasswordLength: 256,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPasswordEmail({ email: user.email, url });
+    },
+    revokeSessionsOnPasswordReset: true,
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
