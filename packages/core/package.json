@@ -16,10 +16,15 @@
     "@redgest/db": "workspace:*",
     "@redgest/llm": "workspace:*",
     "ai": "^6.0.116",
+    "pg": "^8.20.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@trigger.dev/sdk": "^4.4.3",
-    "@types/node": "^25.3.5"
+    "@types/node": "^25.3.5",
+    "@types/pg": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "ioredis": "^5.10.0"
   }
 }
