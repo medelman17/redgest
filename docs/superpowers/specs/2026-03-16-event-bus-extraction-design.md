@@ -56,7 +56,7 @@ export interface EventBus {
 | Current (`DomainEventBus`) | New (`EventBus`) | Change |
 |---|---|---|
 | `emitEvent(event): void` | `publish(event): Promise<void>` | Async, renamed |
-| `emit<K>(type, event): void` | (removed) | Unused in codebase |
+| `emit<K>(type, event): void` | (removed) | Only used in test file — tests updated |
 | `on<K>(type, handler): void` | `subscribe<K>(type, handler): void` | Renamed |
 | `off<K>(type, handler): void` | `unsubscribe<K>(type, handler): void` | Renamed |
 | (none) | `close(): Promise<void>` | New — cleanup |
@@ -78,7 +78,7 @@ Wraps Node.js `EventEmitter`. Identical behavior to current `DomainEventBus`. De
 - `publish()` — Calls `emitter.emit(event.type, event)`. Returns resolved promise (sync under the hood).
 - `subscribe()` — Calls `emitter.on(type, handler)`.
 - `unsubscribe()` — Calls `emitter.off(type, handler)`.
-- `close()` — Calls `emitter.removeAllListeners()`. Returns resolved promise.
+- `close()` — Tracks registered handlers internally; removes only those on close (not `removeAllListeners()` which could affect external listeners). Returns resolved promise.
 
 No serialization needed — events stay as JS objects in-process.
 
@@ -98,7 +98,7 @@ Uses Postgres NOTIFY/LISTEN for cross-process event delivery. Zero new infrastru
 **Subscribing:**
 - Creates a **dedicated `pg.Client`** (not from the pool) for LISTEN. This connection must stay alive for the process lifetime since pooled connections would lose their LISTEN registrations when returned.
 - On `notification` event, deserializes JSON and dispatches to local handlers.
-- Auto-reconnects on connection loss with exponential backoff.
+- Auto-reconnects on connection loss: initial delay 1s, exponential backoff with 2x multiplier, max 30s, unlimited retries. Re-issues all active `LISTEN` commands after reconnect. Logs each reconnection attempt.
 
 **Serialization:**
 - `Date` → ISO 8601 string on publish, string → `Date` on receive.
@@ -107,8 +107,8 @@ Uses Postgres NOTIFY/LISTEN for cross-process event delivery. Zero new infrastru
 **Dependencies:** `pg` — already a transitive dependency via `@prisma/adapter-pg`. Import `pg.Client` and `pg.Pool` types directly.
 
 **Configuration:**
-- Uses `DATABASE_URL` (already available).
-- Accepts optional `Pool` instance to share with Prisma's adapter.
+- `PgNotifyEventBus.create(pgPool?, databaseUrl?)` — fallback chain: (1) use provided `pgPool`, (2) create new `Pool` from provided `databaseUrl`, (3) create new `Pool` from `process.env.DATABASE_URL`. Throws if none available.
+- LISTEN client always creates its own `pg.Client` from the resolved connection string (not from the pool).
 
 ### 2.3 RedisEventBus
 
@@ -129,7 +129,7 @@ Uses Redis PUBLISH/SUBSCRIBE for cross-process event delivery. Higher throughput
 
 **Serialization:** Same `serializeEvent()` / `deserializeEvent()` as PG transport.
 
-**Dependencies:** `ioredis` added to `packages/core/package.json`. Loaded dynamically (only imported when `EVENT_BUS_TRANSPORT=redis`) to keep it optional for deployments that don't use Redis.
+**Dependencies:** `ioredis` added as `optionalDependencies` in `packages/core/package.json`. Loaded dynamically (only imported when `EVENT_BUS_TRANSPORT=redis`) to keep it optional for deployments that don't use Redis. If the import fails at runtime, `createEventBus()` throws with a clear error message.
 
 **Configuration:**
 - Uses `REDIS_URL` (already defined in `@redgest/config` as optional).
@@ -158,7 +158,7 @@ export function deserializeEvent(json: string): DomainEvent {
 }
 ```
 
-Only `occurredAt` is a `Date` field. All other fields are strings, numbers, or plain objects.
+Only `occurredAt` is a `Date` field in the current event envelope. The reviver checks both the key name and ISO 8601 format to avoid false positives if a future event payload happens to use the same field name with a non-date string value.
 
 ---
 
@@ -209,16 +209,20 @@ Dynamic imports keep PG and Redis dependencies lazy — they're only loaded when
 
 ### 5.1 Type References
 
-All occurrences of `DomainEventBus` change to `EventBus`:
+All occurrences of `DomainEventBus` (type references and imports) change to `EventBus`:
 
-| File | Field |
+| File | Field / Usage |
 |---|---|
-| `packages/core/src/context.ts` | `HandlerContext.eventBus` |
-| `packages/core/src/pipeline/types.ts` | `PipelineDeps.eventBus` |
-| `packages/core/src/crawl-pipeline.ts` | `CrawlDeps.eventBus` |
-| `packages/core/src/digest-dispatch.ts` | `DigestDispatchDeps.eventBus` |
-| `packages/core/src/crawl-dispatch.ts` | `CrawlDispatchDeps.eventBus` |
-| `packages/core/src/events/emit.ts` | `emitDomainEvent()` param |
+| `packages/core/src/context.ts` | `HandlerContext.eventBus` type |
+| `packages/core/src/pipeline/types.ts` | `PipelineDeps.eventBus` type + import |
+| `packages/core/src/pipeline/orchestrator.ts` | `DomainEventBus` import + param type |
+| `packages/core/src/crawl-pipeline.ts` | `CrawlDeps.eventBus` type + import |
+| `packages/core/src/digest-dispatch.ts` | `DigestDispatchDeps.eventBus` type + import |
+| `packages/core/src/crawl-dispatch.ts` | `CrawlDispatchDeps.eventBus` type + import |
+| `packages/core/src/events/emit.ts` | `emitDomainEvent()` param type + import |
+| `packages/core/src/commands/dispatch.ts` | `ExecuteContext.eventBus` (via `HandlerContext["eventBus"]`) |
+| `packages/mcp-server/src/bootstrap.ts` | `DomainEventBus` import + instantiation |
+| `apps/web/lib/dal.ts` | `CachedInfra.eventBus` type + `DomainEventBus` import + instantiation |
 
 ### 5.2 Async Publish
 
@@ -242,6 +246,8 @@ await eventBus.publish(event);
 
 Both are already in async functions — adding `await` is the only change.
 
+**Note on error semantics:** `commands/dispatch.ts` currently treats emission as fire-and-forget. Adding `await` means a failing external transport (PG NOTIFY, Redis) could delay or fail command responses. This is acceptable: if the transport is down, the event is already persisted to DB — the notification failure is a degraded-mode scenario. Callers should wrap publish in try/catch with a warning log, not propagate the error.
+
 ### 5.3 Subscribe Rename
 
 **`digest-dispatch.ts`:**
@@ -252,7 +258,10 @@ eventBus.on("DigestRequested", async (event) => { ... });
 eventBus.subscribe("DigestRequested", async (event) => { ... });
 ```
 
-Same pattern for all `eventBus.on()` calls in `digest-dispatch.ts` and `crawl-dispatch.ts`.
+Three `eventBus.on()` calls total:
+1. `digest-dispatch.ts` — `DigestRequested` handler (line ~58)
+2. `digest-dispatch.ts` — `DigestCompleted` handler (line ~80, conditional)
+3. `crawl-dispatch.ts` — `SubredditAdded` handler (line ~30)
 
 ### 5.4 Bootstrap Sites
 
@@ -272,7 +281,10 @@ const eventBus = await createEventBus({
 
 ### 5.5 Graceful Shutdown
 
-Bootstrap sites should call `eventBus.close()` on process exit. MCP server's HTTP entry already has a shutdown hook — add `eventBus.close()` there. Web DAL doesn't need it (Next.js manages process lifecycle).
+Bootstrap sites should call `eventBus.close()` on process exit:
+
+- **MCP server:** HTTP entry (`http.ts`) already has a shutdown hook — add `eventBus.close()` there.
+- **Web DAL:** Next.js does not call arbitrary cleanup hooks. For external transports (PG LISTEN, Redis subscriber connections), register `process.on("beforeExit", () => eventBus.close())` in `getInfra()` to prevent connection leaks. For the default `memory` transport, `close()` is a no-op so this is harmless.
 
 ### 5.6 Exports
 
@@ -292,6 +304,8 @@ EVENT_BUS_TRANSPORT: z.enum(["memory", "pg-notify", "redis"]).optional().default
 ```
 
 `DATABASE_URL` and `REDIS_URL` are already in the schema.
+
+**Cross-field validation:** Add a `.superRefine()` check: if `EVENT_BUS_TRANSPORT=redis`, then `REDIS_URL` must be set. `pg-notify` does not need a check because `DATABASE_URL` is already required globally.
 
 ---
 
@@ -347,7 +361,15 @@ Run against all three implementations.
 
 ### 8.3 Existing Tests
 
-All existing tests use the in-process transport by default — no changes needed. Tests that mock `DomainEventBus` update to mock `EventBus` interface instead (same shape, different name).
+All existing tests use the in-process transport by default — no changes needed beyond renaming.
+
+**Mock shape changes:** Tests that mock `DomainEventBus` must update to the new `EventBus` method names:
+- `{ on: vi.fn(), off: vi.fn(), emit: vi.fn(), emitEvent: vi.fn() }` → `{ subscribe: vi.fn(), unsubscribe: vi.fn(), publish: vi.fn().mockResolvedValue(undefined), close: vi.fn().mockResolvedValue(undefined) }`
+
+Known test files requiring mock updates:
+- `packages/core/src/__tests__/events.test.ts` — uses `new DomainEventBus()` and calls `emit()`, `on()`, `off()` directly. Rewrite to test `InProcessEventBus` with `publish()`, `subscribe()`, `unsubscribe()`.
+- `apps/worker/src/trigger/__tests__/deliver-digest.test.ts` — mocks eventBus in pipeline deps.
+- Any test creating a `HandlerContext` stub with an `eventBus` field.
 
 ---
 
@@ -365,7 +387,8 @@ All existing tests use the in-process transport by default — no changes needed
 | Risk | Mitigation |
 |---|---|
 | PG NOTIFY 8KB payload limit | Event payloads are <500 bytes. Add a size check in `serializeEvent()` that warns if approaching limit. |
-| LISTEN connection drops | Auto-reconnect with exponential backoff. Log reconnection events. |
-| Redis not available at runtime | Dynamic import + clear error message. Falls back to memory if import fails? No — fail fast. Config says redis, redis must be available. |
-| Async publish changes error semantics | publish() errors are caught and logged by callers. Same fire-and-forget semantics as current sync emit. |
-| `ioredis` adds a dependency | Optional — only loaded when transport is `redis`. Peer dependency or optional dependency in package.json. |
+| LISTEN connection drops | Auto-reconnect with exponential backoff (1s initial, 2x, max 30s). Re-LISTEN all channels after reconnect. Log reconnection events. |
+| Redis not available at runtime | Dynamic import + clear error message. Fail fast — config says redis, redis must be available. Cross-field Zod validation ensures `REDIS_URL` is set when transport is `redis`. |
+| Async publish changes error semantics | `commands/dispatch.ts` wraps `publish()` in try/catch with warning log. Event is already persisted to DB — notification failure is degraded mode, not data loss. |
+| `ioredis` adds a dependency | Listed in `optionalDependencies` — only loaded when transport is `redis`. Clear error message if import fails at runtime. |
+| Web DAL connection leak | Register `process.on("beforeExit", ...)` to call `eventBus.close()` for external transports. |
