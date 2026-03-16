@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DATABASE_URL", "NODE_ENV"],
+  "globalEnv": ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "NODE_ENV"],
   "globalPassThroughEnv": [
     "ANTHROPIC_API_KEY",
     "OPENAI_API_KEY",
@@ -30,7 +30,6 @@
     "PGHOST_UNPOOLED",
     "PGUSER",
     "NEON_PROJECT_ID",
-    "DATABASE_URL_UNPOOLED",
     "POSTGRES_URL",
     "POSTGRES_URL_NO_SSL",
     "POSTGRES_URL_NON_POOLING",
@@ -44,7 +43,7 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": ["^build", "^db:generate", "^db:deploy"],
       "outputs": ["dist/**", ".next/**"]
     },
     "dev": {
