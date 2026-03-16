@@ -3,7 +3,11 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { organization } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@redgest/db";
-import { sendVerificationEmail, sendResetPasswordEmail } from "./emails.js";
+import {
+  sendVerificationEmail,
+  sendResetPasswordEmail,
+  sendInvitationEmail,
+} from "./emails.js";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 
@@ -65,6 +69,14 @@ export const auth = betterAuth({
     organization({
       organizationLimit: 5,
       membershipLimit: 50,
+      sendInvitationEmail: async (data) => {
+        await sendInvitationEmail({
+          email: data.email,
+          organizationName: data.organization.name,
+          inviterName: data.inviter.user.name,
+          invitationId: data.invitation.id,
+        });
+      },
     }),
     nextCookies(),
   ],
