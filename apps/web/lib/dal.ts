@@ -6,6 +6,7 @@ import {
   DomainEventBus,
   createExecute,
   createQuery,
+  createSearchService,
   commandHandlers,
   queryHandlers,
   wireDigestDispatch,
@@ -14,6 +15,7 @@ import {
   type CommandMap,
   type CommandResultMap,
   type QueryResultMap,
+  type SearchService,
 } from "@redgest/core";
 import { createContentSource } from "@redgest/reddit";
 import { getOrganizationId } from "./auth-utils.js";
@@ -28,6 +30,7 @@ interface CachedInfra {
   query: ReturnType<typeof createQuery>;
   db: typeof prisma;
   eventBus: DomainEventBus;
+  searchService: SearchService;
 }
 
 const globalForDal = globalThis as unknown as {
@@ -45,6 +48,7 @@ async function getInfra(): Promise<CachedInfra> {
 
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
+  const searchService = createSearchService(db);
 
   const contentSource = createContentSource({
     clientId: config.REDDIT_CLIENT_ID,
@@ -59,7 +63,7 @@ async function getInfra(): Promise<CachedInfra> {
     triggerSecretKey: config.TRIGGER_SECRET_KEY,
   });
 
-  const result: CachedInfra = { execute, query, db, eventBus };
+  const result: CachedInfra = { execute, query, db, eventBus, searchService };
 
   if (process.env.NODE_ENV !== "production") {
     globalForDal.__redgestInfra = result;
@@ -87,6 +91,7 @@ function buildContexts(
     eventBus: infra.eventBus,
     config,
     organizationId,
+    searchService: infra.searchService,
   };
   return { executeCtx, queryCtx };
 }
