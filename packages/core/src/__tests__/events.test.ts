@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import type {
-  DomainEvent,
-  DomainEventType,
-} from "../events/types.js";
-import { DomainEventBus } from "../events/bus.js";
+import type { DomainEvent, DomainEventType } from "../events/types.js";
+import { InProcessEventBus } from "../events/transports/in-process.js";
 
 describe("DomainEvent types", () => {
   it("derives correct type for DigestRequested", () => {
@@ -36,33 +33,39 @@ describe("DomainEvent types", () => {
     };
 
     if (event.type === "SubredditAdded") {
-      // TypeScript narrows payload to { subredditId: string; name: string }
       expect(event.payload.name).toBe("typescript");
     }
   });
 
-  it("DomainEventType includes all 9 event types", () => {
+  it("DomainEventType includes all 16 event types", () => {
     const types: DomainEventType[] = [
       "DigestRequested",
       "DigestCompleted",
       "DigestFailed",
+      "DigestCanceled",
       "PostsFetched",
       "PostsTriaged",
       "PostsSummarized",
       "SubredditAdded",
       "SubredditRemoved",
       "ConfigUpdated",
+      "DeliverySucceeded",
+      "DeliveryFailed",
+      "ProfileCreated",
+      "ProfileDeleted",
+      "CrawlCompleted",
+      "CrawlFailed",
     ];
-    expect(types).toHaveLength(9);
+    expect(types).toHaveLength(16);
   });
 });
 
-describe("DomainEventBus", () => {
-  it("emits and receives typed events", () => {
-    const bus = new DomainEventBus();
+describe("InProcessEventBus", () => {
+  it("publish delivers to subscriber", async () => {
+    const bus = new InProcessEventBus();
     const handler = vi.fn();
 
-    bus.on("DigestRequested", handler);
+    bus.subscribe("DigestRequested", handler);
 
     const event: DomainEvent & { type: "DigestRequested" } = {
       type: "DigestRequested",
@@ -76,17 +79,17 @@ describe("DomainEventBus", () => {
       occurredAt: new Date(),
     };
 
-    bus.emit("DigestRequested", event);
+    await bus.publish(event);
 
     expect(handler).toHaveBeenCalledOnce();
     expect(handler).toHaveBeenCalledWith(event);
   });
 
-  it("does not fire handler for different event type", () => {
-    const bus = new DomainEventBus();
+  it("does not fire handler for different event type", async () => {
+    const bus = new InProcessEventBus();
     const handler = vi.fn();
 
-    bus.on("DigestCompleted", handler);
+    bus.subscribe("DigestCompleted", handler);
 
     const event: DomainEvent & { type: "DigestRequested" } = {
       type: "DigestRequested",
@@ -100,19 +103,19 @@ describe("DomainEventBus", () => {
       occurredAt: new Date(),
     };
 
-    bus.emit("DigestRequested", event);
+    await bus.publish(event);
 
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("removes handler with off()", () => {
-    const bus = new DomainEventBus();
+  it("removes handler with unsubscribe()", async () => {
+    const bus = new InProcessEventBus();
     const handler = vi.fn();
 
-    bus.on("ConfigUpdated", handler);
-    bus.off("ConfigUpdated", handler);
+    bus.subscribe("ConfigUpdated", handler);
+    bus.unsubscribe("ConfigUpdated", handler);
 
-    bus.emit("ConfigUpdated", {
+    await bus.publish({
       type: "ConfigUpdated",
       payload: { changes: { llmModel: "gpt-4.1" } },
       aggregateId: "config-1",
@@ -127,13 +130,14 @@ describe("DomainEventBus", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("emitEvent() dispatches without generic constraint", () => {
-    const bus = new DomainEventBus();
-    const handler = vi.fn();
+  it("multiple subscribers all receive the event", async () => {
+    const bus = new InProcessEventBus();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
 
-    bus.on("SubredditAdded", handler);
+    bus.subscribe("SubredditAdded", handler1);
+    bus.subscribe("SubredditAdded", handler2);
 
-    // emitEvent accepts DomainEvent union — useful when type isn't known statically
     const event: DomainEvent = {
       type: "SubredditAdded",
       payload: { subredditId: "sub-1", name: "typescript" },
@@ -146,8 +150,49 @@ describe("DomainEventBus", () => {
       occurredAt: new Date(),
     };
 
-    bus.emitEvent(event);
+    await bus.publish(event);
 
-    expect(handler).toHaveBeenCalledOnce();
+    expect(handler1).toHaveBeenCalledOnce();
+    expect(handler2).toHaveBeenCalledOnce();
+  });
+
+  it("close() removes all registered handlers", async () => {
+    const bus = new InProcessEventBus();
+    const handler = vi.fn();
+
+    bus.subscribe("DigestCompleted", handler);
+    await bus.close();
+
+    await bus.publish({
+      type: "DigestCompleted",
+      payload: { jobId: "job-1", digestId: "dig-1" },
+      aggregateId: "job-1",
+      aggregateType: "job",
+      version: 1,
+      correlationId: null,
+      causationId: null,
+      metadata: {},
+      occurredAt: new Date(),
+    });
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("publish with no subscribers does not throw", async () => {
+    const bus = new InProcessEventBus();
+
+    await expect(
+      bus.publish({
+        type: "DigestFailed",
+        payload: { jobId: "job-1", error: "boom" },
+        aggregateId: "job-1",
+        aggregateType: "job",
+        version: 1,
+        correlationId: null,
+        causationId: null,
+        metadata: {},
+        occurredAt: new Date(),
+      }),
+    ).resolves.toBeUndefined();
   });
 });

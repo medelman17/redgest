@@ -1,43 +1,26 @@
-import { EventEmitter } from "node:events";
 import type { DomainEvent, DomainEventType } from "./types.js";
 
 /**
- * Typed event bus wrapping Node.js EventEmitter.
- * Composition over inheritance — private emitter prevents untyped access.
+ * Transport-agnostic event bus interface.
  *
- * Typed methods (emit/on/off) require the specific event type as a generic.
- * emitEvent() accepts the DomainEvent union for cases where the type
- * isn't known statically (e.g., the execute() dispatch function).
+ * Implementations: InProcessEventBus (EventEmitter), PgNotifyEventBus
+ * (Postgres NOTIFY/LISTEN), RedisEventBus (pub/sub).
+ *
+ * The bus is notification-only — events are persisted to the DB by
+ * persistEvent() before publish(). All transports are fire-and-forget.
  */
-export class DomainEventBus {
-  private emitter = new EventEmitter();
+export interface EventBus {
+  publish(event: DomainEvent): Promise<void>;
 
-  emit<K extends DomainEventType>(
-    type: K,
-    event: DomainEvent & { type: K },
-  ): void {
-    this.emitter.emit(type, event);
-  }
-
-  on<K extends DomainEventType>(
+  subscribe<K extends DomainEventType>(
     type: K,
     handler: (event: DomainEvent & { type: K }) => void | Promise<void>,
-  ): void {
-    this.emitter.on(type, handler as (...args: unknown[]) => void);
-  }
+  ): void;
 
-  off<K extends DomainEventType>(
+  unsubscribe<K extends DomainEventType>(
     type: K,
     handler: (event: DomainEvent & { type: K }) => void | Promise<void>,
-  ): void {
-    this.emitter.off(type, handler as (...args: unknown[]) => void);
-  }
+  ): void;
 
-  /**
-   * Emit an event from the DomainEvent union without requiring a generic.
-   * Used by execute() where the event type is determined at runtime.
-   */
-  emitEvent(event: DomainEvent): void {
-    this.emitter.emit(event.type, event);
-  }
+  close(): Promise<void>;
 }
