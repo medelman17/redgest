@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   recordDeliveryPending,
   recordDeliveryResult,
-} from "../delivery/record.js";
+} from "../delivery/record";
 
 /** Safely extract the Nth call's first arg from a mock, returning Record<string, unknown>. */
 function callArg(mock: ReturnType<typeof vi.fn>, n = 0): Record<string, unknown> {

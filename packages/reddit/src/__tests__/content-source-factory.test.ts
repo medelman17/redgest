@@ -39,12 +39,12 @@ const {
   };
 });
 
-vi.mock("../client.js", () => ({ RedditClient: MockRedditClient }));
-vi.mock("../public-client.js", () => ({ PublicRedditClient: MockPublicRedditClient }));
-vi.mock("../rate-limiter.js", () => ({ TokenBucket: MockTokenBucket }));
-vi.mock("../content-source.js", () => ({ RedditContentSource: MockRedditContentSource }));
+vi.mock("../client", () => ({ RedditClient: MockRedditClient }));
+vi.mock("../public-client", () => ({ PublicRedditClient: MockPublicRedditClient }));
+vi.mock("../rate-limiter", () => ({ TokenBucket: MockTokenBucket }));
+vi.mock("../content-source", () => ({ RedditContentSource: MockRedditContentSource }));
 
-import { createContentSource } from "../content-source-factory.js";
+import { createContentSource } from "../content-source-factory";
 
 describe("createContentSource", () => {
   it("creates authenticated client when credentials provided", () => {

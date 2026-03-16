@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { extractTopicNames, STOP_WORDS } from "../pipeline/topic-step.js";
-import type { PostSummary } from "../pipeline/types.js";
+import { extractTopicNames, STOP_WORDS } from "../pipeline/topic-step";
+import type { PostSummary } from "../pipeline/types";
 
 function makeSummary(overrides: Partial<PostSummary> = {}): PostSummary {
   return {

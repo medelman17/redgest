@@ -4,7 +4,7 @@ import {
   idempotencyKeys,
 } from "@trigger.dev/sdk/v3";
 import { prisma } from "@redgest/db";
-import { generateDigest } from "./generate-digest.js";
+import { generateDigest } from "./generate-digest";
 
 export const scheduledDigest = schedules.task({
   id: "scheduled-digest",

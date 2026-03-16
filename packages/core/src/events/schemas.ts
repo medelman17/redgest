@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DomainEventType } from "./types.js";
+import type { DomainEventType } from "./types";
 
 const deliveryChannelEnum = z.enum(["EMAIL", "SLACK"]);
 

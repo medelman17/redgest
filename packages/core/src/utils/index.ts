@@ -1,1 +1,1 @@
-export { parseDuration } from "./duration.js";
+export { parseDuration } from "./duration";

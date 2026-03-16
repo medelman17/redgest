@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import type { FormattedDigest } from "./types.js";
-import { renderDigestHtml } from "./render.js";
+import type { FormattedDigest } from "./types";
+import { renderDigestHtml } from "./render";
 
 export async function sendDigestEmail(
   digest: FormattedDigest,

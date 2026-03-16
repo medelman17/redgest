@@ -3,8 +3,8 @@ import type {
   QueryMap,
   QueryResultMap,
   QueryHandler,
-} from "./types.js";
-import type { HandlerContext } from "../context.js";
+} from "./types";
+import type { HandlerContext } from "../context";
 
 type QueryHandlerRegistry = {
   [K in QueryType]?: QueryHandler<K>;

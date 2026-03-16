@@ -71,7 +71,7 @@ export const generateDigest = task({
       // overwrite the job's COMPLETED/PARTIAL status set by the pipeline.
       if (result.digestId) {
         try {
-          const { deliverDigest } = await import("./deliver-digest.js");
+          const { deliverDigest } = await import("./deliver-digest");
           await deliverDigest.trigger(
             {
               digestId: result.digestId,

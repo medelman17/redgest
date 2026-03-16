@@ -1,4 +1,4 @@
-import type { QueryHandler } from "../types.js";
+import type { QueryHandler } from "../types";
 
 export const handleListSubreddits: QueryHandler<"ListSubreddits"> = async (
   _params,

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { PrismaClient } from "@redgest/db";
-import { findPreviousPostIds } from "../pipeline/dedup.js";
+import { findPreviousPostIds } from "../pipeline/dedup";
 
 function makeDb(mockFindMany: ReturnType<typeof vi.fn>) {
   const db = { digest: { findMany: mockFindMany } };

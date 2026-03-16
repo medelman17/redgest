@@ -1,4 +1,4 @@
-import { RedgestError } from "../errors.js";
+import { RedgestError } from "../errors";
 
 /**
  * Parse a human-friendly duration string into milliseconds.

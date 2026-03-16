@@ -14,12 +14,12 @@ vi.mock("ai", () => ({
   },
 }));
 
-vi.mock("../provider.js", () => ({
+vi.mock("../provider", () => ({
   getModel: vi.fn(() => ({ provider: "mock", modelId: "mock-model" })),
 }));
 
-import { generateTriageResult } from "../generate-triage.js";
-import type { TriagePostCandidate } from "../prompts/triage.js";
+import { generateTriageResult } from "../generate-triage";
+import type { TriagePostCandidate } from "../prompts/triage";
 
 const samplePost: TriagePostCandidate = {
   index: 0,

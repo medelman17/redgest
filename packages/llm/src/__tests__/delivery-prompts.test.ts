@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   buildDeliverySystemPrompt,
   buildDeliveryUserPrompt,
-} from "../prompts/delivery.js";
-import type { DeliveryDigestInput } from "../prompts/delivery.js";
+} from "../prompts/delivery";
+import type { DeliveryDigestInput } from "../prompts/delivery";
 
 describe("buildDeliverySystemPrompt", () => {
   it("produces email-specific instructions mentioning newsletter", () => {

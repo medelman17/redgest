@@ -1,15 +1,15 @@
 import type { LanguageModel } from "ai";
-import { TriageResultSchema } from "./schemas.js";
-import type { TriageResult } from "./schemas.js";
+import { TriageResultSchema } from "./schemas";
+import type { TriageResult } from "./schemas";
 import {
   buildTriageSystemPrompt,
   buildTriageUserPrompt,
-} from "./prompts/index.js";
-import type { TriagePostCandidate } from "./prompts/index.js";
-import { getModel } from "./provider.js";
-import { withCache } from "./cache.js";
-import { generateWithLogging } from "./middleware.js";
-import type { GenerateResult, LlmCallLog } from "./middleware.js";
+} from "./prompts/index";
+import type { TriagePostCandidate } from "./prompts/index";
+import { getModel } from "./provider";
+import { withCache } from "./cache";
+import { generateWithLogging } from "./middleware";
+import type { GenerateResult, LlmCallLog } from "./middleware";
 
 export async function generateTriageResult(
   posts: TriagePostCandidate[],

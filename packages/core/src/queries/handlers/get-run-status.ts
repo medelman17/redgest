@@ -1,9 +1,9 @@
-import type { QueryHandler } from "../types.js";
+import type { QueryHandler } from "../types";
 import type {
   RunStatusSteps,
   SubredditStepDetail,
   StructuredError,
-} from "../types.js";
+} from "../types";
 
 /** Event types emitted by the pipeline that carry step-level data. */
 const STEP_EVENT_TYPES = [

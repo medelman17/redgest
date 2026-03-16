@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
-import type { SubredditPipelineResult, AssembleStepResult } from "./types.js";
+import type { SubredditPipelineResult, AssembleStepResult } from "./types";
 
 export async function assembleStep(
   jobId: string,

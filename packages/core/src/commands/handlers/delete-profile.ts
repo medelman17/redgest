@@ -1,5 +1,5 @@
-import type { CommandHandler } from "../types.js";
-import { RedgestError } from "../../errors.js";
+import type { CommandHandler } from "../types";
+import { RedgestError } from "../../errors";
 
 export const handleDeleteProfile: CommandHandler<"DeleteProfile"> = async (
   params,

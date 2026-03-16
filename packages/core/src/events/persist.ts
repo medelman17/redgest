@@ -1,4 +1,4 @@
-import type { DomainEvent } from "./types.js";
+import type { DomainEvent } from "./types";
 
 /**
  * Minimal interface for the transaction client's event model.

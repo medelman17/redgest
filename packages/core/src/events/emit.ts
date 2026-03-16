@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@redgest/db";
-import type { EventBus } from "./bus.js";
-import type { DomainEvent, DomainEventType, DomainEventMap } from "./types.js";
-import { persistEvent, type EventCreateClient } from "./persist.js";
+import type { EventBus } from "./bus";
+import type { DomainEvent, DomainEventType, DomainEventMap } from "./types";
+import { persistEvent, type EventCreateClient } from "./persist";
 
 /**
  * Build, persist, and emit a domain event.

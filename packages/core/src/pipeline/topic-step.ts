@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
-import type { PostSummary } from "./types.js";
+import type { PostSummary } from "./types";
 
 /** ~120 common English stopwords — filtered before frequency ranking. */
 export const STOP_WORDS = new Set([

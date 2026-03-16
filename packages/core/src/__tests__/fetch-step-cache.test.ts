@@ -5,8 +5,8 @@ import type {
   FetchedContent,
   RedditPostData,
   RedditCommentData,
-} from "../pipeline/types.js";
-import { fetchStep } from "../pipeline/fetch-step.js";
+} from "../pipeline/types";
+import { fetchStep } from "../pipeline/fetch-step";
 
 // ─── Helpers ─────────────────────────────────────────────
 

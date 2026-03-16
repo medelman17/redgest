@@ -1,7 +1,7 @@
-import type { RedditApiClient, ConnectionTestResult } from "./client.js";
-import type { TokenBucket } from "./rate-limiter.js";
-import { fetchSubredditContent } from "./fetcher.js";
-import type { FetchOptions, FetchedContent } from "./fetcher.js";
+import type { RedditApiClient, ConnectionTestResult } from "./client";
+import type { TokenBucket } from "./rate-limiter";
+import { fetchSubredditContent } from "./fetcher";
+import type { FetchOptions, FetchedContent } from "./fetcher";
 
 export interface ConnectivityStatus extends ConnectionTestResult {
   rateLimiter: {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { configSchema } from "../schema.js";
-import { loadConfig, getConfig, resetConfig } from "../index.js";
+import { configSchema } from "../schema";
+import { loadConfig, getConfig, resetConfig } from "../index";
 
 const validEnv = {
   DATABASE_URL: "postgresql://user:pass@localhost:5432/redgest",

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import type { DomainEvent, DomainEventType } from "../events/types.js";
-import { InProcessEventBus } from "../events/transports/in-process.js";
+import type { DomainEvent, DomainEventType } from "../events/types";
+import { InProcessEventBus } from "../events/transports/in-process";
 
 describe("DomainEvent types", () => {
   it("derives correct type for DigestRequested", () => {

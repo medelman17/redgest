@@ -17,8 +17,8 @@ vi.mock("@ai-sdk/openai", () => ({
   },
 }));
 
-import { generateEmbedding } from "../generate-embedding.js";
-import type { LlmCallLog } from "../middleware.js";
+import { generateEmbedding } from "../generate-embedding";
+import type { LlmCallLog } from "../middleware";
 import * as openaiModule from "@ai-sdk/openai";
 
 const SAMPLE_EMBEDDING = Array.from({ length: 1536 }, (_, i) => i * 0.001);

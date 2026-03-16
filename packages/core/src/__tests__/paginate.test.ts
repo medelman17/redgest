@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { paginate } from "../queries/paginate.js";
+import { paginate } from "../queries/paginate";
 
 describe("paginate", () => {
   const getCursor = (item: { id: string }) => item.id;

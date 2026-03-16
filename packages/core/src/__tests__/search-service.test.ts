@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { PrismaClient } from "@redgest/db";
-import { createSearchService } from "../search/service.js";
+import { createSearchService } from "../search/service";
 
 function stub<T>(): T {
   const empty = {};

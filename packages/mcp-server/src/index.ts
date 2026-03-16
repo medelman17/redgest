@@ -1,6 +1,6 @@
-export { createToolServer, createToolHandlers } from "./tools.js";
-export { createApp } from "./http.js";
-export { bootstrap, type BootstrapResult } from "./bootstrap.js";
-export { envelope, envelopeError, type ToolResult } from "./envelope.js";
-export { bearerAuthMiddleware } from "./auth.js";
+export { createToolServer, createToolHandlers } from "./tools";
+export { createApp } from "./http";
+export { bootstrap, type BootstrapResult } from "./bootstrap";
+export { envelope, envelopeError, type ToolResult } from "./envelope";
+export { bearerAuthMiddleware } from "./auth";
 export { ErrorCode, type ErrorCodeType } from "@redgest/core";

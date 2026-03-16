@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@redgest/db";
 import type { SummarizationPost, SummarizationComment } from "@redgest/llm";
-import type { PostSummary } from "../pipeline/types.js";
+import type { PostSummary } from "../pipeline/types";
 
 vi.mock("@redgest/llm", () => ({
   generatePostSummary: vi.fn(),
 }));
 
 import { generatePostSummary } from "@redgest/llm";
-import { summarizeStep } from "../pipeline/summarize-step.js";
+import { summarizeStep } from "../pipeline/summarize-step";
 
 const mockGeneratePostSummary = vi.mocked(generatePostSummary);
 

@@ -7,18 +7,18 @@ vi.mock("@redgest/llm", () => ({
   generateTriageResult: vi.fn(),
 }));
 
-vi.mock("../pipeline/token-budget.js", async (importOriginal) => {
+vi.mock("../pipeline/token-budget", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../pipeline/token-budget.js")>();
+    await importOriginal<typeof import("../pipeline/token-budget")>();
   return {
     ...actual,
     applyTriageBudget: vi.fn(actual.applyTriageBudget),
   };
 });
 
-import { triageStep } from "../pipeline/triage-step.js";
+import { triageStep } from "../pipeline/triage-step";
 import { generateTriageResult } from "@redgest/llm";
-import { applyTriageBudget } from "../pipeline/token-budget.js";
+import { applyTriageBudget } from "../pipeline/token-budget";
 
 const mockGenerateTriage = vi.mocked(generateTriageResult);
 const mockApplyBudget = vi.mocked(applyTriageBudget);

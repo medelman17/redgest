@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FetchOptions, FetchedContent } from "../fetcher.js";
-import type { RedditApiClient } from "../client.js";
-import type { TokenBucket } from "../rate-limiter.js";
+import type { FetchOptions, FetchedContent } from "../fetcher";
+import type { RedditApiClient } from "../client";
+import type { TokenBucket } from "../rate-limiter";
 
-vi.mock("../fetcher.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../fetcher.js")>();
+vi.mock("../fetcher", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../fetcher")>();
   return {
     ...actual,
     fetchSubredditContent: vi.fn(),
   };
 });
 
-import { RedditContentSource } from "../content-source.js";
-import { fetchSubredditContent } from "../fetcher.js";
+import { RedditContentSource } from "../content-source";
+import { fetchSubredditContent } from "../fetcher";
 
 const mockFetch = vi.mocked(fetchSubredditContent);
 

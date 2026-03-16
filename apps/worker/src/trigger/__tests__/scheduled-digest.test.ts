@@ -31,15 +31,15 @@ vi.mock("@redgest/db", () => ({
   },
 }));
 
-vi.mock("../generate-digest.js", () => ({
+vi.mock("../generate-digest", () => ({
   generateDigest: { trigger: vi.fn().mockResolvedValue({ id: "run-1" }) },
 }));
 
 // ── Imports after mocks ───────────────────────────────────────────────
 
-import { scheduledDigest } from "../scheduled-digest.js";
+import { scheduledDigest } from "../scheduled-digest";
 import { prisma } from "@redgest/db";
-import { generateDigest } from "../generate-digest.js";
+import { generateDigest } from "../generate-digest";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 

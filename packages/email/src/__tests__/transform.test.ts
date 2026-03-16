@@ -3,8 +3,8 @@ import {
   buildDeliveryData,
   buildFormattedDigest,
   type DigestWithRelations,
-} from "../transform.js";
-import type { DigestDeliveryData } from "../types.js";
+} from "../transform";
+import type { DigestDeliveryData } from "../types";
 
 function makeDigestWithRelations(
   overrides?: Partial<DigestWithRelations>,

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { StreamableHTTPTransport } from "@hono/mcp";
-import { bootstrap, type BootstrapResult } from "./bootstrap.js";
-import { createToolServer } from "./tools.js";
-import { bearerAuthMiddleware } from "./auth.js";
+import { bootstrap, type BootstrapResult } from "./bootstrap";
+import { createToolServer } from "./tools";
+import { bearerAuthMiddleware } from "./auth";
 
 /**
  * Create the Hono app with MCP server mounted.

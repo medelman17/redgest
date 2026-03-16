@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { bootstrap } from "./bootstrap.js";
-import { createToolServer } from "./tools.js";
+import { bootstrap } from "./bootstrap";
+import { createToolServer } from "./tools";
 
 async function main() {
   const deps = await bootstrap();

@@ -1,7 +1,7 @@
-import type { QueryHandler } from "../types.js";
-import { RedgestError } from "../../errors.js";
-import { parseDuration } from "../../utils/duration.js";
-import type { SearchOptions } from "../../search/types.js";
+import type { QueryHandler } from "../types";
+import { RedgestError } from "../../errors";
+import { parseDuration } from "../../utils/duration";
+import type { SearchOptions } from "../../search/types";
 
 export const handleAskHistory: QueryHandler<"AskHistory"> = async (
   params,

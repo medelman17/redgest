@@ -1,21 +1,21 @@
 import { describe, it, expect, vi } from "vitest";
-import { InProcessEventBus } from "../events/transports/in-process.js";
-import type { HandlerContext } from "../context.js";
-import { handleGetDigest } from "../queries/handlers/get-digest.js";
-import { handleGetDigestByJobId } from "../queries/handlers/get-digest-by-job-id.js";
-import { handleListDigests } from "../queries/handlers/list-digests.js";
-import { handleSearchDigests } from "../queries/handlers/search-digests.js";
-import { handleGetPost } from "../queries/handlers/get-post.js";
-import { handleSearchPosts } from "../queries/handlers/search-posts.js";
-import { handleGetRunStatus } from "../queries/handlers/get-run-status.js";
-import { handleListRuns } from "../queries/handlers/list-runs.js";
-import { handleListSubreddits } from "../queries/handlers/list-subreddits.js";
-import { handleGetConfig } from "../queries/handlers/get-config.js";
-import { handleGetSubredditStats } from "../queries/handlers/get-subreddit-stats.js";
-import { handleCompareDigests } from "../queries/handlers/compare-digests.js";
-import { handleFindSimilar } from "../queries/handlers/find-similar.js";
-import { handleAskHistory } from "../queries/handlers/ask-history.js";
-import { queryHandlers } from "../queries/handlers/index.js";
+import { InProcessEventBus } from "../events/transports/in-process";
+import type { HandlerContext } from "../context";
+import { handleGetDigest } from "../queries/handlers/get-digest";
+import { handleGetDigestByJobId } from "../queries/handlers/get-digest-by-job-id";
+import { handleListDigests } from "../queries/handlers/list-digests";
+import { handleSearchDigests } from "../queries/handlers/search-digests";
+import { handleGetPost } from "../queries/handlers/get-post";
+import { handleSearchPosts } from "../queries/handlers/search-posts";
+import { handleGetRunStatus } from "../queries/handlers/get-run-status";
+import { handleListRuns } from "../queries/handlers/list-runs";
+import { handleListSubreddits } from "../queries/handlers/list-subreddits";
+import { handleGetConfig } from "../queries/handlers/get-config";
+import { handleGetSubredditStats } from "../queries/handlers/get-subreddit-stats";
+import { handleCompareDigests } from "../queries/handlers/compare-digests";
+import { handleFindSimilar } from "../queries/handlers/find-similar";
+import { handleAskHistory } from "../queries/handlers/ask-history";
+import { queryHandlers } from "../queries/handlers/index";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
 function stub<T>(): T {
@@ -626,7 +626,7 @@ describe("handleGetLlmMetrics", () => {
     });
 
     const { handleGetLlmMetrics } = await import(
-      "../queries/handlers/get-llm-metrics.js"
+      "../queries/handlers/get-llm-metrics"
     );
     const result = await handleGetLlmMetrics({ jobId: "j-1" }, ctx);
 
@@ -697,7 +697,7 @@ describe("handleGetLlmMetrics", () => {
     });
 
     const { handleGetLlmMetrics } = await import(
-      "../queries/handlers/get-llm-metrics.js"
+      "../queries/handlers/get-llm-metrics"
     );
     const result = await handleGetLlmMetrics({ limit: 3 }, ctx);
 
@@ -727,7 +727,7 @@ describe("handleGetLlmMetrics", () => {
     });
 
     const { handleGetLlmMetrics } = await import(
-      "../queries/handlers/get-llm-metrics.js"
+      "../queries/handlers/get-llm-metrics"
     );
     const result = await handleGetLlmMetrics({}, ctx);
 
@@ -1051,7 +1051,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
     const result = await handleGetDeliveryStatus({ digestId: "d-1" }, ctx);
 
@@ -1106,7 +1106,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
     const result = await handleGetDeliveryStatus({}, ctx);
 
@@ -1126,7 +1126,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
 
     await expect(
@@ -1143,7 +1143,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
     await handleGetDeliveryStatus({ limit: 50 }, ctx);
 
@@ -1165,7 +1165,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
     const result = await handleGetDeliveryStatus({ digestId: "d-1" }, ctx);
 
@@ -1182,7 +1182,7 @@ describe("handleGetDeliveryStatus", () => {
     });
 
     const { handleGetDeliveryStatus } = await import(
-      "../queries/handlers/get-delivery-status.js"
+      "../queries/handlers/get-delivery-status"
     );
     await handleGetDeliveryStatus({}, ctx);
 

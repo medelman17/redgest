@@ -5,8 +5,8 @@ import type { DeliveryChannel } from "@redgest/db";
 import { buildDeliveryData, buildFormattedDigest, renderDigestHtml } from "@redgest/email";
 import { generateDeliveryProse } from "@redgest/llm";
 import { formatDigestBlocks, type SlackBlock } from "@redgest/slack";
-import type { BootstrapResult } from "./bootstrap.js";
-import { envelope, envelopeError, type ToolResult } from "./envelope.js";
+import type { BootstrapResult } from "./bootstrap";
+import { envelope, envelopeError, type ToolResult } from "./envelope";
 
 export type ToolHandler = (args: Record<string, unknown>) => Promise<ToolResult>;
 

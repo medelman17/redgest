@@ -1,4 +1,4 @@
-import type { DigestDeliveryData, FormattedDigest } from "./types.js";
+import type { DigestDeliveryData, FormattedDigest } from "./types";
 
 /**
  * Input type for buildDeliveryData.

@@ -1,10 +1,10 @@
-import type { RedditApiClient } from "./client.js";
-import type { TokenBucket } from "./rate-limiter.js";
+import type { RedditApiClient } from "./client";
+import type { TokenBucket } from "./rate-limiter";
 import type {
   RedditListing,
   RedditPostData,
   RedditCommentData,
-} from "./types.js";
+} from "./types";
 
 export interface FetchOptions {
   sorts: Array<"hot" | "top" | "rising">;

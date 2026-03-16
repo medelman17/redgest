@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@redgest/db";
-import type { FetchStepResult } from "./types.js";
+import type { FetchStepResult } from "./types";
 
 /**
  * Select posts from the database (already crawled) instead of fetching

@@ -1,4 +1,4 @@
-import type { DomainEventMap, DomainEventType } from "../events/types.js";
+import type { DomainEventMap, DomainEventType } from "../events/types";
 
 /**
  * CommandMap — all commands the system accepts.
@@ -110,7 +110,7 @@ export type Command = {
  */
 export type CommandHandler<K extends CommandType> = (
   params: CommandMap[K],
-  ctx: import("../context.js").HandlerContext,
+  ctx: import("../context").HandlerContext,
 ) => Promise<{
   data: CommandResultMap[K];
   event: CommandEventMap[K] extends never

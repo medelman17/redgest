@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@redgest/db";
 import { sanitizeContent } from "@redgest/reddit";
-import type { ContentSource, FetchStepResult } from "./types.js";
+import type { ContentSource, FetchStepResult } from "./types";
 
 const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 

@@ -1,5 +1,5 @@
-import { RedgestError } from "../../errors.js";
-import type { CommandHandler } from "../types.js";
+import { RedgestError } from "../../errors";
+import type { CommandHandler } from "../types";
 
 export const handleGenerateDigest: CommandHandler<"GenerateDigest"> = async (
   params,

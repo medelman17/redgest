@@ -1,20 +1,20 @@
 import type { PrismaClient } from "@redgest/db";
-import type { EventBus } from "../events/bus.js";
-import { emitDomainEvent } from "../events/emit.js";
+import type { EventBus } from "../events/bus";
+import { emitDomainEvent } from "../events/emit";
 import { getModel } from "@redgest/llm";
 import type { TriagePostCandidate, SummarizationComment } from "@redgest/llm";
-import { findPreviousPostIds } from "./dedup.js";
-import { fetchStep } from "./fetch-step.js";
-import { selectPostsStep } from "./select-posts-step.js";
-import { triageStep } from "./triage-step.js";
-import { summarizeStep } from "./summarize-step.js";
-import { assembleStep } from "./assemble-step.js";
-import { topicStep } from "./topic-step.js";
+import { findPreviousPostIds } from "./dedup";
+import { fetchStep } from "./fetch-step";
+import { selectPostsStep } from "./select-posts-step";
+import { triageStep } from "./triage-step";
+import { summarizeStep } from "./summarize-step";
+import { assembleStep } from "./assemble-step";
+import { topicStep } from "./topic-step";
 import type {
   PipelineDeps,
   PipelineResult,
   SubredditPipelineResult,
-} from "./types.js";
+} from "./types";
 
 async function checkCancellation(
   jobId: string,
@@ -126,8 +126,8 @@ interface PooledPost {
   subreddit: string;
   postId: string;
   redditId: string;
-  post: import("./types.js").RedditPostData;
-  comments: import("./types.js").RedditCommentData[];
+  post: import("./types").RedditPostData;
+  comments: import("./types").RedditCommentData[];
 }
 
 /** Inner pipeline body — extracted so the outer function can catch unhandled exceptions. */

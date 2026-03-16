@@ -1,7 +1,7 @@
-import type { EventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus";
 import type { RedgestConfig } from "@redgest/config";
 import type { PrismaClient } from "@redgest/db";
-import type { SearchService } from "../search/types.js";
+import type { SearchService } from "../search/types";
 
 // Re-declared locally to avoid circular dependency (core <-> reddit).
 // Structurally identical to the types in @redgest/reddit and @redgest/llm;

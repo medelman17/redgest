@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@redgest/db";
-import type { EventBus } from "../events/bus.js";
+import type { EventBus } from "../events/bus";
 import type { RedgestConfig } from "@redgest/config";
-import { runDigestPipeline } from "../pipeline/orchestrator.js";
+import { runDigestPipeline } from "../pipeline/orchestrator";
 import type {
   PipelineDeps,
   ContentSource,
@@ -12,27 +12,27 @@ import type {
   SummarizeStepResult,
   AssembleStepResult,
   ModelConfig,
-} from "../pipeline/types.js";
+} from "../pipeline/types";
 
 // --- Mocks ---
-vi.mock("../pipeline/fetch-step.js", () => ({ fetchStep: vi.fn() }));
-vi.mock("../pipeline/select-posts-step.js", () => ({ selectPostsStep: vi.fn() }));
-vi.mock("../pipeline/triage-step.js", () => ({ triageStep: vi.fn() }));
-vi.mock("../pipeline/summarize-step.js", () => ({ summarizeStep: vi.fn() }));
-vi.mock("../pipeline/assemble-step.js", () => ({ assembleStep: vi.fn() }));
-vi.mock("../pipeline/dedup.js", () => ({ findPreviousPostIds: vi.fn() }));
-vi.mock("../pipeline/topic-step.js", () => ({ topicStep: vi.fn().mockResolvedValue(undefined) }));
-vi.mock("../events/persist.js", () => ({ persistEvent: vi.fn() }));
+vi.mock("../pipeline/fetch-step", () => ({ fetchStep: vi.fn() }));
+vi.mock("../pipeline/select-posts-step", () => ({ selectPostsStep: vi.fn() }));
+vi.mock("../pipeline/triage-step", () => ({ triageStep: vi.fn() }));
+vi.mock("../pipeline/summarize-step", () => ({ summarizeStep: vi.fn() }));
+vi.mock("../pipeline/assemble-step", () => ({ assembleStep: vi.fn() }));
+vi.mock("../pipeline/dedup", () => ({ findPreviousPostIds: vi.fn() }));
+vi.mock("../pipeline/topic-step", () => ({ topicStep: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("../events/persist", () => ({ persistEvent: vi.fn() }));
 vi.mock("@redgest/llm", () => ({ getModel: vi.fn() }));
 
 // Import mocked functions for assertions
-import { fetchStep } from "../pipeline/fetch-step.js";
-import { selectPostsStep } from "../pipeline/select-posts-step.js";
-import { triageStep } from "../pipeline/triage-step.js";
-import { summarizeStep } from "../pipeline/summarize-step.js";
-import { assembleStep } from "../pipeline/assemble-step.js";
-import { findPreviousPostIds } from "../pipeline/dedup.js";
-import { persistEvent } from "../events/persist.js";
+import { fetchStep } from "../pipeline/fetch-step";
+import { selectPostsStep } from "../pipeline/select-posts-step";
+import { triageStep } from "../pipeline/triage-step";
+import { summarizeStep } from "../pipeline/summarize-step";
+import { assembleStep } from "../pipeline/assemble-step";
+import { findPreviousPostIds } from "../pipeline/dedup";
+import { persistEvent } from "../events/persist";
 import { getModel } from "@redgest/llm";
 
 const mockFetchStep = vi.mocked(fetchStep);

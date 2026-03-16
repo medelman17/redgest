@@ -1,18 +1,18 @@
 import type { LanguageModel } from "ai";
-import { PostSummarySchema } from "./schemas.js";
-import type { PostSummary } from "./schemas.js";
+import { PostSummarySchema } from "./schemas";
+import type { PostSummary } from "./schemas";
 import {
   buildSummarizationSystemPrompt,
   buildSummarizationUserPrompt,
-} from "./prompts/index.js";
+} from "./prompts/index";
 import type {
   SummarizationPost,
   SummarizationComment,
-} from "./prompts/index.js";
-import { getModel } from "./provider.js";
-import { withCache } from "./cache.js";
-import { generateWithLogging } from "./middleware.js";
-import type { GenerateResult, LlmCallLog } from "./middleware.js";
+} from "./prompts/index";
+import { getModel } from "./provider";
+import { withCache } from "./cache";
+import { generateWithLogging } from "./middleware";
+import type { GenerateResult, LlmCallLog } from "./middleware";
 
 export async function generatePostSummary(
   post: SummarizationPost,

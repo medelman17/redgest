@@ -1,15 +1,15 @@
 import type { LanguageModel } from "ai";
-import { DeliveryProseSchema } from "./schemas.js";
-import type { DeliveryProse } from "./schemas.js";
+import { DeliveryProseSchema } from "./schemas";
+import type { DeliveryProse } from "./schemas";
 import {
   buildDeliverySystemPrompt,
   buildDeliveryUserPrompt,
-} from "./prompts/index.js";
-import type { DeliveryDigestInput, DeliveryChannel } from "./prompts/index.js";
-import { getModel } from "./provider.js";
-import { withCache } from "./cache.js";
-import { generateWithLogging } from "./middleware.js";
-import type { GenerateResult, LlmCallLog } from "./middleware.js";
+} from "./prompts/index";
+import type { DeliveryDigestInput, DeliveryChannel } from "./prompts/index";
+import { getModel } from "./provider";
+import { withCache } from "./cache";
+import { generateWithLogging } from "./middleware";
+import type { GenerateResult, LlmCallLog } from "./middleware";
 
 export async function generateDeliveryProse(
   input: DeliveryDigestInput,

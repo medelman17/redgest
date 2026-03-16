@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { persistEvent } from "../events/persist.js";
-import type { DomainEvent } from "../events/types.js";
+import { persistEvent } from "../events/persist";
+import type { DomainEvent } from "../events/types";
 
 /** Safely extract the first call's first arg, typed with a `data` field. */
 function firstCallArg(mock: ReturnType<typeof vi.fn>): {

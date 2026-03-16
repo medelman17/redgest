@@ -14,7 +14,7 @@ vi.mock("@ai-sdk/openai", () => ({
   })),
 }));
 
-import { getModel } from "../provider.js";
+import { getModel } from "../provider";
 
 describe("getModel", () => {
   it("returns anthropic model for triage task", () => {

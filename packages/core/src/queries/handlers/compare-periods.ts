@@ -1,5 +1,5 @@
-import type { QueryHandler, PeriodSummary } from "../types.js";
-import { parseDuration } from "../../utils/duration.js";
+import type { QueryHandler, PeriodSummary } from "../types";
+import { parseDuration } from "../../utils/duration";
 
 export const handleComparePeriods: QueryHandler<"ComparePeriods"> = async (
   params,

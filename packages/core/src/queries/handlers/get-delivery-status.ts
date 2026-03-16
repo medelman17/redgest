@@ -1,9 +1,9 @@
-import { RedgestError } from "../../errors.js";
+import { RedgestError } from "../../errors";
 import type {
   QueryHandler,
   DeliveryStatusChannel,
   DeliveryStatusDigest,
-} from "../types.js";
+} from "../types";
 
 interface DigestRow {
   id: string;

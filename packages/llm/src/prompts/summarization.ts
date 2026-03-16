@@ -1,4 +1,4 @@
-import { sanitizeForPrompt } from "./sanitize.js";
+import { sanitizeForPrompt } from "./sanitize";
 
 export interface SummarizationPost {
   title: string;

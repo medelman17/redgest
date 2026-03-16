@@ -1,3 +1,3 @@
-export { createSearchService } from "./service.js";
-export type { SearchService, SearchResult, SearchOptions } from "./types.js";
-export { RawSearchRowSchema, RawHighlightRowSchema } from "./schemas.js";
+export { createSearchService } from "./service";
+export type { SearchService, SearchResult, SearchOptions } from "./types";
+export { RawSearchRowSchema, RawHighlightRowSchema } from "./schemas";

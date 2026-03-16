@@ -8,7 +8,7 @@ const {
   mockTasksTrigger: vi.fn(),
 }));
 
-vi.mock("../pipeline/orchestrator.js", () => ({
+vi.mock("../pipeline/orchestrator", () => ({
   runDigestPipeline: mockRunDigestPipeline,
 }));
 
@@ -16,9 +16,9 @@ vi.mock("@trigger.dev/sdk/v3", () => ({
   tasks: { trigger: mockTasksTrigger },
 }));
 
-import { wireDigestDispatch } from "../digest-dispatch.js";
-import type { EventBus } from "../events/bus.js";
-import type { PipelineDeps } from "../pipeline/types.js";
+import { wireDigestDispatch } from "../digest-dispatch";
+import type { EventBus } from "../events/bus";
+import type { PipelineDeps } from "../pipeline/types";
 
 function createMockDeps(triggerSecretKey?: string) {
   const mockDb = {

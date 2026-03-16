@@ -1,4 +1,4 @@
-import type { CommandHandler } from "../types.js";
+import type { CommandHandler } from "../types";
 
 export const handleUpdateConfig: CommandHandler<"UpdateConfig"> = async (
   params,

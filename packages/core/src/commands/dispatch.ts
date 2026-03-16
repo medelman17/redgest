@@ -3,11 +3,11 @@ import type {
   CommandMap,
   CommandResultMap,
   CommandHandler,
-} from "./types.js";
-import type { HandlerContext } from "../context.js";
-import type { DomainEvent, DomainEventType } from "../events/types.js";
-import type { EventCreateClient } from "../events/persist.js";
-import { persistEvent } from "../events/persist.js";
+} from "./types";
+import type { HandlerContext } from "../context";
+import type { DomainEvent, DomainEventType } from "../events/types";
+import type { EventCreateClient } from "../events/persist";
+import { persistEvent } from "../events/persist";
 
 /**
  * Transaction callback argument — what execute() receives inside $transaction.

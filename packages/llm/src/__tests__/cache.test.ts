@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { hashKey, withCache, disconnectCache, _resetCacheState } from "../cache.js";
+import { hashKey, withCache, disconnectCache, _resetCacheState } from "../cache";
 
 describe("hashKey", () => {
   it("produces consistent keys for the same input", () => {

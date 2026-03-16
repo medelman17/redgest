@@ -15,8 +15,8 @@ vi.mock("ai", () => ({
   },
 }));
 
-import { generateWithLogging } from "../middleware.js";
-import type { LlmCallLog } from "../middleware.js";
+import { generateWithLogging } from "../middleware";
+import type { LlmCallLog } from "../middleware";
 
 const TestSchema = z.object({
   answer: z.string(),

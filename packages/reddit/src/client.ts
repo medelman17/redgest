@@ -1,5 +1,5 @@
 import { RedgestError } from "@redgest/core";
-import type { RedditAuthToken } from "./types.js";
+import type { RedditAuthToken } from "./types";
 
 const TOKEN_URL = "https://www.reddit.com/api/v1/access_token";
 const API_BASE = "https://oauth.reddit.com";

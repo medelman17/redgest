@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ErrorCode } from "@redgest/core";
-import { envelope, envelopeError } from "../envelope.js";
-import type { ToolResult } from "../envelope.js";
+import { envelope, envelopeError } from "../envelope";
+import type { ToolResult } from "../envelope";
 
 describe("envelope", () => {
   it("wraps data in a success response", () => {

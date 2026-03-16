@@ -71,7 +71,7 @@ vi.mock("@redgest/slack", () => ({
   sendDigestSlack: mockSendDigestSlack,
 }));
 
-import { deliverDigest as _deliverDigest } from "../deliver-digest.js";
+import { deliverDigest as _deliverDigest } from "../deliver-digest";
 
 // The task() mock strips the SDK wrapper and returns the config object directly,
 // so at runtime deliverDigest has { id, retry, run } — cast to expose them.

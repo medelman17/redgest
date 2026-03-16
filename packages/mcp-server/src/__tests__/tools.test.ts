@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { RedgestError } from "@redgest/core";
-import type { BootstrapResult } from "../bootstrap.js";
-import type { ToolResult } from "../envelope.js";
-import { createToolHandlers, createToolServer, type ToolHandler } from "../tools.js";
+import type { BootstrapResult } from "../bootstrap";
+import type { ToolResult } from "../envelope";
+import { createToolHandlers, createToolServer, type ToolHandler } from "../tools";
 
 // Mock email rendering (preview_digest uses renderDigestHtml + buildFormattedDigest)
 vi.mock("@redgest/email", () => ({

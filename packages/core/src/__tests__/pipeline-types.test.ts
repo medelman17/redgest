@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import type { ContentSource, PipelineResult } from "../pipeline/types.js";
+import type { ContentSource, PipelineResult } from "../pipeline/types";
 
 describe("pipeline types", () => {
   it("ContentSource interface is implementable", async () => {

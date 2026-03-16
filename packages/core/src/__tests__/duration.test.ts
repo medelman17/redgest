@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseDuration } from "../utils/duration.js";
-import { RedgestError } from "../errors.js";
+import { parseDuration } from "../utils/duration";
+import { RedgestError } from "../errors";
 
 describe("parseDuration", () => {
   it("parses minutes correctly", () => {

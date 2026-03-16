@@ -1,6 +1,6 @@
-import type { DomainEvent, DomainEventType } from "../types.js";
-import type { EventBus } from "../bus.js";
-import { serializeEvent, deserializeEvent } from "../serialization.js";
+import type { DomainEvent, DomainEventType } from "../types";
+import type { EventBus } from "../bus";
+import { serializeEvent, deserializeEvent } from "../serialization";
 
 const CHANNEL_PREFIX = "redgest:";
 

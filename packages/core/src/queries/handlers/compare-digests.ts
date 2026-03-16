@@ -1,5 +1,5 @@
-import { RedgestError } from "../../errors.js";
-import type { QueryHandler, ComparisonPost, DigestComparisonResult } from "../types.js";
+import { RedgestError } from "../../errors";
+import type { QueryHandler, ComparisonPost, DigestComparisonResult } from "../types";
 
 interface DigestPostRow {
   rank: number;

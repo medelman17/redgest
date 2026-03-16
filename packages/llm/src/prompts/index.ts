@@ -1,7 +1,7 @@
-export { buildTriageSystemPrompt, buildTriageUserPrompt } from "./triage.js";
-export type { TriagePostCandidate } from "./triage.js";
-export { buildSummarizationSystemPrompt, buildSummarizationUserPrompt } from "./summarization.js";
-export type { SummarizationPost, SummarizationComment } from "./summarization.js";
-export { sanitizeForPrompt } from "./sanitize.js";
-export { buildDeliverySystemPrompt, buildDeliveryUserPrompt } from "./delivery.js";
-export type { DeliveryDigestInput, DeliveryChannel } from "./delivery.js";
+export { buildTriageSystemPrompt, buildTriageUserPrompt } from "./triage";
+export type { TriagePostCandidate } from "./triage";
+export { buildSummarizationSystemPrompt, buildSummarizationUserPrompt } from "./summarization";
+export type { SummarizationPost, SummarizationComment } from "./summarization";
+export { sanitizeForPrompt } from "./sanitize";
+export { buildDeliverySystemPrompt, buildDeliveryUserPrompt } from "./delivery";
+export type { DeliveryDigestInput, DeliveryChannel } from "./delivery";

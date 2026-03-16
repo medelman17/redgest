@@ -11,18 +11,18 @@ export type {
   SummarizeStepResult,
   AssembleStepResult,
   ModelConfig as PipelineModelConfig,
-} from "./types.js";
+} from "./types";
 
 // Orchestrator
-export { runDigestPipeline } from "./orchestrator.js";
+export { runDigestPipeline } from "./orchestrator";
 
 // Step functions
-export { fetchStep } from "./fetch-step.js";
-export { selectPostsStep } from "./select-posts-step.js";
-export { triageStep } from "./triage-step.js";
-export { summarizeStep } from "./summarize-step.js";
-export { assembleStep, renderDigestMarkdown } from "./assemble-step.js";
-export { topicStep, extractTopicNames, STOP_WORDS } from "./topic-step.js";
+export { fetchStep } from "./fetch-step";
+export { selectPostsStep } from "./select-posts-step";
+export { triageStep } from "./triage-step";
+export { summarizeStep } from "./summarize-step";
+export { assembleStep, renderDigestMarkdown } from "./assemble-step";
+export { topicStep, extractTopicNames, STOP_WORDS } from "./topic-step";
 
 // Utilities
 export {
@@ -32,5 +32,5 @@ export {
   applySummarizationBudget,
   TRIAGE_TOKEN_BUDGET,
   SUMMARIZATION_TOKEN_BUDGET,
-} from "./token-budget.js";
-export { findPreviousPostIds } from "./dedup.js";
+} from "./token-budget";
+export { findPreviousPostIds } from "./dedup";

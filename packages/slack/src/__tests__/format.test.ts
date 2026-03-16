@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { FormattedDigest } from "@redgest/email";
-import { formatDigestBlocks } from "../format.js";
+import { formatDigestBlocks } from "../format";
 
 function makeDigest(
   overrides?: Partial<FormattedDigest>,

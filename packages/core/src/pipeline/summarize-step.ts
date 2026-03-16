@@ -2,8 +2,8 @@ import type { LanguageModel } from "ai";
 import type { PrismaClient } from "@redgest/db";
 import type { SummarizationPost, SummarizationComment } from "@redgest/llm";
 import { generatePostSummary } from "@redgest/llm";
-import { applySummarizationBudget } from "./token-budget.js";
-import type { SummarizeStepResult } from "./types.js";
+import { applySummarizationBudget } from "./token-budget";
+import type { SummarizeStepResult } from "./types";
 
 type SummaryFn = typeof generatePostSummary;
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createSearchService } from "../search/service.js";
+import { createSearchService } from "../search/service";
 
 function stub<T>(): T {
   const empty = {};

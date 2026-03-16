@@ -1,4 +1,4 @@
-import type { QueryHandler } from "../types.js";
+import type { QueryHandler } from "../types";
 
 export const handleGetConfig: QueryHandler<"GetConfig"> = async (
   _params,

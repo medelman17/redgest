@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@redgest/db";
 import { sanitizeContent } from "@redgest/reddit";
-import type { EventBus } from "./events/bus.js";
-import { emitDomainEvent } from "./events/emit.js";
-import type { ContentSource } from "./pipeline/types.js";
+import type { EventBus } from "./events/bus";
+import { emitDomainEvent } from "./events/emit";
+import type { ContentSource } from "./pipeline/types";
 
 export interface CrawlResult {
   subredditId: string;

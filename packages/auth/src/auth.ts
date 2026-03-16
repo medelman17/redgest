@@ -7,7 +7,7 @@ import {
   sendVerificationEmail,
   sendResetPasswordEmail,
   sendInvitationEmail,
-} from "./emails.js";
+} from "./emails";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 

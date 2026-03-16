@@ -1,5 +1,5 @@
-import { DEFAULT_PAGE_SIZE, type QueryHandler } from "../types.js";
-import { paginate } from "../paginate.js";
+import { DEFAULT_PAGE_SIZE, type QueryHandler } from "../types";
+import { paginate } from "../paginate";
 
 export const handleListDigests: QueryHandler<"ListDigests"> = async (
   params,

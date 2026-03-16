@@ -1,7 +1,7 @@
-import { RedditClient, type RedditApiClient } from "./client.js";
-import { PublicRedditClient } from "./public-client.js";
-import { TokenBucket } from "./rate-limiter.js";
-import { RedditContentSource } from "./content-source.js";
+import { RedditClient, type RedditApiClient } from "./client";
+import { PublicRedditClient } from "./public-client";
+import { TokenBucket } from "./rate-limiter";
+import { RedditContentSource } from "./content-source";
 
 export interface CreateContentSourceOptions {
   clientId?: string;

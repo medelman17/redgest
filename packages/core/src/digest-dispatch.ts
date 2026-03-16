@@ -1,6 +1,6 @@
-import type { EventBus } from "./events/bus.js";
-import type { PipelineDeps } from "./pipeline/types.js";
-import { runDigestPipeline } from "./pipeline/orchestrator.js";
+import type { EventBus } from "./events/bus";
+import type { PipelineDeps } from "./pipeline/types";
+import { runDigestPipeline } from "./pipeline/orchestrator";
 
 export interface DigestDispatchDeps {
   eventBus: EventBus;

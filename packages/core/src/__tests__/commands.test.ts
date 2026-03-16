@@ -4,7 +4,7 @@ import type {
   CommandType,
   CommandMap,
   CommandResultMap,
-} from "../commands/types.js";
+} from "../commands/types";
 
 describe("Command types", () => {
   it("CommandType includes all 5 command types", () => {

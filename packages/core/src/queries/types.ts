@@ -1,4 +1,4 @@
-import type { HandlerContext } from "../context.js";
+import type { HandlerContext } from "../context";
 import type {
   DigestView,
   PostView,
@@ -7,7 +7,7 @@ import type {
   ProfileView,
   Config,
 } from "@redgest/db";
-import type { SearchResult } from "../search/index.js";
+import type { SearchResult } from "../search/index";
 
 /** Default page size for paginated queries. */
 export const DEFAULT_PAGE_SIZE = 10;

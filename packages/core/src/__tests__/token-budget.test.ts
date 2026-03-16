@@ -6,7 +6,7 @@ import {
   applySummarizationBudget,
   TRIAGE_TOKEN_BUDGET,
   SUMMARIZATION_TOKEN_BUDGET,
-} from "../pipeline/token-budget.js";
+} from "../pipeline/token-budget";
 import type {
   TriagePostCandidate,
   SummarizationComment,

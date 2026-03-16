@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@redgest/db";
-import { assembleStep, renderDigestMarkdown } from "../pipeline/assemble-step.js";
-import type { SubredditPipelineResult, PostSummary } from "../pipeline/types.js";
+import { assembleStep, renderDigestMarkdown } from "../pipeline/assemble-step";
+import type { SubredditPipelineResult, PostSummary } from "../pipeline/types";
 
 function makeSummary(overrides: Partial<PostSummary> = {}): PostSummary {
   return {

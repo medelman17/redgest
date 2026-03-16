@@ -19,7 +19,7 @@ import {
   type SearchService,
 } from "@redgest/core";
 import { createContentSource } from "@redgest/reddit";
-import { getOrganizationId } from "./auth-utils.js";
+import { getOrganizationId } from "./auth-utils";
 
 // --- Bootstrap singleton (globalThis guard for HMR) ---
 // Caches only infra that is org-independent: execute/query factories, db, eventBus, config.

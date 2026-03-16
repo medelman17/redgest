@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { buildTriageSystemPrompt, buildTriageUserPrompt } from "../prompts/triage.js";
+import { buildTriageSystemPrompt, buildTriageUserPrompt } from "../prompts/triage";
 import {
   buildSummarizationSystemPrompt,
   buildSummarizationUserPrompt,
-} from "../prompts/summarization.js";
-import { sanitizeForPrompt } from "../prompts/sanitize.js";
+} from "../prompts/summarization";
+import { sanitizeForPrompt } from "../prompts/sanitize";
 
 describe("sanitizeForPrompt", () => {
   it("escapes XML-like tags that match reserved boundaries", () => {

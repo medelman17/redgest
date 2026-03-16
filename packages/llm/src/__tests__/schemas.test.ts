@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TriageResultSchema, PostSummarySchema, DeliveryProseSchema } from "../schemas.js";
+import { TriageResultSchema, PostSummarySchema, DeliveryProseSchema } from "../schemas";
 
 describe("TriageResultSchema", () => {
   it("validates correct triage result", () => {

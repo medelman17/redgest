@@ -1,6 +1,6 @@
-import type { QueryHandler } from "../types.js";
-import { RedgestError } from "../../errors.js";
-import type { SearchOptions } from "../../search/types.js";
+import type { QueryHandler } from "../types";
+import { RedgestError } from "../../errors";
+import type { SearchOptions } from "../../search/types";
 
 export const handleFindSimilar: QueryHandler<"FindSimilar"> = async (
   params,

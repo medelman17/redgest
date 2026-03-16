@@ -1,6 +1,6 @@
 import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
-import type { LlmCallLog, GenerateResult } from "./middleware.js";
+import type { LlmCallLog, GenerateResult } from "./middleware";
 
 const DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small";
 

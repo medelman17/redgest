@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { RedgestError, ErrorCode } from "../errors.js";
+import { RedgestError, ErrorCode } from "../errors";
 
 describe("ErrorCode", () => {
   it("contains all expected error codes", () => {

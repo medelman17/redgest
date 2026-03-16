@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchSubredditContent } from "../fetcher.js";
-import type { FetchOptions } from "../fetcher.js";
-import type { RedditApiClient } from "../client.js";
-import type { TokenBucket } from "../rate-limiter.js";
+import { fetchSubredditContent } from "../fetcher";
+import type { FetchOptions } from "../fetcher";
+import type { RedditApiClient } from "../client";
+import type { TokenBucket } from "../rate-limiter";
 import type {
   RedditListing,
   RedditPostData,
   RedditCommentData,
-} from "../types.js";
+} from "../types";
 
 // --- Helpers ---
 

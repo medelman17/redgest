@@ -9,7 +9,7 @@ import {
   Hr,
   Link,
 } from "@react-email/components";
-import type { FormattedDigest } from "./types.js";
+import type { FormattedDigest } from "./types";
 
 interface DigestEmailProps {
   digest: FormattedDigest;

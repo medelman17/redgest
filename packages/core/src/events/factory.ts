@@ -1,5 +1,5 @@
 import type { RedgestConfig } from "@redgest/config";
-import type { EventBus } from "./bus.js";
+import type { EventBus } from "./bus";
 
 export type EventBusTransport = RedgestConfig["EVENT_BUS_TRANSPORT"];
 
@@ -25,18 +25,18 @@ export async function createEventBus(
   switch (transport) {
     case "memory": {
       const { InProcessEventBus } = await import(
-        "./transports/in-process.js"
+        "./transports/in-process"
       );
       return new InProcessEventBus();
     }
     case "pg-notify": {
       const { PgNotifyEventBus } = await import(
-        "./transports/pg-notify.js"
+        "./transports/pg-notify"
       );
       return PgNotifyEventBus.create(options?.pgPool, options?.databaseUrl);
     }
     case "redis": {
-      const { RedisEventBus } = await import("./transports/redis.js");
+      const { RedisEventBus } = await import("./transports/redis");
       return RedisEventBus.create(options?.redisUrl);
     }
     default: {

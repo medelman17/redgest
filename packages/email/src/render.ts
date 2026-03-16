@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { render } from "@react-email/components";
-import { DigestEmail } from "./template.js";
-import type { FormattedDigest } from "./types.js";
+import { DigestEmail } from "./template";
+import type { FormattedDigest } from "./types";
 
 /**
  * Render a digest as HTML using the DigestEmail React Email template.

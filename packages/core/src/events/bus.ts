@@ -1,4 +1,4 @@
-import type { DomainEvent, DomainEventType } from "./types.js";
+import type { DomainEvent, DomainEventType } from "./types";
 
 /**
  * Transport-agnostic event bus interface.

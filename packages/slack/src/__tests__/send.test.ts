@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { FormattedDigest } from "@redgest/email";
-import { sendDigestSlack } from "../send.js";
+import { sendDigestSlack } from "../send";
 
 function makeDigest(): FormattedDigest {
   return {

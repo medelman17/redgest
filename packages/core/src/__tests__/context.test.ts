@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { HandlerContext } from "../context.js";
+import type { HandlerContext } from "../context";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
 function stub<T>(): T {

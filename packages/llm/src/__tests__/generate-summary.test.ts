@@ -14,11 +14,11 @@ vi.mock("ai", () => ({
   },
 }));
 
-vi.mock("../provider.js", () => ({
+vi.mock("../provider", () => ({
   getModel: vi.fn(() => ({ provider: "mock", modelId: "mock-model" })),
 }));
 
-vi.mock("../cache.js", () => ({
+vi.mock("../cache", () => ({
   withCache: vi.fn(
     async (
       _taskType: string,
@@ -28,11 +28,11 @@ vi.mock("../cache.js", () => ({
   ),
 }));
 
-import { generatePostSummary } from "../generate-summary.js";
+import { generatePostSummary } from "../generate-summary";
 import type {
   SummarizationPost,
   SummarizationComment,
-} from "../prompts/summarization.js";
+} from "../prompts/summarization";
 
 const samplePost: SummarizationPost = {
   title: "New TypeScript Feature",

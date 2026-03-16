@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import pg from "pg";
-import type { DomainEvent } from "../events/types.js";
-import { PgNotifyEventBus } from "../events/transports/pg-notify.js";
+import type { DomainEvent } from "../events/types";
+import { PgNotifyEventBus } from "../events/transports/pg-notify";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 

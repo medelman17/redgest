@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
-import type { DomainEvent } from "../events/types.js";
-import { RedisEventBus } from "../events/transports/redis.js";
+import type { DomainEvent } from "../events/types";
+import { RedisEventBus } from "../events/transports/redis";
 
 const REDIS_URL = process.env.REDIS_URL;
 

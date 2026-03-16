@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createExecute } from "../commands/dispatch.js";
+import { createExecute } from "../commands/dispatch";
 import type {
   ExecuteContext,
   TransactableClient,
   TransactionArg,
-} from "../commands/dispatch.js";
-import { InProcessEventBus } from "../events/transports/in-process.js";
-import type { CommandHandler } from "../commands/types.js";
-import type { HandlerContext } from "../context.js";
+} from "../commands/dispatch";
+import { InProcessEventBus } from "../events/transports/in-process";
+import type { CommandHandler } from "../commands/types";
+import type { HandlerContext } from "../context";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
 function stub<T>(): T {

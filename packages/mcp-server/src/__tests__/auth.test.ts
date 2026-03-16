@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Hono } from "hono";
-import { bearerAuthMiddleware } from "../auth.js";
+import { bearerAuthMiddleware } from "../auth";
 
 const TEST_API_KEY = "test-api-key-that-is-at-least-32-characters-long";
 

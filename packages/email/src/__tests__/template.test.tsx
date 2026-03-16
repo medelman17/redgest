@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@react-email/components";
-import { DigestEmail } from "../template.js";
-import type { FormattedDigest } from "../types.js";
+import { DigestEmail } from "../template";
+import type { FormattedDigest } from "../types";
 
 function makeDigest(overrides?: Partial<FormattedDigest>): FormattedDigest {
   return {

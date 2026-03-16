@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeContent } from "../sanitize.js";
+import { sanitizeContent } from "../sanitize";
 
 describe("sanitizeContent", () => {
   it("strips opening HTML/XML tags", () => {

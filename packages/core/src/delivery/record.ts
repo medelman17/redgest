@@ -1,5 +1,5 @@
-import type { EventCreateClient } from "../events/persist.js";
-import { persistEvent } from "../events/persist.js";
+import type { EventCreateClient } from "../events/persist";
+import { persistEvent } from "../events/persist";
 
 type DeliveryChannelType = "EMAIL" | "SLACK";
 

@@ -14,11 +14,11 @@ vi.mock("ai", () => ({
   },
 }));
 
-vi.mock("../provider.js", () => ({
+vi.mock("../provider", () => ({
   getModel: vi.fn(() => ({ provider: "mock", modelId: "mock-model" })),
 }));
 
-vi.mock("../cache.js", () => ({
+vi.mock("../cache", () => ({
   withCache: vi.fn(
     async (
       _taskType: string,
@@ -28,9 +28,9 @@ vi.mock("../cache.js", () => ({
   ),
 }));
 
-import { generateDeliveryProse } from "../generate-delivery-prose.js";
-import { withCache } from "../cache.js";
-import type { DeliveryDigestInput } from "../prompts/delivery.js";
+import { generateDeliveryProse } from "../generate-delivery-prose";
+import { withCache } from "../cache";
+import type { DeliveryDigestInput } from "../prompts/delivery";
 
 const sampleInput: DeliveryDigestInput = {
   subreddits: [

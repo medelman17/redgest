@@ -1,5 +1,5 @@
 import type { FormattedDigest } from "@redgest/email";
-import { formatDigestBlocks } from "./format.js";
+import { formatDigestBlocks } from "./format";
 
 export async function sendDigestSlack(
   digest: FormattedDigest,

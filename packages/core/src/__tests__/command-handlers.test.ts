@@ -1,17 +1,17 @@
 import { describe, it, expect, vi } from "vitest";
-import { InProcessEventBus } from "../events/transports/in-process.js";
-import type { HandlerContext } from "../context.js";
-import { RedgestError } from "../errors.js";
-import { handleGenerateDigest } from "../commands/handlers/generate-digest.js";
-import { handleAddSubreddit } from "../commands/handlers/add-subreddit.js";
-import { handleRemoveSubreddit } from "../commands/handlers/remove-subreddit.js";
-import { handleUpdateSubreddit } from "../commands/handlers/update-subreddit.js";
-import { handleUpdateConfig } from "../commands/handlers/update-config.js";
-import { handleCancelRun } from "../commands/handlers/cancel-run.js";
-import { handleCreateProfile } from "../commands/handlers/create-profile.js";
-import { handleUpdateProfile } from "../commands/handlers/update-profile.js";
-import { handleDeleteProfile } from "../commands/handlers/delete-profile.js";
-import { commandHandlers } from "../commands/handlers/index.js";
+import { InProcessEventBus } from "../events/transports/in-process";
+import type { HandlerContext } from "../context";
+import { RedgestError } from "../errors";
+import { handleGenerateDigest } from "../commands/handlers/generate-digest";
+import { handleAddSubreddit } from "../commands/handlers/add-subreddit";
+import { handleRemoveSubreddit } from "../commands/handlers/remove-subreddit";
+import { handleUpdateSubreddit } from "../commands/handlers/update-subreddit";
+import { handleUpdateConfig } from "../commands/handlers/update-config";
+import { handleCancelRun } from "../commands/handlers/cancel-run";
+import { handleCreateProfile } from "../commands/handlers/create-profile";
+import { handleUpdateProfile } from "../commands/handlers/update-profile";
+import { handleDeleteProfile } from "../commands/handlers/delete-profile";
+import { commandHandlers } from "../commands/handlers/index";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
 function stub<T>(): T {

@@ -1,6 +1,6 @@
-import type { QueryHandler } from "../types.js";
-import { parseDuration } from "../../utils/duration.js";
-import { STOP_WORDS } from "../../pipeline/topic-step.js";
+import type { QueryHandler } from "../types";
+import { parseDuration } from "../../utils/duration";
+import { STOP_WORDS } from "../../pipeline/topic-step";
 
 export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async (
   params,

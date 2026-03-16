@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { PublicRedditClient } from "../public-client.js";
-import type { ConnectionTestResult } from "../client.js";
+import { PublicRedditClient } from "../public-client";
+import type { ConnectionTestResult } from "../client";
 
 const USER_AGENT = "redgest:test:v0.0.1";
 

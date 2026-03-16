@@ -4,7 +4,7 @@ import {
   idempotencyKeys,
 } from "@trigger.dev/sdk/v3";
 import { prisma } from "@redgest/db";
-import { crawlSubreddit } from "./crawl-subreddit.js";
+import { crawlSubreddit } from "./crawl-subreddit";
 
 export const scheduledCrawl = schedules.task({
   id: "scheduled-crawl",

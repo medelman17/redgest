@@ -1,5 +1,5 @@
 import { RedgestError } from "@redgest/core";
-import type { RedditApiClient, ConnectionTestResult } from "./client.js";
+import type { RedditApiClient, ConnectionTestResult } from "./client";
 
 const PUBLIC_BASE = "https://www.reddit.com";
 

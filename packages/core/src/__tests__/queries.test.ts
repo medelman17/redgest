@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import type { Query, QueryType } from "../queries/types.js";
-import { createQuery } from "../queries/dispatch.js";
-import type { HandlerContext } from "../context.js";
+import type { Query, QueryType } from "../queries/types";
+import { createQuery } from "../queries/dispatch";
+import type { HandlerContext } from "../context";
 
 /** Cast helper to avoid objectLiteralTypeAssertions lint rule on `{} as T`. */
 function stub<T>(): T {

@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@redgest/db";
 import { Prisma } from "@redgest/db";
 import { z } from "zod";
-import { RawSearchRowSchema } from "./schemas.js";
-import type { SearchOptions, SearchResult, SearchService } from "./types.js";
+import { RawSearchRowSchema } from "./schemas";
+import type { SearchOptions, SearchResult, SearchService } from "./types";
 
 const DEFAULT_LIMIT = 10;
 const RRF_K = 60; // Reciprocal Rank Fusion constant

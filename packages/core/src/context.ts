@@ -1,7 +1,7 @@
 import type { PrismaClient, TransactionClient } from "@redgest/db";
 import type { RedgestConfig } from "@redgest/config";
-import type { EventBus } from "./events/bus.js";
-import type { SearchService } from "./search/index.js";
+import type { EventBus } from "./events/bus";
+import type { SearchService } from "./search/index";
 
 export type DbClient = PrismaClient | TransactionClient;
 

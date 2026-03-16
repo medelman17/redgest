@@ -1,4 +1,4 @@
-import type { DomainEvent } from "./types.js";
+import type { DomainEvent } from "./types";
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T/;
 

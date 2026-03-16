@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseEventPayload, eventPayloadSchemas } from "../events/schemas.js";
-import type { DomainEventType } from "../events/types.js";
+import { parseEventPayload, eventPayloadSchemas } from "../events/schemas";
+import type { DomainEventType } from "../events/types";
 
 describe("eventPayloadSchemas", () => {
   it("has a schema for every DomainEventType", () => {

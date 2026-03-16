@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { serializeEvent, deserializeEvent } from "../events/serialization.js";
-import type { DomainEvent } from "../events/types.js";
+import { serializeEvent, deserializeEvent } from "../events/serialization";
+import type { DomainEvent } from "../events/types";
 
 describe("serializeEvent / deserializeEvent", () => {
   it("roundtrips a DomainEvent with Date preservation", () => {

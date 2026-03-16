@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FormattedDigest } from "../types.js";
+import type { FormattedDigest } from "../types";
 
 const mockSend = vi.fn();
 
@@ -17,7 +17,7 @@ vi.mock("resend", () => {
 });
 
 // Mock the render module (send.ts now delegates rendering to render.ts)
-vi.mock("../render.js", () => ({
+vi.mock("../render", () => ({
   renderDigestHtml: vi.fn().mockResolvedValue("<html>rendered</html>"),
 }));
 
@@ -52,7 +52,7 @@ describe("sendDigestEmail", () => {
       error: null,
     });
 
-    const { sendDigestEmail } = await import("../send.js");
+    const { sendDigestEmail } = await import("../send");
     const result = await sendDigestEmail(
       makeDigest(),
       "user@example.com",
@@ -77,7 +77,7 @@ describe("sendDigestEmail", () => {
       error: { message: "Invalid API key", name: "validation_error" },
     });
 
-    const { sendDigestEmail } = await import("../send.js");
+    const { sendDigestEmail } = await import("../send");
     await expect(
       sendDigestEmail(makeDigest(), "user@example.com", "bad-key"),
     ).rejects.toThrow("Resend error: Invalid API key");
@@ -89,7 +89,7 @@ describe("sendDigestEmail", () => {
       error: null,
     });
 
-    const { sendDigestEmail } = await import("../send.js");
+    const { sendDigestEmail } = await import("../send");
     await expect(
       sendDigestEmail(makeDigest(), "user@example.com", "re_test_key"),
     ).rejects.toThrow("Resend returned no data");

@@ -104,7 +104,7 @@ vi.mock("@redgest/reddit", () => ({
 }));
 
 // ── Import under test (after mocks) ──────────────────────────────────
-import { bootstrap } from "../bootstrap.js";
+import { bootstrap } from "../bootstrap";
 
 describe("bootstrap()", () => {
   const fakeConfig = {

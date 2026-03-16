@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE_SIZE, type Paginated } from "./types.js";
+import { DEFAULT_PAGE_SIZE, type Paginated } from "./types";
 
 /**
  * Build a Paginated result from a "fetch one extra" query result.

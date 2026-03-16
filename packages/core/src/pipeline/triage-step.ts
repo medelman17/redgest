@@ -2,8 +2,8 @@ import type { LanguageModel } from "ai";
 import type { PrismaClient } from "@redgest/db";
 import type { TriagePostCandidate } from "@redgest/llm";
 import { generateTriageResult } from "@redgest/llm";
-import { applyTriageBudget } from "./token-budget.js";
-import type { TriageStepResult } from "./types.js";
+import { applyTriageBudget } from "./token-budget";
+import type { TriageStepResult } from "./types";
 
 type TriageFn = typeof generateTriageResult;
 

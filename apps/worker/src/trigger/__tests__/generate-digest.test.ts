@@ -43,16 +43,16 @@ vi.mock("@redgest/reddit", () => ({
 }));
 
 // Mock deliver-digest dynamic import
-vi.mock("../deliver-digest.js", () => ({
+vi.mock("../deliver-digest", () => ({
   deliverDigest: { trigger: vi.fn().mockResolvedValue({ id: "delivery-run-1" }) },
 }));
 
 // --- Static imports after mocks ---
 
-import { generateDigest as _generateDigest } from "../generate-digest.js";
+import { generateDigest as _generateDigest } from "../generate-digest";
 import { runDigestPipeline } from "@redgest/core";
 import { prisma } from "@redgest/db";
-import { deliverDigest } from "../deliver-digest.js";
+import { deliverDigest } from "../deliver-digest";
 import { logger } from "@trigger.dev/sdk/v3";
 
 // The task() mock strips the SDK wrapper and returns the config object directly,

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { InProcessEventBus } from "../events/transports/in-process.js";
-import { wireDigestDispatch } from "../digest-dispatch.js";
-import type { PipelineDeps } from "../pipeline/types.js";
+import { InProcessEventBus } from "../events/transports/in-process";
+import { wireDigestDispatch } from "../digest-dispatch";
+import type { PipelineDeps } from "../pipeline/types";
 
 function stub<T>(): T {
   const empty = {};

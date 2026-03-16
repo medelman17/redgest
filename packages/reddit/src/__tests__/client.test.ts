@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { RedditClient, type ConnectionTestResult } from "../client.js";
+import { RedditClient, type ConnectionTestResult } from "../client";
 
 const CLIENT_ID = "test-client-id";
 const CLIENT_SECRET = "test-client-secret";

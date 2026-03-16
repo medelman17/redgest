@@ -6,11 +6,11 @@ vi.mock("@react-email/components", () => ({
 }));
 
 // Mock the template module
-vi.mock("../template.js", () => ({
+vi.mock("../template", () => ({
   DigestEmail: vi.fn().mockReturnValue(null),
 }));
 
-import type { FormattedDigest } from "../types.js";
+import type { FormattedDigest } from "../types";
 
 function makeDigest(): FormattedDigest {
   return {
@@ -38,7 +38,7 @@ describe("renderDigestHtml", () => {
   });
 
   it("returns rendered HTML string", async () => {
-    const { renderDigestHtml } = await import("../render.js");
+    const { renderDigestHtml } = await import("../render");
     const html = await renderDigestHtml(makeDigest());
     expect(typeof html).toBe("string");
     expect(html).toContain("html");
@@ -46,7 +46,7 @@ describe("renderDigestHtml", () => {
 
   it("calls render with DigestEmail component", async () => {
     const { render } = await import("@react-email/components");
-    const { renderDigestHtml } = await import("../render.js");
+    const { renderDigestHtml } = await import("../render");
     await renderDigestHtml(makeDigest());
     expect(render).toHaveBeenCalledOnce();
   });

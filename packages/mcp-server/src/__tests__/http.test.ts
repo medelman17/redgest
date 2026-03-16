@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 // Mock bootstrap to avoid real DB/Reddit connections
-vi.mock("../bootstrap.js", () => ({
+vi.mock("../bootstrap", () => ({
   bootstrap: vi.fn().mockResolvedValue({
     execute: vi.fn(),
     query: vi.fn(),
@@ -19,13 +19,13 @@ vi.mock("../bootstrap.js", () => ({
 }));
 
 // Mock tools to avoid McpServer creation issues in test
-vi.mock("../tools.js", () => ({
+vi.mock("../tools", () => ({
   createToolServer: vi.fn().mockReturnValue({
     connect: vi.fn(),
   }),
 }));
 
-import { createApp } from "../http.js";
+import { createApp } from "../http";
 
 describe("HTTP server", () => {
   it("GET /health returns 200 without auth", async () => {

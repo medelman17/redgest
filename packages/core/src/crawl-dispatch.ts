@@ -1,5 +1,5 @@
-import type { EventBus } from "./events/bus.js";
-import { runCrawl, type CrawlDeps } from "./crawl-pipeline.js";
+import type { EventBus } from "./events/bus";
+import { runCrawl, type CrawlDeps } from "./crawl-pipeline";
 
 export interface CrawlDispatchDeps {
   eventBus: EventBus;
