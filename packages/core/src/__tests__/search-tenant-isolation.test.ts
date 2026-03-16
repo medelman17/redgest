@@ -74,5 +74,73 @@ describe("SearchService org filtering", () => {
     const sqlText = extractFullSql(call);
     expect(sqlText).not.toContain("organization_id");
   });
+
+  it("passes organizationId through to similarity search SQL", async () => {
+    const { db, mockQueryRaw } = makeMockDb();
+    const service = createSearchService(db);
+    await service.searchBySimilarity([0.1, 0.2, 0.3], {
+      organizationId: "org_456",
+    });
+
+    expect(mockQueryRaw).toHaveBeenCalled();
+    const call = mockQueryRaw.mock.calls[0];
+    const sqlText = extractFullSql(call);
+    expect(sqlText).toContain("organization_id");
+  });
+
+  it("does not filter by org in similarity search when organizationId is not provided", async () => {
+    const { db, mockQueryRaw } = makeMockDb();
+    const service = createSearchService(db);
+    await service.searchBySimilarity([0.1, 0.2, 0.3], {});
+
+    expect(mockQueryRaw).toHaveBeenCalled();
+    const call = mockQueryRaw.mock.calls[0];
+    const sqlText = extractFullSql(call);
+    expect(sqlText).not.toContain("organization_id");
+  });
+
+  it("performs org check as first query when findSimilar is called with organizationId", async () => {
+    const mockQueryRaw = vi.fn();
+    // First call: org check returns in_org=true
+    mockQueryRaw.mockResolvedValueOnce([{ in_org: true }]);
+    // Second call: embedding check returns has_embedding=true
+    mockQueryRaw.mockResolvedValueOnce([{ has_embedding: true }]);
+    // Third call: similarity query returns []
+    mockQueryRaw.mockResolvedValueOnce([]);
+
+    const db = stub<Parameters<typeof createSearchService>[0]>();
+    Object.defineProperty(db, "$queryRaw", { value: mockQueryRaw });
+
+    const service = createSearchService(db);
+    await service.findSimilar("post_123", { organizationId: "org_789" });
+
+    expect(mockQueryRaw).toHaveBeenCalledTimes(3);
+
+    // First query should be the org check
+    const firstCallSql = extractFullSql(mockQueryRaw.mock.calls[0]);
+    expect(firstCallSql).toContain("organization_id");
+
+    // Third query (similarity) should also filter by org
+    const thirdCallSql = extractFullSql(mockQueryRaw.mock.calls[2]);
+    expect(thirdCallSql).toContain("organization_id");
+  });
+
+  it("returns empty array from findSimilar when org check fails", async () => {
+    const mockQueryRaw = vi.fn();
+    // Org check returns in_org=false
+    mockQueryRaw.mockResolvedValueOnce([{ in_org: false }]);
+
+    const db = stub<Parameters<typeof createSearchService>[0]>();
+    Object.defineProperty(db, "$queryRaw", { value: mockQueryRaw });
+
+    const service = createSearchService(db);
+    const results = await service.findSimilar("post_123", {
+      organizationId: "org_999",
+    });
+
+    expect(results).toEqual([]);
+    // Should only make 1 call (the org check), then short-circuit
+    expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+  });
 });
 
