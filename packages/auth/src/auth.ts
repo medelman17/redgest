@@ -65,6 +65,35 @@ export const auth = betterAuth({
       "/api/auth/forgot-password": { window: 60, max: 3 },
     },
   },
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          console.info("[Auth:audit] session.created", {
+            userId: session.userId,
+            sessionId: session.id,
+          });
+        },
+      },
+    },
+    user: {
+      update: {
+        after: async (user) => {
+          console.info("[Auth:audit] user.updated", { userId: user.id });
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async (account) => {
+          console.info("[Auth:audit] account.linked", {
+            userId: account.userId,
+            provider: account.providerId,
+          });
+        },
+      },
+    },
+  },
   plugins: [
     organization({
       organizationLimit: 5,
