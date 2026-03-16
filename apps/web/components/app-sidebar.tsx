@@ -1,8 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Rss, Settings, Clock, Play, Layers, BookOpen, Search, LayoutDashboard } from "lucide-react";
+import { Rss, Settings, Clock, Play, Layers, BookOpen, Search, LayoutDashboard, LogOut, User } from "lucide-react";
+import { authClient } from "@redgest/auth/client";
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +29,13 @@ const NAV_ITEMS = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+
+  async function handleSignOut() {
+    await authClient.signOut();
+    router.push("/login");
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -64,11 +72,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center justify-between px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:justify-center">
-          <span className="group-data-[collapsible=icon]:hidden">
-            ⌘B to collapse
-          </span>
-        </div>
+        <SidebarMenu>
+          {session?.user && (
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip={session.user.email}>
+                <User />
+                <span className="truncate">{session.user.name ?? session.user.email}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Sign out" onClick={handleSignOut}>
+              <LogOut />
+              <span>Sign out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
