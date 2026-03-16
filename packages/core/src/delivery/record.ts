@@ -107,9 +107,9 @@ export async function recordDeliveryPending(
  * Upsert a delivery row to SENT or FAILED, and persist the corresponding
  * domain event — both within the same transaction client.
  *
- * Does NOT emit to DomainEventBus (caller is responsible for that if needed).
+ * Does NOT publish to the EventBus (caller is responsible for that if needed).
  * This is intentional: the worker runs outside the MCP server process,
- * so the in-process event bus isn't available.
+ * so the event bus isn't wired to dispatch handlers.
  */
 export async function recordDeliveryResult(
   tx: DeliveryTransactionClient,

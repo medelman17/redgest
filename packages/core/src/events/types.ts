@@ -1,7 +1,7 @@
 /**
  * DomainEventMap — single source of truth for all domain events.
  * Adding a new event here automatically updates the DomainEvent union,
- * the DomainEventBus type signatures, and the Zod schema requirements.
+ * the EventBus type signatures, and the Zod schema requirements.
  */
 export interface DomainEventMap {
   DigestRequested: { jobId: string; subredditIds: string[]; forceRefresh?: boolean; maxPosts?: number; profileId?: string };
