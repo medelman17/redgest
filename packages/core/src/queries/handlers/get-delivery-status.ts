@@ -30,11 +30,11 @@ export const handleGetDeliveryStatus: QueryHandler<"GetDeliveryStatus"> = async 
 
   if (params.digestId) {
     // Specific digest lookup — scope through job for tenant isolation
-    const raw = await ctx.db.digest.findUnique({
-      where: { id: params.digestId },
-      select: { id: true, createdAt: true, jobId: true, job: { select: { organizationId: true } } },
+    const raw = await ctx.db.digest.findFirst({
+      where: { id: params.digestId, job: { organizationId: ctx.organizationId } },
+      select: { id: true, createdAt: true, jobId: true },
     });
-    if (!raw || raw.job.organizationId !== ctx.organizationId) {
+    if (!raw) {
       throw new RedgestError("NOT_FOUND", `Digest ${params.digestId} not found`);
     }
     digests = [raw as DigestRow];

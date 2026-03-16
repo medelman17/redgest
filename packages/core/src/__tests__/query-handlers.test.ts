@@ -1011,7 +1011,7 @@ describe("handleCompareDigests", () => {
 
 describe("handleGetDeliveryStatus", () => {
   it("returns delivery status for a specific digest", async () => {
-    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1", job: { organizationId: "org_test" } };
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
     const mockDeliveries = [
       {
         deliveryId: "del-1",
@@ -1043,10 +1043,10 @@ describe("handleGetDeliveryStatus", () => {
       },
     ];
 
-    const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
+    const mockFindFirst = vi.fn().mockResolvedValue(mockDigest);
     const mockFindMany = vi.fn().mockResolvedValue(mockDeliveries);
     const ctx = makeCtx({
-      digest: { findUnique: mockFindUnique },
+      digest: { findFirst: mockFindFirst },
       deliveryView: { findMany: mockFindMany },
     });
 
@@ -1120,9 +1120,9 @@ describe("handleGetDeliveryStatus", () => {
   });
 
   it("throws NOT_FOUND when specific digestId not found", async () => {
-    const mockFindUnique = vi.fn().mockResolvedValue(null);
+    const mockFindFirst = vi.fn().mockResolvedValue(null);
     const ctx = makeCtx({
-      digest: { findUnique: mockFindUnique },
+      digest: { findFirst: mockFindFirst },
     });
 
     const { handleGetDeliveryStatus } = await import(
@@ -1156,11 +1156,11 @@ describe("handleGetDeliveryStatus", () => {
   });
 
   it("returns empty channels for a digest with no deliveries", async () => {
-    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1", job: { organizationId: "org_test" } };
-    const mockFindUnique = vi.fn().mockResolvedValue(mockDigest);
+    const mockDigest = { id: "d-1", createdAt: new Date("2026-03-10T00:00:00Z"), jobId: "j-1" };
+    const mockFindFirst = vi.fn().mockResolvedValue(mockDigest);
     const mockFindMany = vi.fn().mockResolvedValue([]);
     const ctx = makeCtx({
-      digest: { findUnique: mockFindUnique },
+      digest: { findFirst: mockFindFirst },
       deliveryView: { findMany: mockFindMany },
     });
 

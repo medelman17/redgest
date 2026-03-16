@@ -29,12 +29,16 @@ export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async 
       select: { name: true },
     });
     const orgSubNames = orgSubreddits.map((s) => s.name);
+    // Intersect org subreddits with specific subreddit filter if both present
+    const effectiveFilter =
+      params.subreddit && orgSubNames.includes(params.subreddit)
+        ? params.subreddit
+        : params.subreddit
+          ? "__no_match__"
+          : { in: orgSubNames };
     where.posts = {
       some: {
-        post: {
-          subreddit: { in: orgSubNames },
-          ...(params.subreddit ? { subreddit: params.subreddit } : {}),
-        },
+        post: { subreddit: effectiveFilter },
       },
     };
   }

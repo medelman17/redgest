@@ -71,8 +71,8 @@ async function getInfra(): Promise<CachedInfra> {
 function buildContexts(
   infra: CachedInfra,
   organizationId: string,
+  config: ReturnType<typeof loadConfig>,
 ): { executeCtx: ExecuteContext; queryCtx: HandlerContext } {
-  const config = loadConfig();
   // Runtime db is always PrismaClient which satisfies both context types at runtime;
   // the cast is needed because Prisma's $transaction overloads don't structurally
   // match TransactableClient (same pattern as mcp-server/tools.ts:execCtx)
@@ -91,6 +91,17 @@ function buildContexts(
   return { executeCtx, queryCtx };
 }
 
+// Shared setup for all DAL operations — resolves org ID, infra, and contexts once.
+async function getOrgContexts() {
+  const [organizationId, infra] = await Promise.all([
+    getOrganizationId(),
+    getInfra(),
+  ]);
+  const config = loadConfig();
+  const { executeCtx, queryCtx } = buildContexts(infra, organizationId, config);
+  return { ...infra, executeCtx, queryCtx };
+}
+
 // --- Query wrappers ---
 
 // Record<string, never> can't be constructed without a cast;
@@ -100,25 +111,19 @@ const EMPTY_PARAMS: Record<string, never> = {};
 export async function listSubreddits(): Promise<
   QueryResultMap["ListSubreddits"]
 > {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("ListSubreddits", EMPTY_PARAMS, queryCtx);
 }
 
 export async function getConfig(): Promise<QueryResultMap["GetConfig"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetConfig", EMPTY_PARAMS, queryCtx);
 }
 
 export async function getDigest(
   digestId: string,
 ): Promise<QueryResultMap["GetDigest"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetDigest", { digestId }, queryCtx);
 }
 
@@ -126,36 +131,28 @@ export async function listDigests(
   limit?: number,
   cursor?: string,
 ): Promise<QueryResultMap["ListDigests"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("ListDigests", { limit, cursor }, queryCtx);
 }
 
 export async function listRuns(
   limit?: number,
 ): Promise<QueryResultMap["ListRuns"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("ListRuns", { limit }, queryCtx);
 }
 
 export async function getRunStatus(
   jobId: string,
 ): Promise<QueryResultMap["GetRunStatus"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetRunStatus", { jobId }, queryCtx);
 }
 
 export async function getDigestByJobId(
   jobId: string,
 ): Promise<QueryResultMap["GetDigestByJobId"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetDigestByJobId", { jobId }, queryCtx);
 }
 
@@ -164,45 +161,35 @@ export async function getDigestByJobId(
 export async function addSubreddit(
   params: CommandMap["AddSubreddit"],
 ): Promise<CommandResultMap["AddSubreddit"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("AddSubreddit", params, executeCtx);
 }
 
 export async function updateSubreddit(
   params: CommandMap["UpdateSubreddit"],
 ): Promise<CommandResultMap["UpdateSubreddit"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("UpdateSubreddit", params, executeCtx);
 }
 
 export async function removeSubreddit(
   subredditId: string,
 ): Promise<CommandResultMap["RemoveSubreddit"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("RemoveSubreddit", { subredditId }, executeCtx);
 }
 
 export async function updateConfig(
   params: CommandMap["UpdateConfig"],
 ): Promise<CommandResultMap["UpdateConfig"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("UpdateConfig", params, executeCtx);
 }
 
 export async function generateDigest(
   params: CommandMap["GenerateDigest"],
 ): Promise<CommandResultMap["GenerateDigest"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("GenerateDigest", params, executeCtx);
 }
 
@@ -211,18 +198,14 @@ export async function generateDigest(
 export async function listProfiles(): Promise<
   QueryResultMap["ListProfiles"]
 > {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("ListProfiles", EMPTY_PARAMS, queryCtx);
 }
 
 export async function getProfile(
   profileId: string,
 ): Promise<QueryResultMap["GetProfile"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetProfile", { profileId }, queryCtx);
 }
 
@@ -232,9 +215,7 @@ export async function getDeliveryStatus(
   digestId?: string,
   limit?: number,
 ): Promise<QueryResultMap["GetDeliveryStatus"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { query, queryCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { query, queryCtx } = await getOrgContexts();
   return query("GetDeliveryStatus", { digestId, limit }, queryCtx);
 }
 
@@ -243,27 +224,21 @@ export async function getDeliveryStatus(
 export async function createProfile(
   params: CommandMap["CreateProfile"],
 ): Promise<CommandResultMap["CreateProfile"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("CreateProfile", params, executeCtx);
 }
 
 export async function updateProfile(
   params: CommandMap["UpdateProfile"],
 ): Promise<CommandResultMap["UpdateProfile"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("UpdateProfile", params, executeCtx);
 }
 
 export async function deleteProfile(
   profileId: string,
 ): Promise<CommandResultMap["DeleteProfile"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("DeleteProfile", { profileId }, executeCtx);
 }
 
@@ -272,8 +247,6 @@ export async function deleteProfile(
 export async function cancelRun(
   jobId: string,
 ): Promise<CommandResultMap["CancelRun"]> {
-  const organizationId = await getOrganizationId();
-  const infra = await getInfra();
-  const { execute, executeCtx } = { ...infra, ...buildContexts(infra, organizationId) };
+  const { execute, executeCtx } = await getOrgContexts();
   return execute("CancelRun", { jobId }, executeCtx);
 }

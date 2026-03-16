@@ -1,23 +1,12 @@
 import "server-only";
+import { cache } from "react";
 import { auth } from "@redgest/auth";
 import { headers } from "next/headers";
 import { DEFAULT_ORGANIZATION_ID } from "@redgest/config";
 
-export async function getOrganizationId(): Promise<string> {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (session?.session?.activeOrganizationId) {
-      return session.session.activeOrganizationId;
-    }
-  } catch {
-    // Session read failed — fall back to env
-  }
-  return process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
-}
-
-export async function getSession() {
+// Memoize per-request via React cache() — avoids redundant session lookups
+// when multiple DAL functions are called in the same Server Component render.
+export const getSession = cache(async () => {
   try {
     return await auth.api.getSession({
       headers: await headers(),
@@ -25,4 +14,12 @@ export async function getSession() {
   } catch {
     return null;
   }
+});
+
+export async function getOrganizationId(): Promise<string> {
+  const session = await getSession();
+  if (session?.session?.activeOrganizationId) {
+    return session.session.activeOrganizationId;
+  }
+  return process.env.REDGEST_ORG_ID ?? DEFAULT_ORGANIZATION_ID;
 }

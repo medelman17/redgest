@@ -1,12 +1,19 @@
 import { Resend } from "resend";
 
+let _resend: Resend | null | undefined;
+
 function getResend(): Resend | null {
+  if (_resend !== undefined) return _resend;
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return null;
-  return new Resend(apiKey);
+  _resend = apiKey ? new Resend(apiKey) : null;
+  return _resend;
 }
 
 const FROM_EMAIL = "Redgest <redgest@mail.edel.sh>";
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
 export async function sendVerificationEmail({
   email,
@@ -76,7 +83,7 @@ export async function sendInvitationEmail({
     from: FROM_EMAIL,
     to: email,
     subject: `Join ${organizationName} on Redgest`,
-    html: `<h2>You've been invited!</h2><p>${inviterName} invited you to join <strong>${organizationName}</strong> on Redgest.</p><p><a href="${acceptUrl}">Accept invitation</a></p>`,
+    html: `<h2>You've been invited!</h2><p>${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organizationName)}</strong> on Redgest.</p><p><a href="${acceptUrl}">Accept invitation</a></p>`,
   });
   if (result.error) {
     console.error("[Auth] Invitation email failed:", result.error.message);
