@@ -3,8 +3,6 @@ import { RedgestError } from "../../errors.js";
 import { parseDuration } from "../../utils/duration.js";
 import type { SearchOptions } from "../../search/types.js";
 
-// TODO: Add organizationId to SearchOptions and pass ctx.organizationId
-// so the raw SQL search service can filter through the job table for tenant isolation.
 export const handleSearchDigests: QueryHandler<"SearchDigests"> = async (
   params,
   ctx,
@@ -13,6 +11,7 @@ export const handleSearchDigests: QueryHandler<"SearchDigests"> = async (
     throw new RedgestError("INTERNAL_ERROR", "SearchService not available");
   }
   const options: SearchOptions = {
+    organizationId: ctx.organizationId,
     limit: params.limit ?? 10,
     subreddit: params.subreddit,
   };

@@ -17,6 +17,16 @@ export const handleComparePeriods: QueryHandler<"ComparePeriods"> = async (
   const periodBEnd = new Date(now - periodAMs);
   const periodBStart = new Date(now - periodAMs - periodBMs);
 
+  // Resolve org subreddits once (not per period)
+  let orgSubNames: string[] | undefined;
+  if (ctx.organizationId) {
+    const orgSubreddits = await ctx.db.subreddit.findMany({
+      where: { organizationId: ctx.organizationId },
+      select: { name: true },
+    });
+    orgSubNames = orgSubreddits.map((s) => s.name);
+  }
+
   const buildPeriodSummary = async (
     start: Date,
     end: Date,
@@ -26,6 +36,9 @@ export const handleComparePeriods: QueryHandler<"ComparePeriods"> = async (
     };
     if (params.subreddit) {
       wherePost.subreddit = params.subreddit;
+    }
+    if (orgSubNames) {
+      wherePost.subreddit = { in: orgSubNames };
     }
 
     const posts = await ctx.db.post.findMany({

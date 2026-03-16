@@ -1,4 +1,5 @@
 export interface SearchOptions {
+  organizationId?: string;
   subreddit?: string;
   since?: Date;
   sentiment?: string;

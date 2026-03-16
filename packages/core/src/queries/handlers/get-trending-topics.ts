@@ -23,6 +23,22 @@ export const handleGetTrendingTopics: QueryHandler<"GetTrendingTopics"> = async 
     };
   }
 
+  if (ctx.organizationId) {
+    const orgSubreddits = await ctx.db.subreddit.findMany({
+      where: { organizationId: ctx.organizationId },
+      select: { name: true },
+    });
+    const orgSubNames = orgSubreddits.map((s) => s.name);
+    where.posts = {
+      some: {
+        post: {
+          subreddit: { in: orgSubNames },
+          ...(params.subreddit ? { subreddit: params.subreddit } : {}),
+        },
+      },
+    };
+  }
+
   const topics = await ctx.db.topic.findMany({
     where,
     orderBy: [{ frequency: "desc" }, { lastSeen: "desc" }],

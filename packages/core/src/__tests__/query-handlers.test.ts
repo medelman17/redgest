@@ -161,6 +161,7 @@ describe("handleSearchDigests", () => {
 
     expect(result).toEqual(mockResults);
     expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("typescript", {
+      organizationId: "org_test",
       limit: 5,
       subreddit: undefined,
     });
@@ -225,6 +226,7 @@ describe("handleSearchPosts", () => {
 
     expect(result).toEqual(mockResults);
     expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("typescript", {
+      organizationId: "org_test",
       limit: 10,
       subreddit: undefined,
       sentiment: undefined,
@@ -252,6 +254,7 @@ describe("handleSearchPosts", () => {
     }, ctx);
 
     expect(mockSearchService.searchByKeyword).toHaveBeenCalledWith("test", {
+      organizationId: "org_test",
       limit: 5,
       subreddit: "typescript",
       sentiment: "positive",
@@ -1204,6 +1207,7 @@ describe("handleFindSimilar", () => {
 
     expect(result).toEqual(mockResults);
     expect(mockSearchService.findSimilar).toHaveBeenCalledWith("p-1", {
+      organizationId: "org_test",
       limit: 5,
       subreddit: undefined,
     });
@@ -1235,6 +1239,7 @@ describe("handleFindSimilar", () => {
     await handleFindSimilar({ postId: "p-1", subreddit: "typescript", limit: 3 }, ctx);
 
     expect(mockSearchService.findSimilar).toHaveBeenCalledWith("p-1", {
+      organizationId: "org_test",
       limit: 3,
       subreddit: "typescript",
     });
