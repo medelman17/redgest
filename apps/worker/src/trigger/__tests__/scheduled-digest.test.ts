@@ -158,7 +158,7 @@ describe("scheduled-digest", () => {
       expect(resultObj.jobs).toHaveLength(2);
     });
 
-    it("continues on dispatch failure and skips the failed org", async () => {
+    it("continues on dispatch failure and marks job FAILED", async () => {
       vi.mocked(prisma.digestProfile.findMany).mockResolvedValue([]);
       mockSubreddits([
         { id: "sub-1", organizationId: "org-a" },
@@ -181,6 +181,16 @@ describe("scheduled-digest", () => {
       // Both triggers attempted, first failed → only second in result
       expect(generateDigest.trigger).toHaveBeenCalledTimes(2);
       expect(resultObj.jobs).toHaveLength(1);
+
+      // Failed job should be marked FAILED
+      expect(prisma.job.update).toHaveBeenCalledWith({
+        where: { id: "job-a" },
+        data: {
+          status: "FAILED",
+          completedAt: expect.any(Date),
+          error: "dispatch error",
+        },
+      });
     });
   });
 
@@ -224,7 +234,36 @@ describe("scheduled-digest", () => {
       const result = await runTask();
 
       expect(prisma.job.create).toHaveBeenCalledTimes(2);
+      expect(prisma.job.create).toHaveBeenNthCalledWith(1, {
+        data: {
+          status: "QUEUED",
+          subreddits: ["sub-1", "sub-2"],
+          lookback: "24h",
+          profileId: "profile-1",
+          organizationId: "org-a",
+        },
+      });
+      expect(prisma.job.create).toHaveBeenNthCalledWith(2, {
+        data: {
+          status: "QUEUED",
+          subreddits: ["sub-3"],
+          lookback: "12h",
+          profileId: "profile-2",
+          organizationId: "org-b",
+        },
+      });
+
       expect(generateDigest.trigger).toHaveBeenCalledTimes(2);
+      expect(generateDigest.trigger).toHaveBeenNthCalledWith(
+        1,
+        { jobId: "job-p1", subredditIds: ["sub-1", "sub-2"] },
+        { idempotencyKey: "test-key" },
+      );
+      expect(generateDigest.trigger).toHaveBeenNthCalledWith(
+        2,
+        { jobId: "job-p2", subredditIds: ["sub-3"] },
+        { idempotencyKey: "test-key" },
+      );
 
       expect(result).toEqual({
         jobs: [

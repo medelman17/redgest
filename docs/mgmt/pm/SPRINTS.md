@@ -1,6 +1,52 @@
 # Redgest Sprints
 
-## Most Recent Sprint: Sprint 9 (Complete)
+## Previous Sprints
+
+### Sprint 11 (Complete)
+
+**Duration**: 2026-03-14 — 2026-03-14
+**Capacity**: 13pt (feature: 10pt, debt: 3pt)
+**Sprint Goal**: Complete Phase 4 — Search UI, Analytics Dashboard, E2E tests, and worker test debt
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Wire DAL for search operations | WS16 | 1.0 | feature | [x] |
+| Search page — full-text search with filters | WS16 | 2.0 | feature | [x] |
+| Wire DAL for analytics operations | WS17 | 1.0 | feature | [x] |
+| Enhanced subreddits page — crawl status + stats | WS17 | 1.0 | feature | [x] |
+| Dashboard page — trending topics, stats, LLM metrics | WS17 | 3.0 | feature | [x] |
+| E2E tests for Phase 4 pages | WS18 | 1.0 | feature | [x] |
+| TD-005: Worker task unit tests | debt | 2.5 | debt | [x] |
+
+**Committed**: 11.5pt | **Completed**: 11.5pt | **Velocity**: 100%
+
+**Notes**: Phase 4 completion sprint. Search page with full-text search + 4 filters (subreddit, sentiment, time range, min score). Dashboard with 4 stat cards + trending topics, LLM usage table, crawl health, recent runs. Enhanced subreddit table with 3 new columns (Posts, Digests, Next Crawl with tooltip). 36 new worker unit tests (generate-digest 17, deliver-digest 13, scheduled-digest 6). Playwright smoke + interaction tests for Search and Dashboard pages. 5 commits. TD-005 resolved.
+
+---
+
+### Sprint 10 (Complete)
+
+**Duration**: 2026-03-14 — 2026-03-14
+**Capacity**: 13pt (feature: 10.5pt, debt: 2.5pt)
+**Sprint Goal**: Ship Profiles UI and Digest Browsing — the two highest-impact missing feature areas in the web UI
+
+| Task | Stream | Points | Type | Status |
+|------|--------|--------|------|--------|
+| Wire DAL for profile operations | WS14 | 1.0 | feature | [x] |
+| Profiles page — list, create, edit, delete | WS14 | 3.0 | feature | [x] |
+| Update trigger page — profile selection | WS14 | 1.0 | feature | [x] |
+| Wire DAL for digest operations | WS15 | 1.0 | feature | [x] |
+| Digests page — list, view content, delivery status | WS15 | 3.0 | feature | [x] |
+| Enhanced history page — run detail + cancel | WS15 | 1.5 | feature | [x] |
+| TD-005: Worker task unit tests | debt | 2.5 | debt | [ ] |
+
+**Committed**: 13pt | **Completed**: 10.5pt | **Velocity**: 81%
+
+**Notes**: Phase 4 kickoff. All 6 feature tasks completed (WS14 + WS15). Profiles CRUD page, digest browsing with expandable content, delivery status badges, cancel button on history page, profile selection on trigger page. Simplify review consolidated 3 duplicated subreddit parsers into shared helpers, fixed Fragment key bug, extracted CancelForm component. 8 commits, 37 Playwright tests. TD-005 (worker unit tests) carried over — not started.
+
+---
+
+### Sprint 9 (Complete)
 
 **Duration**: 2026-03-10 — 2026-03-10
 **Capacity**: 10pt

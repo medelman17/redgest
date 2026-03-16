@@ -1,4 +1,5 @@
 import type { Config, SubredditView, RunView, DigestView, ProfileView } from "@redgest/db";
+import type { SearchResult } from "@redgest/core";
 
 /** Convert Date fields to strings for crossing the RSC → client boundary. */
 type Serialized<T> = {
@@ -89,6 +90,15 @@ export function parseSubredditList(value: unknown): SubredditListItem[] {
 export function formatSubredditNames(value: unknown): string {
   const items = parseSubredditList(value);
   return items.length > 0 ? items.map((s) => `r/${s.name}`).join(", ") : "—";
+}
+
+export type SerializedSearchResult = Serialized<SearchResult>;
+
+export function serializeSearchResult(result: SearchResult): SerializedSearchResult {
+  return {
+    ...result,
+    digestDate: result.digestDate?.toISOString() ?? null,
+  };
 }
 
 /** Shared action result type -- matches Server Action return shapes in actions.ts */

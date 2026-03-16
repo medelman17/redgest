@@ -1,7 +1,7 @@
 # Redgest Tech Debt Register
 
-**Last Updated**: 2026-03-10
-**Open**: 2 | **In Sprint**: 0 | **Resolved**: 4
+**Last Updated**: 2026-03-14
+**Open**: 1 | **In Sprint**: 0 | **Resolved**: 5
 
 ---
 
@@ -12,11 +12,6 @@
   Discovered: 2026-03-09
   Resolution: Unavoidable with current Prisma singleton pattern. Monitor for alternatives in Prisma v7+ releases. Exempt from lint rules per CLAUDE.md TypeScript Standards.
 
-- **TD-005**: Worker task files have no unit tests (medium)
-  Affected: apps/worker | Pay by: WS8 extension or next sprint touching worker
-  Discovered: 2026-03-10
-  Resolution: Add Vitest tests for generate-digest, deliver-digest, and scheduled-digest tasks. Mock Prisma, pipeline deps, and Trigger.dev SDK. Verify payload handling, error paths, and idempotency key generation.
-
 ---
 
 ## In Sprint
@@ -26,6 +21,11 @@
 ---
 
 ## Resolved
+
+- **TD-005**: Worker task files have no unit tests (medium)
+  Affected: apps/worker | Resolved: 2026-03-14
+  Resolution: 36 unit tests added across 3 test files. generate-digest (17 tests), deliver-digest (13 tests), scheduled-digest (6 tests). Mocked Prisma, pipeline deps, Trigger.dev SDK. Covers happy path, error handling, delivery dispatch, profile mode. Ref: a818b23.
+
 
 - **TD-001**: insightNotes is z.array(z.string()) in Zod but String @db.Text in Prisma (high)
   Affected: @redgest/llm, @redgest/db | Resolved: 2026-03-09

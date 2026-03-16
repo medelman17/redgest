@@ -1,7 +1,7 @@
 # Redgest Backlog
 
-**Last Updated**: 2026-03-13
-**Current Phase**: Post-Phase 3 (hardening + future)
+**Last Updated**: 2026-03-14
+**Current Phase**: 4 (Web UI Feature Parity)
 **Active Sprint**: None
 
 ---
@@ -27,7 +27,14 @@
 | 3 | WS12: Pipeline Enhancements | 4 | 4 | 0 | 0 | 0 | 100% |
 | 3 | WS13: Delivery Tracking | 3 | 3 | 0 | 0 | 0 | 100% |
 | **Total P3** | | **13** | **13** | **0** | **0** | **0** | **100%** |
-| **Grand Total** | | **65** | **65** | **0** | **0** | **0** | **100%** |
+| **Grand Total P1-3** | | **65** | **65** | **0** | **0** | **0** | **100%** |
+| 4 | WS14: Profiles UI | 3 | 3 | 0 | 0 | 0 | 100% |
+| 4 | WS15: Digest Browsing | 3 | 3 | 0 | 0 | 0 | 100% |
+| 4 | WS16: Search UI | 2 | 2 | 0 | 0 | 0 | 100% |
+| 4 | WS17: Analytics & Observability | 3 | 3 | 0 | 0 | 0 | 100% |
+| 4 | WS18: Playwright E2E | 1 | 1 | 0 | 0 | 0 | 100% |
+| **Total P4** | | **12** | **12** | **0** | **0** | **0** | **100%** |
+| **Grand Total** | | **77** | **77** | **0** | **0** | **0** | **100%** |
 
 ---
 
@@ -423,6 +430,86 @@
 | 4 | Add MCP rate limiting middleware | 2 | [ ] |
 | 5 | Sanitize Reddit content (prompt injection defense) | 2 | [x] Sprint 8 (d94dbb2) |
 | 6 | Test Prisma v7 modern mode in Trigger.dev container | 1 | [x] Sprint 9 (e9600dd) |
+
+---
+
+## Phase 4: Web UI Feature Parity
+
+### WS14: Profiles UI (5pt)
+**Deps**: WS10 (web scaffold), WS3 (CQRS — profile commands/queries exist) | **Unblocks**: Profile-based trigger
+**Why**: Digest profiles (create/edit/delete, group subreddits + schedule + delivery) are backend-complete but have zero web UI.
+
+- [x] Wire DAL for profile operations (1pt) — Sprint 10
+  Done: 2026-03-14 | Ref: cd2c945, 50a9925, f31b1af
+  Note: SerializedProfile type, DAL wrappers, Server Actions for create/update/delete.
+
+- [x] Profiles page — list, create, edit, delete (3pt) — Sprint 10
+  Done: 2026-03-14 | Ref: 4a16b61
+  Note: ProfileTable with useOptimistic, ProfileDialog (create/edit), DeleteProfileDialog. Default profile delete guard. Subreddit multi-select.
+
+- [x] Update trigger page — profile selection (1pt) — Sprint 10
+  Done: 2026-03-14 | Ref: 6a1a84f
+  Note: Profile dropdown pre-fills subreddits + lookback. Hidden profileId field sent with generateDigest.
+
+---
+
+### WS15: Digest Browsing (5pt)
+**Deps**: WS10 (web scaffold), WS3 (CQRS — digest queries exist) | **Unblocks**: Search UI
+**Why**: Users cannot browse, read, or compare generated digests from the web. History page shows runs but not digest content.
+
+- [x] Wire DAL for digest operations (1pt) — Sprint 10
+  Done: 2026-03-14 | Ref: 50a9925, f31b1af
+  Note: DAL wrappers for ListDigests, GetDeliveryStatus, CancelRun. Server Actions. SerializedDigest type.
+
+- [x] Digests page — list, view content, delivery status (3pt) — Sprint 10
+  Done: 2026-03-14 | Ref: 78f0e42
+  Note: DigestTable with expandable rows, DigestContent markdown renderer, DeliveryBadges component, delivery status fetch on expand.
+
+- [x] Enhanced history page — run detail + cancel (1pt) — Sprint 10
+  Done: 2026-03-14 | Ref: 78f0e42, 2e16f7f
+  Note: CancelForm extracted component, cancel button for QUEUED/RUNNING runs. DigestContent reuse. Simplify: shared formatSubredditNames helper.
+
+---
+
+### WS16: Search UI (3pt)
+**Deps**: WS15 (digest browsing), WS11 (search infrastructure) | **Unblocks**: —
+**Why**: Full-text and semantic search exist in backend but are only accessible via MCP tools.
+
+- [x] Wire DAL for search operations (1pt) — Sprint 11
+  Done: 2026-03-14 | Ref: 1dd6f4e
+  Note: SerializedSearchResult type, fetchSearchResults server action, DAL wrapper for SearchPosts query.
+
+- [x] Search page — full-text search with filters (2pt) — Sprint 11
+  Done: 2026-03-14 | Ref: 072e772
+  Note: SearchPanel client component with query input, 4 filters (subreddit, sentiment, time range, min score). Result cards with relevance rank, sentiment badges, match highlights via dangerouslySetInnerHTML.
+
+---
+
+### WS17: Analytics & Observability (5pt)
+**Deps**: WS10 (web scaffold), WS3 (CQRS — analytics queries exist) | **Unblocks**: —
+**Why**: Trending topics, subreddit stats, LLM metrics, and crawl health are backend-complete but invisible in the web UI.
+
+- [x] Wire DAL for analytics operations (1pt) — Sprint 11
+  Done: 2026-03-14 | Ref: 1dd6f4e
+  Note: DAL wrappers for getTrendingTopics, getLlmMetrics, getCrawlStatus. Types exported from @redgest/core.
+
+- [x] Enhanced subreddits page — crawl status + stats (1pt) — Sprint 11
+  Done: 2026-03-14 | Ref: a818b23
+  Note: 3 new columns: Posts (totalPostsFetched), Digests (totalDigestsAppearedIn), Next Crawl (Tooltip with exact date + interval).
+
+- [x] Dashboard page — trending topics, subreddit stats, LLM metrics (3pt) — Sprint 11
+  Done: 2026-03-14 | Ref: 072e772
+  Note: Home redirects to /dashboard. 4 stat cards (LLM calls, cache hit rate, active subreddits, trending topics). Panels: trending topics list, LLM usage by task table, crawl health with status dots, recent runs.
+
+---
+
+### WS18: Playwright E2E (1pt)
+**Deps**: WS14-17 | **Unblocks**: —
+**Why**: Smoke tests exist (31 passing) but no E2E coverage for new pages.
+
+- [x] E2E tests for Phase 4 pages (1pt) — Sprint 11
+  Done: 2026-03-14 | Ref: 77ab543
+  Note: Smoke tests for Search + Dashboard page headings. Interaction tests: search input/button state, dashboard stat cards + panel sections. Navigation test updated with Search + Dashboard routes.
 
 ---
 

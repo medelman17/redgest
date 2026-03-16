@@ -129,6 +129,7 @@ describe("deliver-digest task", () => {
     expect(result).toEqual({ delivered: ["email", "slack"] });
   });
 
+
   it("skips delivery when no channels configured", async () => {
     mockLoadConfig.mockReturnValue({
       DATABASE_URL: "postgres://localhost/test",

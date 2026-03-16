@@ -250,3 +250,88 @@ export async function cancelRun(
   const { execute, executeCtx } = await getOrgContexts();
   return execute("CancelRun", { jobId }, executeCtx);
 }
+
+// --- Search queries ---
+
+export async function searchPosts(params: {
+  query: string;
+  subreddit?: string;
+  since?: string;
+  sentiment?: string;
+  minScore?: number;
+  limit?: number;
+}): Promise<QueryResultMap["SearchPosts"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("SearchPosts", params, queryCtx);
+}
+
+export async function searchDigests(params: {
+  query: string;
+  subreddit?: string;
+  since?: string;
+  limit?: number;
+}): Promise<QueryResultMap["SearchDigests"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("SearchDigests", params, queryCtx);
+}
+
+export async function findSimilar(params: {
+  postId: string;
+  limit?: number;
+  subreddit?: string;
+}): Promise<QueryResultMap["FindSimilar"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("FindSimilar", params, queryCtx);
+}
+
+export async function askHistory(params: {
+  question: string;
+  limit?: number;
+  subreddit?: string;
+  since?: string;
+}): Promise<QueryResultMap["AskHistory"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("AskHistory", params, queryCtx);
+}
+
+// --- Analytics queries ---
+
+export async function getTrendingTopics(params?: {
+  limit?: number;
+  since?: string;
+  subreddit?: string;
+}): Promise<QueryResultMap["GetTrendingTopics"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("GetTrendingTopics", params ?? {}, queryCtx);
+}
+
+export async function getLlmMetrics(params?: {
+  jobId?: string;
+  limit?: number;
+}): Promise<QueryResultMap["GetLlmMetrics"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("GetLlmMetrics", params ?? {}, queryCtx);
+}
+
+export async function getSubredditStats(params?: {
+  name?: string;
+}): Promise<QueryResultMap["GetSubredditStats"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("GetSubredditStats", params ?? {}, queryCtx);
+}
+
+export async function getCrawlStatus(params?: {
+  name?: string;
+}): Promise<QueryResultMap["GetCrawlStatus"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("GetCrawlStatus", params ?? {}, queryCtx);
+}
+
+export async function comparePeriods(params: {
+  periodA: string;
+  periodB: string;
+  subreddit?: string;
+}): Promise<QueryResultMap["ComparePeriods"]> {
+  const { query, queryCtx } = await getOrgContexts();
+  return query("ComparePeriods", params, queryCtx);
+}

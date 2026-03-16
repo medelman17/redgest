@@ -1,4 +1,4 @@
-import type { DigestDeliveryData } from "./types.js";
+import type { DigestDeliveryData, FormattedDigest } from "./types.js";
 
 /**
  * Input type for buildDeliveryData.
@@ -89,5 +89,31 @@ export function buildDeliveryData(
     digestId: digest.id,
     createdAt: digest.createdAt,
     subreddits: Array.from(subredditMap.values()),
+  };
+}
+
+/**
+ * Merge LLM-generated prose with post links from DigestDeliveryData
+ * to produce the FormattedDigest consumed by email/Slack templates.
+ */
+export function buildFormattedDigest(
+  data: DigestDeliveryData,
+  prose: { headline: string; sections: Array<{ subreddit: string; body: string }> },
+): FormattedDigest {
+  return {
+    createdAt: data.createdAt,
+    headline: prose.headline,
+    sections: prose.sections.map((s) => {
+      const sub = data.subreddits.find((sub) => sub.name === s.subreddit);
+      return {
+        subreddit: s.subreddit,
+        body: s.body,
+        posts: (sub?.posts ?? []).map((p) => ({
+          title: p.title,
+          permalink: p.permalink,
+          score: p.score,
+        })),
+      };
+    }),
   };
 }

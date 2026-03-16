@@ -2,7 +2,8 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ErrorCode, RedgestError, parseDuration, type ExecuteContext } from "@redgest/core";
 import type { DeliveryChannel } from "@redgest/db";
-import { buildDeliveryData, renderDigestHtml } from "@redgest/email";
+import { buildDeliveryData, buildFormattedDigest, renderDigestHtml } from "@redgest/email";
+import { generateDeliveryProse } from "@redgest/llm";
 import { formatDigestBlocks, type SlackBlock } from "@redgest/slack";
 import type { BootstrapResult } from "./bootstrap.js";
 import { envelope, envelopeError, type ToolResult } from "./envelope.js";
@@ -795,8 +796,25 @@ export function createToolHandlers(
 
         const deliveryData = buildDeliveryData(digest);
 
+        // Map to LLM input
+        const llmInput = {
+          subreddits: deliveryData.subreddits.map((s) => ({
+            name: s.name,
+            posts: s.posts.map((p) => ({
+              title: p.title,
+              score: p.score,
+              summary: p.summary,
+              keyTakeaways: p.keyTakeaways,
+              insightNotes: p.insightNotes,
+              commentHighlights: p.commentHighlights,
+            })),
+          })),
+        };
+
         if (channel === "email") {
-          const html = await renderDigestHtml(deliveryData);
+          const { data: prose } = await generateDeliveryProse(llmInput, "email");
+          const formatted = buildFormattedDigest(deliveryData, prose);
+          const html = await renderDigestHtml(formatted);
           return envelope({
             channel: "email",
             content: html,
@@ -807,7 +825,9 @@ export function createToolHandlers(
         }
 
         // Slack channel
-        const blocks: SlackBlock[] = formatDigestBlocks(deliveryData);
+        const { data: slackProse } = await generateDeliveryProse(llmInput, "slack");
+        const slackFormatted = buildFormattedDigest(deliveryData, slackProse);
+        const blocks: SlackBlock[] = formatDigestBlocks(slackFormatted);
         const SLACK_BLOCK_LIMIT = 50;
         const SLACK_TEXT_LIMIT = 3000;
         const truncationWarnings: string[] = [];

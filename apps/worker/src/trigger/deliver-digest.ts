@@ -7,8 +7,10 @@ import {
   type DeliveryTransactionClient,
 } from "@redgest/core";
 import { prisma } from "@redgest/db";
-import { sendDigestEmail, buildDeliveryData } from "@redgest/email";
+import { sendDigestEmail, buildDeliveryData, buildFormattedDigest } from "@redgest/email";
 import { sendDigestSlack } from "@redgest/slack";
+import { generateDeliveryProse } from "@redgest/llm";
+import type { DeliveryDigestInput } from "@redgest/llm";
 
 export const deliverDigest = task({
   id: "deliver-digest",
@@ -35,6 +37,21 @@ export const deliverDigest = task({
 
     const deliveryData = buildDeliveryData(digest);
 
+    // Map to LLM input (drop fields the LLM doesn't need)
+    const llmInput: DeliveryDigestInput = {
+      subreddits: deliveryData.subreddits.map((s) => ({
+        name: s.name,
+        posts: s.posts.map((p) => ({
+          title: p.title,
+          score: p.score,
+          summary: p.summary,
+          keyTakeaways: p.keyTakeaways,
+          insightNotes: p.insightNotes,
+          commentHighlights: p.commentHighlights,
+        })),
+      })),
+    };
+
     // Dispatch to configured channels
     const channels: Array<{
       name: string;
@@ -47,8 +64,11 @@ export const deliverDigest = task({
       channels.push({
         name: "email",
         type: "EMAIL",
-        send: () =>
-          sendDigestEmail(deliveryData, DELIVERY_EMAIL, RESEND_API_KEY),
+        send: async () => {
+          const { data: prose } = await generateDeliveryProse(llmInput, "email");
+          const formatted = buildFormattedDigest(deliveryData, prose);
+          return sendDigestEmail(formatted, DELIVERY_EMAIL, RESEND_API_KEY);
+        },
       });
     }
 
@@ -57,7 +77,11 @@ export const deliverDigest = task({
       channels.push({
         name: "slack",
         type: "SLACK",
-        send: () => sendDigestSlack(deliveryData, webhookUrl),
+        send: async () => {
+          const { data: prose } = await generateDeliveryProse(llmInput, "slack");
+          const formatted = buildFormattedDigest(deliveryData, prose);
+          return sendDigestSlack(formatted, webhookUrl);
+        },
       });
     }
 

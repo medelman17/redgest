@@ -8,6 +8,7 @@ import {
   serializeDigest,
   serializeRun,
   serializeProfile,
+  serializeSearchResult,
   type ActionResult,
 } from "@/lib/types";
 
@@ -342,3 +343,18 @@ export async function fetchDigests(limit?: number) {
 export async function fetchDeliveryStatus(digestId: string) {
   return dal.getDeliveryStatus(digestId);
 }
+
+// --- Search actions (for client-side use) ---
+
+export async function fetchSearchResults(params: {
+  query: string;
+  subreddit?: string;
+  since?: string;
+  sentiment?: string;
+  minScore?: number;
+  limit?: number;
+}) {
+  const results = await dal.searchPosts(params);
+  return results.map(serializeSearchResult);
+}
+

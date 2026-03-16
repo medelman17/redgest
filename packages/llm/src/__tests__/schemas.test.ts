@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TriageResultSchema, PostSummarySchema } from "../schemas.js";
+import { TriageResultSchema, PostSummarySchema, DeliveryProseSchema } from "../schemas.js";
 
 describe("TriageResultSchema", () => {
   it("validates correct triage result", () => {
@@ -128,6 +128,72 @@ describe("PostSummarySchema", () => {
       commentHighlights: [{ insight: "Good point", score: 10 }],
     };
     const result = PostSummarySchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("DeliveryProseSchema", () => {
+  const validProse = {
+    headline: "TypeScript 6.0 dominates this week's digest with massive performance improvements across the board.",
+    sections: [
+      {
+        subreddit: "typescript",
+        body: "The TypeScript 6.0 release brought 50% faster compilation and improved type inference, generating significant community excitement.",
+      },
+      {
+        subreddit: "golang",
+        body: "Go 2.0's generics deep dive revealed practical patterns for type constraints that mirror TypeScript's approach.",
+      },
+    ],
+  };
+
+  it("validates complete delivery prose", () => {
+    const result = DeliveryProseSchema.safeParse(validProse);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.headline).toContain("TypeScript");
+      expect(result.data.sections).toHaveLength(2);
+      const first = result.data.sections[0];
+      if (!first) throw new Error("Expected at least one section");
+      expect(first.subreddit).toBe("typescript");
+      expect(first.body).toContain("compilation");
+    }
+  });
+
+  it("accepts empty sections array", () => {
+    const withEmpty = { headline: "Nothing notable this period.", sections: [] };
+    const result = DeliveryProseSchema.safeParse(withEmpty);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.sections).toHaveLength(0);
+    }
+  });
+
+  it("rejects missing headline", () => {
+    const invalid = {
+      sections: [
+        { subreddit: "typescript", body: "Some content." },
+      ],
+    };
+    const result = DeliveryProseSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects section without subreddit", () => {
+    const invalid = {
+      headline: "A headline.",
+      sections: [{ body: "Some content without subreddit." }],
+    };
+    const result = DeliveryProseSchema.safeParse(invalid);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects section without body", () => {
+    const invalid = {
+      headline: "A headline.",
+      sections: [{ subreddit: "typescript" }],
+    };
+    const result = DeliveryProseSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
 });

@@ -1,25 +1,22 @@
 import { describe, it, expect } from "vitest";
-import type { DigestDeliveryData } from "@redgest/email";
+import type { FormattedDigest } from "@redgest/email";
 import { formatDigestBlocks } from "../format.js";
 
 function makeDigest(
-  overrides?: Partial<DigestDeliveryData>,
-): DigestDeliveryData {
+  overrides?: Partial<FormattedDigest>,
+): FormattedDigest {
   return {
-    digestId: "digest-001",
     createdAt: new Date("2026-03-10T12:00:00Z"),
-    subreddits: [
+    headline: "Test headline.",
+    sections: [
       {
-        name: "typescript",
+        subreddit: "typescript",
+        body: "Test body prose.",
         posts: [
           {
             title: "Test Post",
             permalink: "/r/typescript/comments/abc/test",
             score: 100,
-            summary: "A test post summary.",
-            keyTakeaways: ["takeaway one", "takeaway two"],
-            insightNotes: "notes",
-            commentHighlights: [],
           },
         ],
       },
@@ -41,8 +38,12 @@ describe("formatDigestBlocks", () => {
 
   it("produces divider and subreddit section blocks", () => {
     const blocks = formatDigestBlocks(makeDigest());
-    const divider = blocks[1];
-    const subSection = blocks[2];
+    const headline = blocks[1];
+    const divider = blocks[2];
+    const subSection = blocks[3];
+    expect(headline).toBeDefined();
+    expect(headline?.type).toBe("section");
+    expect(headline?.text?.text).toBe("Test headline.");
     expect(divider).toBeDefined();
     expect(divider?.type).toBe("divider");
     expect(subSection).toBeDefined();
@@ -51,128 +52,86 @@ describe("formatDigestBlocks", () => {
     expect(subSection?.text?.type).toBe("mrkdwn");
   });
 
-  it("formats post with mrkdwn link, score, and summary", () => {
+  it("formats body prose block and context block with post links", () => {
     const blocks = formatDigestBlocks(makeDigest());
-    const postBlock = blocks[3];
-    expect(postBlock).toBeDefined();
-    expect(postBlock?.type).toBe("section");
-    expect(postBlock?.text?.type).toBe("mrkdwn");
-    expect(postBlock?.text?.text).toContain(
-      "*<https://reddit.com/r/typescript/comments/abc/test|Test Post>*",
+    const bodyBlock = blocks[4];
+    expect(bodyBlock).toBeDefined();
+    expect(bodyBlock?.type).toBe("section");
+    expect(bodyBlock?.text?.type).toBe("mrkdwn");
+    expect(bodyBlock?.text?.text).toBe("Test body prose.");
+
+    const contextBlock = blocks[5];
+    expect(contextBlock).toBeDefined();
+    expect(contextBlock?.type).toBe("context");
+    expect(contextBlock?.elements).toBeDefined();
+    const linkText = contextBlock?.elements?.[0]?.text ?? "";
+    expect(linkText).toContain(
+      "<https://reddit.com/r/typescript/comments/abc/test|Test Post>",
     );
-    expect(postBlock?.text?.text).toContain("(100 pts)");
-    expect(postBlock?.text?.text).toContain("A test post summary.");
-  });
-
-  it("formats key takeaways as bullet list", () => {
-    const blocks = formatDigestBlocks(makeDigest());
-    const takeawayBlock = blocks[4];
-    expect(takeawayBlock).toBeDefined();
-    expect(takeawayBlock?.type).toBe("section");
-    expect(takeawayBlock?.text?.text).toContain("*Key Takeaways:*");
-    expect(takeawayBlock?.text?.text).toContain("\u2022 takeaway one");
-    expect(takeawayBlock?.text?.text).toContain("\u2022 takeaway two");
-  });
-
-  it("skips key takeaways block when array is empty", () => {
-    const digest = makeDigest({
-      subreddits: [
-        {
-          name: "typescript",
-          posts: [
-            {
-              title: "No Takeaways",
-              permalink: "/r/typescript/comments/xyz/no-takeaways",
-              score: 50,
-              summary: "No takeaways here.",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
-            },
-          ],
-        },
-      ],
-    });
-    const blocks = formatDigestBlocks(digest);
-    // header, divider, sub section, post section — no takeaway block
-    expect(blocks).toHaveLength(4);
-    const types = blocks.map((b) => b.type);
-    expect(types).toEqual(["header", "divider", "section", "section"]);
+    expect(linkText).toContain("(100 pts)");
   });
 
   it("skips subreddits with no posts", () => {
     const digest = makeDigest({
-      subreddits: [
-        { name: "empty", posts: [] },
+      sections: [
+        { subreddit: "empty", body: "Nothing here.", posts: [] },
         {
-          name: "notempty",
+          subreddit: "notempty",
+          body: "Some content.",
           posts: [
             {
               title: "Post",
               permalink: "/r/notempty/comments/1/post",
               score: 10,
-              summary: "Summary.",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
             },
           ],
         },
       ],
     });
     const blocks = formatDigestBlocks(digest);
-    // header, divider, sub section (notempty), post section — no "empty" sub
-    expect(blocks).toHaveLength(4);
-    const subBlock = blocks[2];
+    // header (1) + headline (1) + divider (1) + sub section (1) + body (1) + context (1) = 6
+    expect(blocks).toHaveLength(6);
+    const subBlock = blocks[3];
     expect(subBlock?.text?.text).toBe("*r/notempty*");
   });
 
   it("handles multiple subreddits with multiple posts", () => {
     const digest = makeDigest({
-      subreddits: [
+      sections: [
         {
-          name: "sub1",
+          subreddit: "sub1",
+          body: "Sub1 body.",
           posts: [
             {
               title: "P1",
               permalink: "/r/sub1/p1",
               score: 1,
-              summary: "s1",
-              keyTakeaways: ["t1"],
-              insightNotes: "",
-              commentHighlights: [],
             },
             {
               title: "P2",
               permalink: "/r/sub1/p2",
               score: 2,
-              summary: "s2",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
             },
           ],
         },
         {
-          name: "sub2",
+          subreddit: "sub2",
+          body: "Sub2 body.",
           posts: [
             {
               title: "P3",
               permalink: "/r/sub2/p3",
               score: 3,
-              summary: "s3",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
             },
           ],
         },
       ],
     });
     const blocks = formatDigestBlocks(digest);
-    // header
-    // divider, sub1 section, P1 section, P1 takeaways, P2 section
-    // divider, sub2 section, P3 section
-    expect(blocks).toHaveLength(9);
+    // header (1) + headline (1)
+    // sub1: divider (1) + sub section (1) + body (1) + context (1) = 4
+    // sub2: divider (1) + sub section (1) + body (1) + context (1) = 4
+    // total = 2 + 4 + 4 = 10
+    expect(blocks).toHaveLength(10);
   });
 });

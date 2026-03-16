@@ -7,13 +7,13 @@ AI SDK wrapper with structured output, caching, and observability.
 Generate functions are composed in layers:
 
 ```
-generateTriageResult() / generatePostSummary()
+generateTriageResult() / generatePostSummary() / generateDeliveryProse()
   → withCache()           # Redis lookup/store (graceful fallback)
     → generateWithLogging()  # AI SDK call + LlmCallLog capture
       → generateText() + Output.object()  # Vercel AI SDK v6
 ```
 
-Both return `GenerateResult<T>` — combines output data with observability log.
+All return `GenerateResult<T>` — combines output data with observability log.
 
 ## Key Types
 
@@ -34,8 +34,8 @@ interface LlmCallLog {
 }
 ```
 
-**Input types:** `CandidatePost` (11 fields), `SummarizationInput` (post + comments + insight prompts)
-**Output types:** `TriageResult` (selectedPosts with relevanceScore + rationale), `PostSummary` (9 fields including keyTakeaways, commentHighlights, sentiment)
+**Input types:** `CandidatePost` (11 fields), `SummarizationInput` (post + comments + insight prompts), `DeliveryDigestInput` (subreddits with post summaries)
+**Output types:** `TriageResult` (selectedPosts with relevanceScore + rationale), `PostSummary` (9 fields including keyTakeaways, commentHighlights, sentiment), `DeliveryProse` (headline + per-subreddit sections with body)
 
 ## Files
 
@@ -46,9 +46,12 @@ interface LlmCallLog {
 | `cache.ts` | `withCache()` — lazy Redis init, SHA-256 content-hash keys, TTL 2h triage / 7d summary |
 | `generate-triage.ts` | `generateTriageResult()` — ranked post selection |
 | `generate-summary.ts` | `generatePostSummary()` — structured post summary |
+| `generate-delivery-prose.ts` | `generateDeliveryProse()` — per-channel editorial prose for delivery |
+| `generate-embedding.ts` | `generateEmbedding()` — vector embeddings for similarity search |
 | `schemas.ts` | Zod schemas with `.describe()` for `Output.object()` |
 | `prompts/triage.ts` | System + user prompt builders for triage pass |
 | `prompts/summarization.ts` | System + user prompt builders for summary pass |
+| `prompts/delivery.ts` | System + user prompt builders for delivery prose (email vs Slack) |
 | `prompts/sanitize.ts` | `sanitizeForPrompt()` — escapes reserved XML tags |
 
 ## Caching

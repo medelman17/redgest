@@ -1,33 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@react-email/components";
 import { DigestEmail } from "../template.js";
-import type { DigestDeliveryData } from "../types.js";
+import type { FormattedDigest } from "../types.js";
 
-function makeDigest(overrides?: Partial<DigestDeliveryData>): DigestDeliveryData {
+function makeDigest(overrides?: Partial<FormattedDigest>): FormattedDigest {
   return {
-    digestId: "digest-001",
     createdAt: new Date("2026-03-10T12:00:00Z"),
-    subreddits: [
+    headline:
+      "TypeScript 6.0 lands with major type inference improvements and faster compilation.",
+    sections: [
       {
-        name: "typescript",
+        subreddit: "typescript",
+        body: "The community is buzzing about TypeScript 6.0, which brings new control flow analysis and faster compilation. Several developers noted its impact on monorepo tooling.",
         posts: [
           {
             title: "TypeScript 6.0 Released",
-            permalink: "/r/typescript/comments/abc123/typescript_60_released",
+            permalink:
+              "/r/typescript/comments/abc123/typescript_60_released",
             score: 542,
-            summary: "TypeScript 6.0 brings major improvements to type inference.",
-            keyTakeaways: [
-              "New control flow analysis",
-              "Faster compilation",
-            ],
-            insightNotes: "Relevant to our project migration timeline.",
-            commentHighlights: [
-              {
-                author: "devguru",
-                insight: "The new inference is a game changer for monorepos.",
-                score: 128,
-              },
-            ],
           },
         ],
       },
@@ -71,54 +61,53 @@ describe("DigestEmail template", () => {
     );
   });
 
-  it("contains key takeaways", async () => {
+  it("contains the headline", async () => {
     const digest = makeDigest();
     const html = await render(<DigestEmail digest={digest} />);
-    expect(html).toContain("New control flow analysis");
-    expect(html).toContain("Faster compilation");
+    expect(html).toContain(
+      "TypeScript 6.0 lands with major type inference improvements",
+    );
   });
 
-  it("contains insight notes", async () => {
+  it("contains per-subreddit prose body", async () => {
     const digest = makeDigest();
     const html = await render(<DigestEmail digest={digest} />);
-    expect(html).toContain("Relevant to our project migration timeline.");
+    expect(html).toContain("community is buzzing about TypeScript 6.0");
+    expect(html).toContain("new control flow analysis and faster compilation");
   });
 
-  it("contains comment highlights", async () => {
+  it("contains post links with scores", async () => {
     const digest = makeDigest();
     const html = await render(<DigestEmail digest={digest} />);
-    expect(html).toContain("devguru");
-    expect(html).toContain("game changer for monorepos");
+    expect(html).toContain("TypeScript 6.0 Released");
+    expect(html).toContain("542");
+    expect(html).toContain(
+      "https://reddit.com/r/typescript/comments/abc123/typescript_60_released",
+    );
   });
 
   it("renders multiple subreddits", async () => {
     const digest = makeDigest({
-      subreddits: [
+      sections: [
         {
-          name: "typescript",
+          subreddit: "typescript",
+          body: "TypeScript news and updates.",
           posts: [
             {
               title: "Post A",
               permalink: "/r/typescript/comments/a/post_a",
               score: 10,
-              summary: "Summary A",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
             },
           ],
         },
         {
-          name: "rust",
+          subreddit: "rust",
+          body: "Rust ecosystem developments.",
           posts: [
             {
               title: "Post B",
               permalink: "/r/rust/comments/b/post_b",
               score: 20,
-              summary: "Summary B",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
             },
           ],
         },
@@ -131,27 +120,18 @@ describe("DigestEmail template", () => {
     expect(html).toContain("Post B");
   });
 
-  it("handles empty key takeaways gracefully", async () => {
+  it("handles empty posts array gracefully", async () => {
     const digest = makeDigest({
-      subreddits: [
+      sections: [
         {
-          name: "test",
-          posts: [
-            {
-              title: "Minimal Post",
-              permalink: "/r/test/comments/x/minimal",
-              score: 1,
-              summary: "A minimal post.",
-              keyTakeaways: [],
-              insightNotes: "",
-              commentHighlights: [],
-            },
-          ],
+          subreddit: "test",
+          body: "A section with no post links.",
+          posts: [],
         },
       ],
     });
     const html = await render(<DigestEmail digest={digest} />);
-    expect(html).toContain("Minimal Post");
-    expect(html).not.toContain("Key Takeaways");
+    expect(html).toContain("test");
+    expect(html).toContain("A section with no post links.");
   });
 });

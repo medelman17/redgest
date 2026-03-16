@@ -1,10 +1,12 @@
 # Trigger.dev Worker
 
-Task definitions for Redgest's async job queue. Three tasks in `src/trigger/`:
+Task definitions for Redgest's async job queue. Five tasks in `src/trigger/`:
 
 - **`generate-digest`** — Wraps `runDigestPipeline()`, triggers `deliver-digest` on completion. Retry: 2.
-- **`deliver-digest`** — Loads digest, dispatches to email/Slack via `Promise.allSettled`. Retry: 3.
+- **`deliver-digest`** — Loads digest, generates per-channel LLM editorial prose via `generateDeliveryProse()`, merges with `buildFormattedDigest()`, dispatches to email/Slack via `Promise.allSettled`. Retry: 3.
 - **`scheduled-digest`** — Cron (`DIGEST_CRON`, default `0 7 * * *`), creates Job, triggers `generate-digest`.
+- **`crawl-subreddit`** — Crawls a single subreddit via `runCrawl()`. Creates Reddit client (authenticated or public fallback), content source, and event bus. Retry: 3.
+- **`scheduled-crawl`** — Cron (`*/5 * * * *`), finds subreddits where `nextCrawlAt <= now()`, triggers `crawl-subreddit` for each with idempotency key.
 
 ## Project-Specific Patterns
 
@@ -18,7 +20,7 @@ Task definitions for Redgest's async job queue. Three tasks in `src/trigger/`:
 
 - `tsconfig.json` needs `"jsx": "react-jsx"` — transitive `.tsx` imports from `@redgest/email`
 - `trigger.config.ts` has a hardcoded project ID (TD-006) — extract to env var when deploying to multiple environments
-- No unit tests yet (TD-005) — mock Prisma, pipeline deps, and SDK for testing
+- 36 unit tests across 3 test files (TD-005 resolved) — mocks for Prisma, pipeline deps, SDK, and LLM prose generation
 
 ---
 

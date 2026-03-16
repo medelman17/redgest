@@ -12,6 +12,7 @@ export interface ModelConfig {
 const DEFAULT_MODELS: Record<string, ModelConfig> = {
   triage: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
   summarize: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
+  delivery: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
 };
 
 export function getModel(
