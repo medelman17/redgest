@@ -152,7 +152,9 @@ export function serializeEvent(event: DomainEvent): string {
 
 export function deserializeEvent(json: string): DomainEvent {
   return JSON.parse(json, (key, value) => {
-    if (key === "occurredAt" && typeof value === "string") return new Date(value);
+    if (key === "occurredAt" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+      return new Date(value);
+    }
     return value;
   });
 }
