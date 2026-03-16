@@ -19,4 +19,5 @@ coverage/
 .superpowers/
 .worktrees/
 .mcp.json
-test-results/.last-run.json
+test-results/
+playwright-report/
