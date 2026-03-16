@@ -3,7 +3,9 @@ import "server-only";
 import { loadConfig } from "@redgest/config";
 import { prisma } from "@redgest/db";
 import {
-  DomainEventBus,
+  createEventBus,
+  type EventBus,
+  type EventBusTransport,
   createExecute,
   createQuery,
   createSearchService,
@@ -29,7 +31,7 @@ interface CachedInfra {
   execute: ReturnType<typeof createExecute>;
   query: ReturnType<typeof createQuery>;
   db: typeof prisma;
-  eventBus: DomainEventBus;
+  eventBus: EventBus;
   searchService: SearchService;
 }
 
@@ -44,7 +46,14 @@ async function getInfra(): Promise<CachedInfra> {
 
   const config = loadConfig();
   const db = prisma;
-  const eventBus = new DomainEventBus();
+  const eventBus = await createEventBus({
+    transport: config.EVENT_BUS_TRANSPORT as EventBusTransport,
+    databaseUrl: config.DATABASE_URL,
+    redisUrl: config.REDIS_URL,
+  });
+
+  // Cleanup external transport connections on process exit
+  process.on("beforeExit", () => void eventBus.close());
 
   const execute = createExecute(commandHandlers);
   const query = createQuery(queryHandlers);
